@@ -10,7 +10,7 @@ import (
 	"github.com/sjnam/dlx"
 )
 
-func enocde(x int) byte {
+func encode(x int) byte {
 	if x < 10 {
 		return byte('0') + byte(x)
 	} else if x < 36 {
@@ -28,7 +28,9 @@ func queenDLX(n int) io.Reader {
 
 	r, w := io.Pipe()
 	go func() {
-		defer w.Close()
+		defer func() {
+			_ = w.Close()
+		}()
 
 		for j := 0; j < n; j++ {
 			t := n + j
@@ -36,23 +38,23 @@ func queenDLX(n int) io.Reader {
 				t = n - 1 - j
 			}
 			t = t >> 1
-			fmt.Fprintf(w, "r%c c%c ", enocde(t), enocde(t))
+			fmt.Fprintf(w, "r%c c%c ", encode(t), encode(t))
 		}
 		fmt.Fprint(w, "|")
 		for j := 1; j < nn; j++ {
-			fmt.Fprintf(w, " a%c b%c", enocde(j), enocde(j))
+			fmt.Fprintf(w, " a%c b%c", encode(j), encode(j))
 		}
 		fmt.Fprintln(w)
 		for j := 0; j < n; j++ {
 			for k := 0; k < n; k++ {
-				fmt.Fprintf(w, "r%c c%c", enocde(j), enocde(k))
+				fmt.Fprintf(w, "r%c c%c", encode(j), encode(k))
 				t := j + k
 				if t != 0 && t < nn {
-					fmt.Fprintf(w, " a%c", enocde(t))
+					fmt.Fprintf(w, " a%c", encode(t))
 				}
 				t = n - 1 - j + k
 				if t != 0 && t < nn {
-					fmt.Fprintf(w, " b%c", enocde(t))
+					fmt.Fprintf(w, " b%c", encode(t))
 				}
 				fmt.Fprintln(w)
 			}

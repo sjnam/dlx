@@ -54,7 +54,9 @@ func sudokuDLX(rd io.Reader) io.Reader {
 
 	r, w := io.Pipe()
 	go func() {
-		defer w.Close()
+		defer func() {
+			_ = w.Close()
+		}()
 
 		for j := 0; j < 9; j++ {
 			for k := 0; k < 9; k++ {
