@@ -1,5 +1,5 @@
 # go-dlx
-Dancing Links with Go
+Exact covering with colors with Go
 
 ## example
 
