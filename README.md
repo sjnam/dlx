@@ -43,6 +43,27 @@ $ go run main.go < s17.dlx
 ````
 
 ### zebra puzzle
+Five people, from five different countries, have five different occupations,
+own five different pets, drink five different beverages, and live in a row of
+five different colored houses.
+
+- The Englishman lives in a red house.
+- The painter comes from Japan.
+- The yellow house hosts a diplomat.
+- The coffee-lover's house is green.
+- The Norwegian's house is hte leftmost.
+- The dog's owner is from Spain.
+- The milk drinker lives in the middle house.
+- The violinist drinks orange juice.
+- The white house is just left of the green one.
+- The Ukrainian drinks tea.
+- The Norwegian lives next to the blue house.
+- The sculptor breeds snails.
+- The horse lives next to the diplomat.
+- The nurse lives next to the fox.
+
+Who trains the zebra, and who prefers to drink just plain water?
+
 ````
 $ go run examples/zebra/main.go
 water       tea         milk        orange      coffee
@@ -53,6 +74,8 @@ fox         horse       snail       dog         zebra
 ````
 
 ### pentominoes
+- 12 pieces: O P Q R S T U V W X Y Z
+
 ````
 $ cd example/pentominoes
 $ go run main.go 3 20
