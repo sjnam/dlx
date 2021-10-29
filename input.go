@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"strconv"
 	"strings"
 )
+
+const MaxNameLength = 32
 
 func (x *XCC) inputItemNames(line string) error {
 	for _, itm := range strings.Fields(line) {
@@ -23,7 +26,7 @@ func (x *XCC) inputItemNames(line string) error {
 		}
 		x.cl[x.lastItm].name = itm
 
-		if len(itm) > 8 {
+		if len(itm) > MaxNameLength {
 			return fmt.Errorf("item name too long")
 		}
 
@@ -70,7 +73,7 @@ func (x *XCC) inputOptions(line string) error {
 	)
 
 	for _, opt := range strings.Fields(line) {
-		if len(opt) > 8 {
+		if len(opt) > MaxNameLength {
 			return fmt.Errorf("item name too long")
 		}
 		owc := strings.Split(opt, ":")
@@ -113,10 +116,9 @@ func (x *XCC) inputOptions(line string) error {
 		if len(owc) == 1 {
 			x.nd[x.lastNode].color = 0
 		} else if k >= x.second {
-			if len(owc[1]) != 1 {
-				return fmt.Errorf("color must be a single character")
-			}
-			x.nd[x.lastNode].color = int(owc[1][0])
+			c, _ := strconv.ParseInt(owc[1], 36, 0)
+			x.nd[x.lastNode].color = int(c)
+			x.nd[x.lastNode].scolor = ":" + owc[1]
 		} else {
 			return fmt.Errorf("primary item must be uncolored")
 		}

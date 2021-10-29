@@ -14,9 +14,10 @@ const (
 )
 
 type node struct {
-	up, down int // predecessor and successor in item list
-	itm      int // the item containing this node
-	color    int // the color specified by this node, if any
+	up, down int    // predecessor and successor in item list
+	itm      int    // the item containing this node
+	color    int    // the color specified by this node, if any
+	scolor   string // color name
 }
 
 type item struct {

@@ -13,7 +13,7 @@ func (x *XCC) visitSolution(level int) [][]string {
 		var opt []string
 		p := x.choice[k]
 		for q := p; ; {
-			opt = append(opt, x.cl[x.nd[q].itm].name)
+			opt = append(opt, x.cl[x.nd[q].itm].name+x.nd[q].scolor)
 			q++
 			if x.nd[q].itm <= 0 {
 				q = x.nd[q].up
