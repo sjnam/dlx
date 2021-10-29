@@ -19,8 +19,7 @@ func main() {
 	nr, _ := strconv.Atoi(args[1])
 	nc, _ := strconv.Atoi(args[2])
 
-	fname := fmt.Sprintf("%dx%d.dlx", nr, nc)
-	fp, err := os.Open(fname)
+	fp, err := os.Open(fmt.Sprintf("%dx%d.dlx", nr, nc))
 	if err != nil {
 		fmt.Println(err)
 		return
