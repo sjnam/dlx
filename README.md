@@ -78,44 +78,36 @@ fox         horse       snail       dog         zebra
 
 ````
 $ cd example/pentominoes
-$ go run main.go 3 20
+$ go run main.go 8 8
 Solution: 1
-U U X O O O O O Z W W T T T R Q Q Q Q V
-U X X X P P Z Z Z Y W W T R R R S S Q V
-U U X P P P Z Y Y Y Y W T R S S S V V V
+P P P W U U U Y 
+P P W W U T U Y 
+Z W W T T T Y Y 
+Z Z Z     T X Y 
+R R Z     X X X 
+V R R S S S X Q 
+V R S S Q Q Q Q 
+V V V O O O O O 
 
 Solution: 2
-U U X O O O O O S S S R T W Y Y Y Y Z V
-U X X X P P Q S S R R R T W W Y Z Z Z V
-U U X P P P Q Q Q Q R T T T W W Z V V V
+W P P P U U U Y 
+W W P P U T U Y 
+Z W W T T T Y Y 
+Z Z Z     T X Y 
+R R Z     X X X 
+V R R S S S X Q 
+V R S S Q Q Q Q 
+V V V O O O O O 
 
 Solution: 3
-U U X P P P Q Q Q Q R T T T W W Z V V V
-U X X X P P Q S S R R R T W W Y Z Z Z V
-U U X O O O O O S S S R T W Y Y Y Y Z V
+V V V Z W W Q Q 
+V Z Z Z R W W Q 
+V Z P R R R W Q 
+O P P     R X Q 
+O P P     X X X 
+O U U S S S X T 
+O U S S Y T T T 
+O U U Y Y Y Y T 
 
-Solution: 4
-U U X P P P Z Y Y Y Y W T R S S S V V V
-U X X X P P Z Z Z Y W W T R R R S S Q V
-U U X O O O O O Z W W T T T R Q Q Q Q V
-
-Solution: 5
-V Z Y Y Y Y W T R S S S O O O O O X U U
-V Z Z Z Y W W T R R R S S Q P P X X X U
-V V V Z W W T T T R Q Q Q Q P P P X U U
-
-Solution: 6
-V Q Q Q Q R T T T W W Z O O O O O X U U
-V Q S S R R R T W W Y Z Z Z P P X X X U
-V V V S S S R T W Y Y Y Y Z P P P X U U
-
-Solution: 7
-V V V S S S R T W Y Y Y Y Z P P P X U U
-V Q S S R R R T W W Y Z Z Z P P X X X U
-V Q Q Q Q R T T T W W Z O O O O O X U U
-
-Solution: 8
-V V V Z W W T T T R Q Q Q Q P P P X U U
-V Z Z Z Y W W T R R R S S Q P P X X X U
-V Z Y Y Y Y W T R S S S O O O O O X U U
+...
 ````
