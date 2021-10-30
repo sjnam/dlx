@@ -6,7 +6,9 @@ import (
 	"sort"
 )
 
-var maxCount uint64 = 0xffffffffffffffff
+const infty = int(^uint(0) >> 1)
+
+var maxCount int = infty
 
 func (x *XCC) visitSolution(level int) [][]string {
 	var solution [][]string
@@ -187,7 +189,7 @@ func (x *XCC) Dance() <-chan [][]string {
 
 			count++
 			ch <- x.visitSolution(level)
-			if uint64(count) >= maxCount {
+			if count >= maxCount {
 				goto done
 			}
 			goto recover

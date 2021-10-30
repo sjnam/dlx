@@ -115,6 +115,7 @@ func (x *XCC) inputOptions(line string) error {
 
 		if len(owc) == 1 {
 			x.nd[x.lastNode].color = 0
+			x.nd[x.lastNode].scolor = ""
 		} else if k >= x.second {
 			c, _ := strconv.ParseInt(owc[1], 36, 0)
 			x.nd[x.lastNode].color = int(c)
