@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/sjnam/dlx"
@@ -116,6 +117,7 @@ func main() {
 		i++
 		fmt.Printf("%d:\n", i)
 		for _, opt := range sol {
+			sort.Strings(opt)
 			board[opt[2][1]-'0'][opt[2][2]-'0'] = string(opt[3][2])
 		}
 		for i, row := range board {

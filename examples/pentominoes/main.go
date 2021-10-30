@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 
 	"github.com/sjnam/dlx"
@@ -40,6 +41,7 @@ func main() {
 		i++
 		fmt.Printf("Solution: %d\n", i)
 		for _, opt := range sol {
+			sort.Strings(opt)
 			c := opt[len(opt)-1]
 			for j := 0; j < len(opt)-1; j++ {
 				x, _ := strconv.ParseInt(string(opt[j][0]), 36, 0)

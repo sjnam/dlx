@@ -3,7 +3,6 @@ package dlx
 import (
 	"log"
 	"math/rand"
-	"sort"
 )
 
 func (d *DLX) visitSolution(level int) [][]string {
@@ -21,7 +20,6 @@ func (d *DLX) visitSolution(level int) [][]string {
 				break
 			}
 		}
-		sort.Strings(opt)
 		solution = append(solution, opt)
 	}
 	return solution
