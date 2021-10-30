@@ -12,11 +12,11 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/sjnam/dlx"
 )
 
 func main() {
+	// rd is an input of 'io.Reader' type.
 	d, err := dlx.NewDLX(rd /*io.Reader*/)
 	if err != nil {
 		fmt.Println(err)
