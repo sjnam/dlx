@@ -6,6 +6,31 @@ http://www-cs-faculty.stanford.edu/~knuth/fasc5c.ps.gz
 
 ## Examples
 
+### Usage
+````go
+package main
+
+import (
+	"fmt"
+
+	"github.com/sjnam/dlx"
+)
+
+func main() {
+	d, err := dlx.NewDLX(rd /*io.Reader*/)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	for sol := range d.Dance() {
+		for _, opt := range sol {
+			fmt.Println(opt)
+		}
+	}
+}
+````
+
 ### Nqueen
 ````
 $ go run examples/queen/main.go 4
