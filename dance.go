@@ -8,7 +8,7 @@ import (
 
 const infty = int(^uint(0) >> 1)
 
-var maxCount int = infty
+var maxCount = infty
 
 func (x *XCC) visitSolution(level int) [][]string {
 	var solution [][]string
