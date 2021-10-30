@@ -109,8 +109,7 @@ const dlxInput = `
 `
 
 func main() {
-	xcc := dlx.NewXCC()
-	err := xcc.InputMatrix(strings.NewReader(dlxInput))
+	d, err := dlx.NewDLX(strings.NewReader(dlxInput))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -124,7 +123,7 @@ func main() {
 		'C': make([]string, 5),
 	}
 
-	for sol := range xcc.Dance() {
+	for sol := range d.Dance() {
 		for _, opt := range sol {
 			for i := 1; i < len(opt); i++ {
 				kv := strings.Split(opt[i], ":")

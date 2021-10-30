@@ -73,15 +73,14 @@ func main() {
 	sn := os.Args[1]
 	n, _ := strconv.Atoi(sn)
 
-	xcc := dlx.NewXCC()
-	err := xcc.InputMatrix(queenDLX(n))
+	d, err := dlx.NewDLX(queenDLX(n))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	i := 0
-	for sol := range xcc.Dance() {
+	for sol := range d.Dance() {
 		i++
 		brd := make([][]string, n)
 		for r := 0; r < n; r++ {

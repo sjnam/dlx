@@ -1,11 +1,14 @@
 package dlx
 
 import (
+	"io"
 	"math/rand"
 	"time"
 )
 
 const (
+	infty    = int(^uint(0) >> 1)
+	maxCount = infty
 	root     = 0             // cl[root] is the gateway to the unsettled items
 	maxCols  = 100000        // at most this many items
 	maxNodes = 10000000      // at most this many nonzero elements in the matrix
@@ -25,7 +28,7 @@ type item struct {
 	prev, next int    // neighbors of this item
 }
 
-type XCC struct {
+type DLX struct {
 	nd       []node // the master list of nodes
 	lastNode int    // the first node in nd that's not yet used
 	cl       []item // the master list of items
@@ -39,11 +42,17 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func NewXCC() *XCC {
-	return &XCC{
+func NewDLX(rd io.Reader) (*DLX, error) {
+	d := &DLX{
 		nd:     make([]node, maxNodes),
 		cl:     make([]item, maxCols+2),
 		second: maxCols,
 		choice: make([]int, maxLevel),
 	}
+
+	if err := d.inputMatrix(rd); err != nil {
+		return nil, err
+	}
+
+	return d, nil
 }

@@ -6,20 +6,16 @@ import (
 	"sort"
 )
 
-const infty = int(^uint(0) >> 1)
-
-var maxCount = infty
-
-func (x *XCC) visitSolution(level int) [][]string {
+func (d *DLX) visitSolution(level int) [][]string {
 	var solution [][]string
 	for k := 0; k <= level; k++ {
 		var opt []string
-		p := x.choice[k]
+		p := d.choice[k]
 		for q := p; ; {
-			opt = append(opt, x.cl[x.nd[q].itm].name+x.nd[q].scolor)
+			opt = append(opt, d.cl[d.nd[q].itm].name+d.nd[q].scolor)
 			q++
-			if x.nd[q].itm <= 0 {
-				q = x.nd[q].up
+			if d.nd[q].itm <= 0 {
+				q = d.nd[q].up
 			}
 			if q == p {
 				break
@@ -31,98 +27,98 @@ func (x *XCC) visitSolution(level int) [][]string {
 	return solution
 }
 
-func (x *XCC) cover(c int) {
-	l, r := x.cl[c].prev, x.cl[c].next
-	x.cl[l].next = r
-	x.cl[r].prev = l
-	for rr := x.nd[c].down; rr >= x.lastItm; rr = x.nd[rr].down {
+func (d *DLX) cover(c int) {
+	l, r := d.cl[c].prev, d.cl[c].next
+	d.cl[l].next = r
+	d.cl[r].prev = l
+	for rr := d.nd[c].down; rr >= d.lastItm; rr = d.nd[rr].down {
 		for nn := rr + 1; nn != rr; {
-			if x.nd[nn].color >= 0 {
-				uu := x.nd[nn].up
-				dd := x.nd[nn].down
-				cc := x.nd[nn].itm
+			if d.nd[nn].color >= 0 {
+				uu := d.nd[nn].up
+				dd := d.nd[nn].down
+				cc := d.nd[nn].itm
 				if cc <= 0 {
 					nn = uu
 					continue
 				}
-				x.nd[uu].down = dd
-				x.nd[dd].up = uu
-				x.nd[cc].itm--
+				d.nd[uu].down = dd
+				d.nd[dd].up = uu
+				d.nd[cc].itm--
 			}
 			nn++
 		}
 	}
 }
 
-func (x *XCC) uncover(c int) {
-	for rr := x.nd[c].down; rr >= x.lastItm; rr = x.nd[rr].down {
+func (d *DLX) uncover(c int) {
+	for rr := d.nd[c].down; rr >= d.lastItm; rr = d.nd[rr].down {
 		for nn := rr + 1; nn != rr; {
-			if x.nd[nn].color >= 0 {
-				uu := x.nd[nn].up
-				dd := x.nd[nn].down
-				cc := x.nd[nn].itm
+			if d.nd[nn].color >= 0 {
+				uu := d.nd[nn].up
+				dd := d.nd[nn].down
+				cc := d.nd[nn].itm
 				if cc <= 0 {
 					nn = uu
 					continue
 				}
-				x.nd[dd].up = nn
-				x.nd[uu].down = x.nd[dd].up
-				x.nd[cc].itm++
+				d.nd[dd].up = nn
+				d.nd[uu].down = d.nd[dd].up
+				d.nd[cc].itm++
 			}
 			nn++
 		}
 	}
-	l, r := x.cl[c].prev, x.cl[c].next
-	x.cl[r].prev = c
-	x.cl[l].next = x.cl[r].prev
+	l, r := d.cl[c].prev, d.cl[c].next
+	d.cl[r].prev = c
+	d.cl[l].next = d.cl[r].prev
 }
 
-func (x *XCC) purify(p int) {
-	cc := x.nd[p].itm
-	c := x.nd[p].color
-	x.nd[cc].color = c
-	for rr := x.nd[cc].down; rr >= x.lastItm; rr = x.nd[rr].down {
-		if x.nd[rr].color != c {
+func (d *DLX) purify(p int) {
+	cc := d.nd[p].itm
+	x := d.nd[p].color
+	d.nd[cc].color = x
+	for rr := d.nd[cc].down; rr >= d.lastItm; rr = d.nd[rr].down {
+		if d.nd[rr].color != x {
 			for nn := rr + 1; nn != rr; {
-				if x.nd[nn].color >= 0 {
-					uu := x.nd[nn].up
-					dd := x.nd[nn].down
-					cc = x.nd[nn].itm
+				if d.nd[nn].color >= 0 {
+					uu := d.nd[nn].up
+					dd := d.nd[nn].down
+					cc = d.nd[nn].itm
 					if cc <= 0 {
 						nn = uu
 						continue
 					}
-					x.nd[uu].down = dd
-					x.nd[dd].up = uu
-					x.nd[cc].itm--
+					d.nd[uu].down = dd
+					d.nd[dd].up = uu
+					d.nd[cc].itm--
 				}
 				nn++
 			}
 		} else {
-			x.nd[rr].color = -1
+			d.nd[rr].color = -1
 		}
 	}
 }
 
-func (x *XCC) unpurify(p int) {
-	cc := x.nd[p].itm
-	c := x.nd[p].color
-	for rr := x.nd[cc].up; rr >= x.lastItm; rr = x.nd[rr].up {
-		if x.nd[rr].color < 0 {
-			x.nd[rr].color = c
+func (d *DLX) unpurify(p int) {
+	cc := d.nd[p].itm
+	x := d.nd[p].color
+	for rr := d.nd[cc].up; rr >= d.lastItm; rr = d.nd[rr].up {
+		if d.nd[rr].color < 0 {
+			d.nd[rr].color = x
 		} else {
 			for nn := rr - 1; nn != rr; {
-				if x.nd[nn].color >= 0 {
-					uu := x.nd[nn].up
-					dd := x.nd[nn].down
-					cc = x.nd[nn].itm
+				if d.nd[nn].color >= 0 {
+					uu := d.nd[nn].up
+					dd := d.nd[nn].down
+					cc = d.nd[nn].itm
 					if cc <= 0 {
 						nn = dd
 						continue
 					}
-					x.nd[dd].up = nn
-					x.nd[uu].down = x.nd[dd].up
-					x.nd[cc].itm++
+					d.nd[dd].up = nn
+					d.nd[uu].down = d.nd[dd].up
+					d.nd[cc].itm++
 				}
 				nn--
 			}
@@ -130,7 +126,7 @@ func (x *XCC) unpurify(p int) {
 	}
 }
 
-func (x *XCC) Dance() <-chan [][]string {
+func (d *DLX) Dance() <-chan [][]string {
 	ch := make(chan [][]string)
 
 	go func() {
@@ -141,11 +137,11 @@ func (x *XCC) Dance() <-chan [][]string {
 		level := 0
 	forward:
 		t := maxNodes
-		for k := x.cl[root].next; t != 0 && k != root; k = x.cl[k].next {
-			if x.nd[k].itm <= t {
-				if x.nd[k].itm < t {
+		for k := d.cl[root].next; t != 0 && k != root; k = d.cl[k].next {
+			if d.nd[k].itm <= t {
+				if d.nd[k].itm < t {
 					bestItm = k
-					t = x.nd[k].itm
+					t = d.nd[k].itm
 					p = 1
 				} else {
 					p++
@@ -156,9 +152,9 @@ func (x *XCC) Dance() <-chan [][]string {
 			}
 		}
 
-		x.cover(bestItm)
-		x.choice[level] = x.nd[bestItm].down
-		curNode = x.choice[level]
+		d.cover(bestItm)
+		d.choice[level] = d.nd[bestItm].down
+		curNode = d.choice[level]
 
 	advance:
 		if curNode == bestItm {
@@ -166,20 +162,20 @@ func (x *XCC) Dance() <-chan [][]string {
 		}
 
 		for pp := curNode + 1; pp != curNode; {
-			cc := x.nd[pp].itm
+			cc := d.nd[pp].itm
 			if cc <= 0 {
-				pp = x.nd[pp].up
+				pp = d.nd[pp].up
 			} else {
-				if x.nd[pp].color == 0 {
-					x.cover(cc)
-				} else if x.nd[pp].color > 0 {
-					x.purify(pp)
+				if d.nd[pp].color == 0 {
+					d.cover(cc)
+				} else if d.nd[pp].color > 0 {
+					d.purify(pp)
 				}
 				pp++
 			}
 		}
 
-		if x.cl[root].next == root {
+		if d.cl[root].next == root {
 			if level+1 > maxl {
 				if level+1 >= maxLevel {
 					log.Fatal("too many levels")
@@ -188,7 +184,7 @@ func (x *XCC) Dance() <-chan [][]string {
 			}
 
 			count++
-			ch <- x.visitSolution(level)
+			ch <- d.visitSolution(level)
 			if count >= maxCount {
 				goto done
 			}
@@ -205,31 +201,31 @@ func (x *XCC) Dance() <-chan [][]string {
 		goto forward
 
 	backup:
-		x.uncover(bestItm)
+		d.uncover(bestItm)
 		if level == 0 {
 			goto done
 		}
 		level--
-		curNode = x.choice[level]
-		bestItm = x.nd[curNode].itm
+		curNode = d.choice[level]
+		bestItm = d.nd[curNode].itm
 
 	recover:
 		for pp := curNode - 1; pp != curNode; {
-			cc := x.nd[pp].itm
+			cc := d.nd[pp].itm
 			if cc <= 0 {
-				pp = x.nd[pp].down
+				pp = d.nd[pp].down
 			} else {
-				if x.nd[pp].color == 0 {
-					x.uncover(cc)
-				} else if x.nd[pp].color > 0 {
-					x.unpurify(pp)
+				if d.nd[pp].color == 0 {
+					d.uncover(cc)
+				} else if d.nd[pp].color > 0 {
+					d.unpurify(pp)
 				}
 				pp--
 			}
 		}
 
-		x.choice[level] = x.nd[curNode].down
-		curNode = x.choice[level]
+		d.choice[level] = d.nd[curNode].down
+		curNode = d.choice[level]
 
 		goto advance
 

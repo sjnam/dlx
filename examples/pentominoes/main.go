@@ -24,8 +24,7 @@ func main() {
 		return
 	}
 
-	xcc := dlx.NewXCC()
-	err = xcc.InputMatrix(fp)
+	d, err := dlx.NewDLX(fp)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -37,7 +36,7 @@ func main() {
 	}
 
 	i := 0
-	for sol := range xcc.Dance() {
+	for sol := range d.Dance() {
 		i++
 		fmt.Printf("Solution: %d\n", i)
 		for _, opt := range sol {

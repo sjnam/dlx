@@ -105,16 +105,14 @@ func sudokuDLX(rd io.Reader) io.Reader {
 }
 
 func main() {
-	xcc := dlx.NewXCC()
-
-	err := xcc.InputMatrix(sudokuDLX(os.Stdin))
+	d, err := dlx.NewDLX(sudokuDLX(os.Stdin))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	i := 0
-	for sol := range xcc.Dance() {
+	for sol := range d.Dance() {
 		i++
 		fmt.Printf("%d:\n", i)
 		for _, opt := range sol {
