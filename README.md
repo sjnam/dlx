@@ -4,9 +4,9 @@ Go implementation of Donald Knuth's Algorithm 7.2.2.1C for exact cover with colo
 This code is based on the Algorithm C described in
 http://www-cs-faculty.stanford.edu/~knuth/fasc5c.ps.gz
 
-## example
+## Examples
 
-### nqueen
+### Nqueen
 ````
 $ go run examples/queen/main.go 4
 1:
@@ -23,7 +23,7 @@ Q . . .
 
 ````
 
-### sudoku
+### Sudoku
 ````
 $ cd examples/sudoku
 $ go run main.go < s17.dlx
@@ -42,7 +42,7 @@ $ go run main.go < s17.dlx
 
 ````
 
-### zebra puzzle
+### Zebra
 Five people, from five different countries, have five different occupations,
 own five different pets, drink five different beverages, and live in a row of
 five different colored houses.
@@ -73,8 +73,8 @@ diplomat    nurse       sculptor    violinist   painter
 fox         horse       snail       dog         zebra
 ````
 
-### pentominoes
-- 12 pieces: O P Q R S T U V W X Y Z
+### Pentominoes
+- 12 pieces: **O P Q R S T U V W X Y Z**
 
 ````
 $ cd example/pentominoes
