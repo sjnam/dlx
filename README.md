@@ -4,9 +4,7 @@ Go implementation of Donald Knuth's Algorithm 7.2.2.1C for exact cover with colo
 This code is based on the Algorithm C described in
 http://www-cs-faculty.stanford.edu/~knuth/fasc5c.ps.gz
 
-## Examples
-
-### Usage
+## Usage
 ````go
 package main
 
@@ -30,6 +28,8 @@ func main() {
 	}
 }
 ````
+
+## Examples
 
 ### Nqueen
 ````
