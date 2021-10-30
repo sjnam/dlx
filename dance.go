@@ -3,6 +3,7 @@ package dlx
 import (
 	"log"
 	"math/rand"
+	"sort"
 )
 
 var maxCount uint64 = 0xffffffffffffffff
@@ -22,6 +23,7 @@ func (x *XCC) visitSolution(level int) [][]string {
 				break
 			}
 		}
+		sort.Strings(opt)
 		solution = append(solution, opt)
 	}
 	return solution
