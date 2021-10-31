@@ -40,6 +40,11 @@ D E G
 		}
 	}
 }
+
+// Output:
+// [A D]
+// [E F C]
+// [B G]
 ````
 
 ## Examples
