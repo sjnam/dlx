@@ -127,25 +127,29 @@ func (d *DLX) inputItemNames(line string) error {
 
 func (d *DLX) inputOptions(line string) error {
 	var (
-		pp = false
-		i  = d.lastNode // remember the spacer at the left of this option
+		options = 0          // options seen so far
+		i       = d.lastNode // remember the spacer at the left of this option
+		pp      = false
 	)
 
 	for _, opt := range strings.Fields(line) {
 		if len(opt) > MaxNameLength {
 			return fmt.Errorf("item name too long")
 		}
-
+		if opt[0] == ':' {
+			return fmt.Errorf("empty item name")
+		}
 		name := strings.Split(opt, ":")
+		d.cl[d.lastItm].name = name[0]
 
 		// Create a node for the item named in opt
 		var k int
-		for k = 0; d.cl[k].name != name[0]; k++ {
+		for k = 0; d.cl[k].name != d.cl[d.lastItm].name; k++ {
 		}
 		if k == d.lastItm {
 			return fmt.Errorf("unknown item name")
 		}
-		if d.nd[k].color >= i {
+		if d.nd[k].color >= i { // aux field
 			return fmt.Errorf("duplicate item name in this option")
 		}
 		d.lastNode++
@@ -158,8 +162,7 @@ func (d *DLX) inputOptions(line string) error {
 		}
 
 		// Insert node lastNode into the list item k
-		t := d.nd[k].itm + 1
-		d.nd[k].itm = t            // store the new length of the list
+		d.nd[k].itm++              // len field; store the new length of the list
 		d.nd[k].color = d.lastNode // aux field
 
 		r := d.nd[k].up // the "bottom" node of the item list
@@ -198,9 +201,9 @@ func (d *DLX) inputOptions(line string) error {
 		if d.lastNode == maxNodes {
 			return fmt.Errorf("too many nodes")
 		}
-		d.options++
+		options++
 		d.nd[d.lastNode].up = i + 1
-		d.nd[d.lastNode].itm = -d.options
+		d.nd[d.lastNode].itm = -options
 	}
 
 	return nil
