@@ -10,20 +10,33 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"strings"
+
 	"github.com/sjnam/dlx"
 )
 
 func main() {
-	// rd is an input of 'io.Reader' type.
-	d, err := dlx.NewDLX(rd /*io.Reader*/)
+	dlxInput := `
+| A simple example
+A B C D E | F G
+C E F
+A D G
+B C F
+A D
+B G
+D E G
+`
+	rd := strings.NewReader(dlxInput)
+	d, err := dlx.NewDLX(rd)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
-	for sol := range d.Dance() {
-		for _, opt := range sol {
-			fmt.Println(opt)
+	for solution := range d.Dance() {
+		for _, option := range solution {
+			// do something with an option
+			fmt.Println(option)
 		}
 	}
 }
