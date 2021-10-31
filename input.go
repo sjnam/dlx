@@ -12,7 +12,7 @@ const MaxNameLength = 32
 
 func (d *DLX) inputMatrix(rd io.Reader) error {
 	if maxNodes <= 2*maxCols {
-		return fmt.Errorf("Recompile me: maxNodes must exceed twice maxCols!")
+		return fmt.Errorf("recompile me: maxNodes must exceed twice maxCols")
 	} // every item will want a header node and at least one other node
 
 	scanner := bufio.NewScanner(rd)
@@ -33,7 +33,7 @@ func (d *DLX) inputMatrix(rd io.Reader) error {
 	}
 
 	if d.lastItm == 0 {
-		return fmt.Errorf("No items")
+		return fmt.Errorf("no items")
 	}
 
 	if err := d.inputItemNames(line); err != nil {
@@ -114,7 +114,7 @@ func (d *DLX) inputItemNames(line string) error {
 
 	d.cl[d.second].prev = d.lastItm
 	d.cl[d.lastItm].next = d.second
-	// this sequence works properly whether or not second == lastItm
+	// this sequence works properly whether second == lastItm
 
 	d.cl[root].prev = d.second - 1
 	d.cl[d.second-1].next = root
