@@ -4,12 +4,64 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"math/rand"
 	"strconv"
 	"strings"
 )
 
 const MaxNameLength = 32
+
+func (d *DLX) inputMatrix(rd io.Reader) error {
+	if maxNodes <= 2*maxCols {
+		return fmt.Errorf("Recompile me: maxNodes must exceed twice maxCols!")
+	} // every item will want a header node and at least one other node
+
+	scanner := bufio.NewScanner(rd)
+
+	var line string
+	for scanner.Scan() {
+		line = scanner.Text()
+		if len(line) > maxLine {
+			return fmt.Errorf("input line way too long")
+		}
+		line = strings.TrimSpace(line)
+		if line == "" || line[0] == '|' {
+			// bypass comment or blank line
+			continue
+		}
+		d.lastItm = 1
+		break
+	}
+
+	if d.lastItm == 0 {
+		return fmt.Errorf("No items")
+	}
+
+	if err := d.inputItemNames(line); err != nil {
+		return err
+	}
+
+	for scanner.Scan() {
+		line = scanner.Text()
+		if len(line) > maxLine {
+			return fmt.Errorf("option line too long")
+		}
+		line = strings.TrimSpace(line)
+		if line == "" || line[0] == '|' {
+			// bypass comment or blank line
+			continue
+		}
+
+		if err := d.inputOptions(line); err != nil {
+			return err
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (d *DLX) inputItemNames(line string) error {
 	for _, itm := range strings.Fields(line) {
@@ -24,11 +76,12 @@ func (d *DLX) inputItemNames(line string) error {
 		if strings.ContainsAny(itm, ":|") {
 			return fmt.Errorf("illegal character in item name")
 		}
-		d.cl[d.lastItm].name = itm
 
 		if len(itm) > MaxNameLength {
 			return fmt.Errorf("item name too long")
 		}
+
+		d.cl[d.lastItm].name = itm
 
 		// Check for duplicate item name
 		var k int
@@ -42,10 +95,13 @@ func (d *DLX) inputItemNames(line string) error {
 		if d.lastItm > maxCols {
 			return fmt.Errorf("too many items")
 		}
+
 		d.cl[d.lastItm-1].next = d.lastItm
-		d.cl[d.lastItm].prev = d.lastItm - 1 // nd[lastItm].len = 0
+		d.cl[d.lastItm].prev = d.lastItm - 1
+
+		// d.nd[lastItm].itm = 0 (len)
 		d.nd[d.lastItm].down = d.lastItm
-		d.nd[d.lastItm].up = d.nd[d.lastItm].down
+		d.nd[d.lastItm].up = d.lastItm
 		d.lastItm++
 	}
 
@@ -58,10 +114,13 @@ func (d *DLX) inputItemNames(line string) error {
 
 	d.cl[d.second].prev = d.lastItm
 	d.cl[d.lastItm].next = d.second
+	// this sequence works properly whether or not second == lastItm
 
 	d.cl[root].prev = d.second - 1
 	d.cl[d.second-1].next = root
-	d.lastNode = d.lastItm
+
+	d.lastNode = d.lastItm // reserve all the header nodes and the first spacer
+	// we have nd[lastNode].itm=0 in the first spacer
 
 	return nil
 }
@@ -76,12 +135,12 @@ func (d *DLX) inputOptions(line string) error {
 		if len(opt) > MaxNameLength {
 			return fmt.Errorf("item name too long")
 		}
-		owc := strings.Split(opt, ":")
-		d.cl[d.lastItm].name = owc[0]
+
+		name := strings.Split(opt, ":")
 
 		// Create a node for the item named in opt
 		var k int
-		for k = 0; d.cl[k].name != d.cl[d.lastItm].name; k++ {
+		for k = 0; d.cl[k].name != name[0]; k++ {
 		}
 		if k == d.lastItm {
 			return fmt.Errorf("unknown item name")
@@ -100,26 +159,22 @@ func (d *DLX) inputOptions(line string) error {
 
 		// Insert node lastNode into the list item k
 		t := d.nd[k].itm + 1
-		d.nd[k].itm = t
-		d.nd[k].color = d.lastNode
+		d.nd[k].itm = t            // store the new length of the list
+		d.nd[k].color = d.lastNode // aux field
 
-		t = rand.Intn(t)
-		var r int
-		for r = k; t != 0; r, t = d.nd[r].down, t-1 {
-		}
-		q := d.nd[r].up
-		d.nd[r].up = d.lastNode
-		d.nd[q].down = d.nd[r].up
-		d.nd[d.lastNode].up = q
-		d.nd[d.lastNode].down = r
+		r := d.nd[k].up // the "bottom" node of the item list
+		d.nd[k].up = d.lastNode
+		d.nd[r].down = d.lastNode
+		d.nd[d.lastNode].up = r
+		d.nd[d.lastNode].down = k
 
-		if len(owc) == 1 {
+		if len(name) == 1 {
 			d.nd[d.lastNode].color = 0
 			d.nd[d.lastNode].scolor = ""
 		} else if k >= d.second {
-			c, _ := strconv.ParseInt(owc[1], 36, 0)
+			c, _ := strconv.ParseInt(name[1], 36, 0)
 			d.nd[d.lastNode].color = int(c)
-			d.nd[d.lastNode].scolor = ":" + owc[1]
+			d.nd[d.lastNode].scolor = ":" + name[1]
 		} else {
 			return fmt.Errorf("primary item must be uncolored")
 		}
@@ -127,6 +182,7 @@ func (d *DLX) inputOptions(line string) error {
 
 	if !pp {
 		for d.lastNode > i {
+			// Remove lastNode from its item list
 			k := d.nd[d.lastNode].itm
 			d.nd[k].itm--
 			d.nd[k].color = i - 1
@@ -150,59 +206,18 @@ func (d *DLX) inputOptions(line string) error {
 	return nil
 }
 
-func (d *DLX) inputMatrix(rd io.Reader) error {
-	scanner := bufio.NewScanner(rd)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		if len(line) > maxLine {
-			return fmt.Errorf("input line way too long")
-		}
-		line = strings.TrimSpace(line)
-		if line == "" || line[0] == '|' {
-			continue
-		}
-		d.lastItm = 1
-
-		if err := d.inputItemNames(line); err != nil {
-			return err
-		}
-		break
-	}
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		if len(line) > maxLine {
-			return fmt.Errorf("option line too long")
-		}
-		line = strings.TrimSpace(line)
-		if line == "" || line[0] == '|' {
-			continue
-		}
-
-		if err := d.inputOptions(line); err != nil {
-			return err
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (d *DLX) initialContent() {
-	for i := 0; i <= d.lastItm; i++ {
-		fmt.Printf("(%s,%d,%d) ", d.cl[i].name, d.cl[i].prev, d.cl[i].next)
+func (d *DLX) InitialContent() {
+	for i := 0; i < d.lastItm; i++ {
+		fmt.Printf("%2d[%2s,%2d,%2d] ",
+			i, d.cl[i].name, d.cl[i].prev, d.cl[i].next)
 	}
 	fmt.Println()
 	for i := 0; i <= d.lastNode; i++ {
-		if i%7 == 0 {
+		if i%d.lastItm == 0 {
 			fmt.Println()
 		}
-		fmt.Printf("(%d,%2d,%2d,%c) ",
-			d.nd[i].itm, d.nd[i].up, d.nd[i].down, byte(d.nd[i].color))
+		fmt.Printf("%2d[%2d,%2d,%2d] ",
+			i, d.nd[i].itm, d.nd[i].up, d.nd[i].down)
 	}
 	fmt.Println()
 }

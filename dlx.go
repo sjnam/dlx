@@ -2,8 +2,6 @@ package dlx
 
 import (
 	"io"
-	"math/rand"
-	"time"
 )
 
 const (
@@ -20,7 +18,7 @@ type node struct {
 	up, down int    // predecessor and successor in item list
 	itm      int    // the item containing this node
 	color    int    // the color specified by this node, if any
-	scolor   string // color name
+	scolor   string // the color name string
 }
 
 type item struct {
@@ -36,10 +34,6 @@ type DLX struct {
 	second   int    // boundary between primary and secondary items
 	options  int    // options seen so far
 	choice   []int  // the node chosen on each level
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
 
 func NewDLX(rd io.Reader) (*DLX, error) {

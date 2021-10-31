@@ -2,7 +2,6 @@ package dlx
 
 import (
 	"log"
-	"math/rand"
 )
 
 func (d *DLX) visitSolution(level int) [][]string {
@@ -142,10 +141,7 @@ func (d *DLX) Dance() <-chan [][]string {
 					t = d.nd[k].itm
 					p = 1
 				} else {
-					p++
-					if rand.Intn(p) == 0 {
-						bestItm = k
-					}
+					p++ // this many items achieve the min
 				}
 			}
 		}
