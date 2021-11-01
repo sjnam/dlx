@@ -28,6 +28,10 @@ func main() {
 
 	nr, _ := strconv.Atoi(args[1])
 	nc, _ := strconv.Atoi(args[2])
+	if nr > 16 || nc > 16 {
+		fmt.Println("w and d should be <= 16")
+		return
+	}
 
 	d, err := dlx.NewDLX(os.Stdin)
 	if err != nil {
