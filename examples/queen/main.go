@@ -70,8 +70,7 @@ func main() {
 		fmt.Printf("usage: %s n\n", args[0])
 		return
 	}
-	sn := os.Args[1]
-	n, _ := strconv.Atoi(sn)
+	n, _ := strconv.Atoi(os.Args[1])
 
 	d, err := dlx.NewDLX(queenDLX(n))
 	if err != nil {
@@ -80,31 +79,40 @@ func main() {
 	}
 
 	i := 0
+	board := make([][]string, n)
+	for r := 0; r < n; r++ {
+		board[r] = make([]string, n)
+	}
 	for sol := range d.Dance() {
 		i++
-		brd := make([][]string, n)
 		for r := 0; r < n; r++ {
-			brd[r] = make([]string, n)
 			for c := 0; c < n; c++ {
-				brd[r][c] = "."
+				board[r][c] = "."
 			}
 		}
+		var found int
 		for _, opt := range sol {
 			var r, c int64
+			found = 0
 			for _, rc := range opt {
 				if rc[0] == 'r' {
 					r, _ = strconv.ParseInt(rc[1:], 32, 0)
+					found++
 				} else if rc[0] == 'c' {
 					c, _ = strconv.ParseInt(rc[1:], 32, 0)
+					found++
+				}
+				if found == 2 {
+					break
 				}
 			}
-			brd[r][c] = "Q"
+			board[r][c] = "Q"
 		}
 
 		fmt.Printf("%d:\n", i)
 		for r := 0; r < n; r++ {
 			for c := 0; c < n; c++ {
-				fmt.Printf("%s ", brd[r][c])
+				fmt.Printf("%s ", board[r][c])
 			}
 			fmt.Println()
 		}

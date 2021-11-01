@@ -4,9 +4,19 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/sjnam/dlx"
 )
+
+func spinner(delay time.Duration) {
+	for {
+		for _, r := range `-\|/` {
+			fmt.Printf("\r%c", r)
+			time.Sleep(delay)
+		}
+	}
+}
 
 func digit(b byte) int {
 	r := b
@@ -33,6 +43,8 @@ func main() {
 		return
 	}
 
+	go spinner(100 * time.Millisecond)
+
 	d, err := dlx.NewDLX(os.Stdin)
 	if err != nil {
 		fmt.Println(err)
@@ -44,28 +56,25 @@ func main() {
 		box[i] = make([]int, nc)
 	}
 
-	i := 0
-	for sol := range d.Dance() {
-		i++
-		fmt.Printf("Solution: %d\n", i)
-		for _, opt := range sol {
-			var coor [][2]int
-			for _, c := range opt {
-				if len(c) == 2 {
-					coor = append(coor, [2]int{digit(c[0]), digit(c[1])})
-				}
-			}
-			n := len(coor)
-			for i := 0; i < n; i++ {
-				box[coor[i][0]][coor[i][1]] = n
+	sol := <-d.Dance()
+	for _, opt := range sol {
+		n := 0
+		var coor [][2]int
+		for _, c := range opt {
+			if len(c) == 2 {
+				n++
+				coor = append(coor, [2]int{digit(c[0]), digit(c[1])})
 			}
 		}
+		for i := 0; i < n; i++ {
+			box[coor[i][0]][coor[i][1]] = n
+		}
+	}
 
-		for j := 0; j < nr; j++ {
-			for k := 0; k < nc; k++ {
-				fmt.Printf("%d ", box[j][k])
-			}
-			fmt.Println()
+	fmt.Printf("\r")
+	for j := 0; j < nr; j++ {
+		for k := 0; k < nc; k++ {
+			fmt.Printf("%d ", box[j][k])
 		}
 		fmt.Println()
 	}

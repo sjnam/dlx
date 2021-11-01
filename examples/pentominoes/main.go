@@ -34,12 +34,15 @@ func main() {
 	box := make([][]string, nr)
 	for i := range box {
 		box[i] = make([]string, nc)
+		for j := range box[i] {
+			box[i][j] = " "
+		}
 	}
 
 	i := 0
 	for sol := range d.Dance() {
 		i++
-		fmt.Printf("Solution: %d\n", i)
+		fmt.Printf("%d:\n", i)
 		for _, opt := range sol {
 			sort.Strings(opt)
 			c := opt[len(opt)-1]
@@ -52,11 +55,7 @@ func main() {
 
 		for j := 0; j < nr; j++ {
 			for k := 0; k < nc; k++ {
-				c := " "
-				if box[j][k] != "" {
-					c = box[j][k]
-				}
-				fmt.Printf("%s ", c)
+				fmt.Printf("%s ", box[j][k])
 			}
 			fmt.Println()
 		}

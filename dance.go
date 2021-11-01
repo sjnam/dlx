@@ -5,7 +5,7 @@ import (
 )
 
 func (d *DLX) solution(level int) [][]string {
-	var solution [][]string
+	var sol [][]string
 	for k := 0; k <= level; k++ {
 		var opt []string
 		p := d.choice[k]
@@ -19,9 +19,9 @@ func (d *DLX) solution(level int) [][]string {
 				break
 			}
 		}
-		solution = append(solution, opt)
+		sol = append(sol, opt)
 	}
-	return solution
+	return sol
 }
 
 func (d *DLX) cover(c int) {
