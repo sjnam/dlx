@@ -3,11 +3,21 @@ package main
 import (
 	"fmt"
 	"os"
-	"sort"
 	"strconv"
 
 	"github.com/sjnam/dlx"
 )
+
+func digit(b byte) int {
+	r := b
+	if r >= 'a' && r <= 'f' {
+		r = r - 'a' + 10
+	} else {
+		r = r - '0'
+	}
+
+	return int(r)
+}
 
 func main() {
 	args := os.Args
@@ -35,20 +45,15 @@ func main() {
 		i++
 		fmt.Printf("Solution: %d\n", i)
 		for _, opt := range sol {
-			sort.Strings(opt)
-			n := 0
-			for j := 0; j < len(opt); j++ {
-				if len(opt[j]) == 2 {
-					n++
-				} else {
-					break
+			var coor [][2]int
+			for _, c := range opt {
+				if len(c) == 2 {
+					coor = append(coor, [2]int{digit(c[0]), digit(c[1])})
 				}
 			}
-			for j := 0; j < n; j++ {
-				rc, _ := strconv.Atoi(opt[j])
-				r := rc / 10
-				c := rc - r*10
-				box[r][c] = n
+			n := len(coor)
+			for i := 0; i < n; i++ {
+				box[coor[i][0]][coor[i][1]] = n
 			}
 		}
 
