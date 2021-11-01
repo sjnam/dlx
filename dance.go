@@ -4,7 +4,7 @@ import (
 	"log"
 )
 
-func (d *DLX) visitSolution(level int) [][]string {
+func (d *DLX) solution(level int) [][]string {
 	var solution [][]string
 	for k := 0; k <= level; k++ {
 		var opt []string
@@ -178,7 +178,7 @@ func (d *DLX) Dance() <-chan [][]string {
 			}
 
 			count++
-			ch <- d.visitSolution(level)
+			ch <- d.solution(level)
 			if count >= maxCount {
 				goto done
 			}
