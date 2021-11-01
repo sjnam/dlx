@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -11,8 +12,6 @@ import (
 
 	"github.com/sjnam/dlx"
 )
-
-var board [][]string
 
 func bx(j, k int) int {
 	return j/3*3 + k/3
@@ -25,7 +24,6 @@ func sudokuDLX(rd io.Reader) io.Reader {
 	scanner := bufio.NewScanner(rd)
 	for scanner.Scan() {
 		buf := scanner.Text()
-		board = append(board, strings.Split(buf, ""))
 		for k := 0; k < 9; k++ {
 			if buf[k] >= '1' && buf[k] <= '9' {
 				d := int(buf[k] - '1')
@@ -50,6 +48,9 @@ func sudokuDLX(rd io.Reader) io.Reader {
 			}
 		}
 		j++
+	}
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
 	}
 
 	r, w := io.Pipe()
@@ -106,8 +107,22 @@ func sudokuDLX(rd io.Reader) io.Reader {
 }
 
 func main() {
-	d, err := dlx.NewDLX(sudokuDLX(os.Stdin))
+	var buff bytes.Buffer
+
+	rd := io.TeeReader(os.Stdin, &buff)
+	d, err := dlx.NewDLX(sudokuDLX(rd))
 	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var board [][]string
+	scanner := bufio.NewScanner(&buff)
+	for scanner.Scan() {
+		buf := scanner.Text()
+		board = append(board, strings.Split(buf, ""))
+	}
+	if err := scanner.Err(); err != nil {
 		fmt.Println(err)
 		return
 	}
