@@ -123,12 +123,11 @@ func main() {
 		'C': make([]string, 5),
 	}
 
-	for sol := range d.Dance() {
-		for _, opt := range sol {
-			for i := 1; i < len(opt); i++ {
-				kv := strings.Split(opt[i], ":")
-				answer[kv[0][0]][kv[0][1]-'0'] = kv[1]
-			}
+	sol := <-d.Dance()
+	for _, opt := range sol {
+		for i := 1; i < len(opt); i++ {
+			kv := strings.Split(opt[i], ":")
+			answer[kv[0][0]][kv[0][1]-'0'] = kv[1]
 		}
 	}
 
