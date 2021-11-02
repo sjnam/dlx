@@ -1,9 +1,5 @@
 package dlx
 
-import (
-	"log"
-)
-
 func (d *DLX) solution(level int, choice []int) [][]string {
 	cl, nd := d.cl, d.nd
 	var sol [][]string
@@ -128,8 +124,8 @@ func (d *DLX) unpurify(p int) {
 	}
 }
 
-func (d *DLX) Dance() <-chan [][]string {
-	ch := make(chan [][]string)
+func (d *DLX) Dance() <-chan Result {
+	ch := make(chan Result)
 
 	go func() {
 		defer close(ch)
@@ -179,13 +175,13 @@ func (d *DLX) Dance() <-chan [][]string {
 		if cl[root].next == root {
 			if level+1 > maxl {
 				if level+1 >= maxLevel {
-					log.Fatal(ErrTooManyLevels)
+					ch <- Result{Err: ErrTooManyLevels}
 				}
 				maxl = level + 1
 			}
 
 			count++
-			ch <- d.solution(level, choice[:])
+			ch <- Result{Solution: d.solution(level, choice[:])}
 			if count >= maxCount {
 				goto done
 			}
@@ -195,7 +191,7 @@ func (d *DLX) Dance() <-chan [][]string {
 		level++
 		if level > maxl {
 			if level >= maxLevel {
-				log.Fatal(ErrTooManyLevels)
+				ch <- Result{Err: ErrTooManyLevels}
 			}
 			maxl = level
 		}

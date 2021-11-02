@@ -38,7 +38,11 @@ C Y:1
 		if err != nil {
 			t.Fatal(err)
 		}
-		sol := <-d.Dance()
+		res := <-d.Dance()
+		if res.Err != nil {
+			t.Fatal(res.Err)
+		}
+		sol := res.Solution
 		sort.Slice(sol, func(i, j int) bool {
 			for _, opt := range sol {
 				sort.Strings(opt)

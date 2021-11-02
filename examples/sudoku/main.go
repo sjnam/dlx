@@ -128,10 +128,14 @@ func main() {
 	}
 
 	i := 0
-	for solution := range d.Dance() {
+	for res := range d.Dance() {
+		if res.Err != nil {
+			fmt.Println(err)
+			return
+		}
 		i++
 		fmt.Printf("%d:\n", i)
-		for _, opt := range solution {
+		for _, opt := range res.Solution {
 			sort.Strings(opt)
 			board[opt[2][1]-'0'][opt[2][2]-'0'] = string(opt[3][2])
 		}
