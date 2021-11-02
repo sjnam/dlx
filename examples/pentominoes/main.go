@@ -40,10 +40,10 @@ func main() {
 	}
 
 	i := 0
-	for sol := range d.Dance() {
+	for solution := range d.Dance() {
 		i++
 		fmt.Printf("%d:\n", i)
-		for _, opt := range sol {
+		for _, opt := range solution {
 			sort.Strings(opt)
 			c := opt[len(opt)-1]
 			for j := 0; j < len(opt)-1; j++ {

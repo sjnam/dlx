@@ -83,7 +83,7 @@ func main() {
 	for r := 0; r < n; r++ {
 		board[r] = make([]string, n)
 	}
-	for sol := range d.Dance() {
+	for solution := range d.Dance() {
 		i++
 		for r := 0; r < n; r++ {
 			for c := 0; c < n; c++ {
@@ -91,14 +91,15 @@ func main() {
 			}
 		}
 		var found int
-		for _, opt := range sol {
+		for _, opt := range solution {
 			var r, c int64
 			found = 0
 			for _, rc := range opt {
-				if rc[0] == 'r' {
+				switch t := rc[0]; t {
+				case 'r':
 					r, _ = strconv.ParseInt(rc[1:], 32, 0)
 					found++
-				} else if rc[0] == 'c' {
+				case 'c':
 					c, _ = strconv.ParseInt(rc[1:], 32, 0)
 					found++
 				}

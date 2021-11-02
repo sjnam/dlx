@@ -56,8 +56,8 @@ func main() {
 		box[i] = make([]int, nc)
 	}
 
-	sol := <-d.Dance()
-	for _, opt := range sol {
+	solution := <-d.Dance()
+	for _, opt := range solution {
 		n := 0
 		var coor [][2]int
 		for _, c := range opt {
