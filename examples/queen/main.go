@@ -83,11 +83,7 @@ func main() {
 	for r := 0; r < n; r++ {
 		board[r] = make([]string, n)
 	}
-	for res := range d.Dance() {
-		if res.Err != nil {
-			fmt.Println(err)
-			return
-		}
+	for solution := range d.Dance() {
 		i++
 		for r := 0; r < n; r++ {
 			for c := 0; c < n; c++ {
@@ -95,7 +91,7 @@ func main() {
 			}
 		}
 		var found int
-		for _, opt := range res.Solution {
+		for _, opt := range solution {
 			var r, c int64
 			found = 0
 			for _, rc := range opt {

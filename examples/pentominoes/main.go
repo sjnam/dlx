@@ -40,14 +40,10 @@ func main() {
 	}
 
 	i := 0
-	for res := range d.Dance() {
-		if res.Err != nil {
-			fmt.Println(res.Err)
-			return
-		}
+	for solution := range d.Dance() {
 		i++
 		fmt.Printf("%d:\n", i)
-		for _, opt := range res.Solution {
+		for _, opt := range solution {
 			sort.Strings(opt)
 			c := opt[len(opt)-1]
 			for j := 0; j < len(opt)-1; j++ {

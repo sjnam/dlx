@@ -56,12 +56,7 @@ func main() {
 		box[i] = make([]int, nc)
 	}
 
-	result := <-d.Dance()
-	if result.Err != nil {
-		fmt.Println(result.Err)
-		return
-	}
-	solution := result.Solution
+	solution := <-d.Dance()
 	for _, opt := range solution {
 		n := 0
 		var coor [][2]int
