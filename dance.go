@@ -5,13 +5,13 @@ import (
 )
 
 func (d *DLX) solution(level int, choice []int) [][]string {
-	var sol [][]string
 	cl, nd := d.cl, d.nd
+	var sol [][]string
 	for k := 0; k <= level; k++ {
 		var opt []string
 		p := choice[k]
 		for q := p; ; {
-			opt = append(opt, cl[nd[q].itm].name+nd[q].scolor)
+			opt = append(opt, cl[nd[q].itm].name+nd[q].colorName)
 			q++
 			if nd[q].itm <= 0 {
 				q = nd[q].up
@@ -26,22 +26,23 @@ func (d *DLX) solution(level int, choice []int) [][]string {
 }
 
 func (d *DLX) cover(c int) {
-	l, r := d.cl[c].prev, d.cl[c].next
-	d.cl[l].next = r
-	d.cl[r].prev = l
-	for rr := d.nd[c].down; rr >= d.lastItm; rr = d.nd[rr].down {
+	cl, nd := d.cl, d.nd
+	l, r := cl[c].prev, cl[c].next
+	cl[l].next = r
+	cl[r].prev = l
+	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
-			if d.nd[nn].color >= 0 {
-				uu := d.nd[nn].up
-				dd := d.nd[nn].down
-				cc := d.nd[nn].itm
+			if nd[nn].color >= 0 {
+				uu := nd[nn].up
+				dd := nd[nn].down
+				cc := nd[nn].itm
 				if cc <= 0 {
 					nn = uu
 					continue
 				}
-				d.nd[uu].down = dd
-				d.nd[dd].up = uu
-				d.nd[cc].itm--
+				nd[uu].down = dd
+				nd[dd].up = uu
+				nd[cc].itm--
 			}
 			nn++
 		}
@@ -49,74 +50,77 @@ func (d *DLX) cover(c int) {
 }
 
 func (d *DLX) uncover(c int) {
-	for rr := d.nd[c].down; rr >= d.lastItm; rr = d.nd[rr].down {
+	cl, nd := d.cl, d.nd
+	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
-			if d.nd[nn].color >= 0 {
-				uu := d.nd[nn].up
-				dd := d.nd[nn].down
-				cc := d.nd[nn].itm
+			if nd[nn].color >= 0 {
+				uu := nd[nn].up
+				dd := nd[nn].down
+				cc := nd[nn].itm
 				if cc <= 0 {
 					nn = uu
 					continue
 				}
-				d.nd[dd].up = nn
-				d.nd[uu].down = d.nd[dd].up
-				d.nd[cc].itm++
+				nd[dd].up = nn
+				nd[uu].down = nd[dd].up
+				nd[cc].itm++
 			}
 			nn++
 		}
 	}
-	l, r := d.cl[c].prev, d.cl[c].next
-	d.cl[r].prev = c
-	d.cl[l].next = d.cl[r].prev
+	l, r := cl[c].prev, cl[c].next
+	cl[r].prev = c
+	cl[l].next = cl[r].prev
 }
 
 func (d *DLX) purify(p int) {
-	cc := d.nd[p].itm
-	x := d.nd[p].color
-	d.nd[cc].color = x
-	for rr := d.nd[cc].down; rr >= d.lastItm; rr = d.nd[rr].down {
-		if d.nd[rr].color != x {
+	nd := d.nd
+	cc := nd[p].itm
+	x := nd[p].color
+	nd[cc].color = x
+	for rr := nd[cc].down; rr >= d.lastItm; rr = nd[rr].down {
+		if nd[rr].color != x {
 			for nn := rr + 1; nn != rr; {
-				if d.nd[nn].color >= 0 {
-					uu := d.nd[nn].up
-					dd := d.nd[nn].down
-					cc = d.nd[nn].itm
+				if nd[nn].color >= 0 {
+					uu := nd[nn].up
+					dd := nd[nn].down
+					cc = nd[nn].itm
 					if cc <= 0 {
 						nn = uu
 						continue
 					}
-					d.nd[uu].down = dd
-					d.nd[dd].up = uu
-					d.nd[cc].itm--
+					nd[uu].down = dd
+					nd[dd].up = uu
+					nd[cc].itm--
 				}
 				nn++
 			}
 		} else {
-			d.nd[rr].color = -1
+			nd[rr].color = -1
 		}
 	}
 }
 
 func (d *DLX) unpurify(p int) {
-	cc := d.nd[p].itm
-	x := d.nd[p].color
-	for rr := d.nd[cc].up; rr >= d.lastItm; rr = d.nd[rr].up {
-		if d.nd[rr].color < 0 {
-			d.nd[rr].color = x
+	nd := d.nd
+	cc := nd[p].itm
+	x := nd[p].color
+	for rr := nd[cc].up; rr >= d.lastItm; rr = nd[rr].up {
+		if nd[rr].color < 0 {
+			nd[rr].color = x
 		} else {
 			for nn := rr - 1; nn != rr; {
-				if d.nd[nn].color >= 0 {
-					uu := d.nd[nn].up
-					dd := d.nd[nn].down
-					cc = d.nd[nn].itm
+				if nd[nn].color >= 0 {
+					uu := nd[nn].up
+					dd := nd[nn].down
+					cc = nd[nn].itm
 					if cc <= 0 {
 						nn = dd
 						continue
 					}
-					d.nd[dd].up = nn
-					d.nd[uu].down = d.nd[dd].up
-					d.nd[cc].itm++
+					nd[dd].up = nn
+					nd[uu].down = nd[dd].up
+					nd[cc].itm++
 				}
 				nn--
 			}

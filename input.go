@@ -60,6 +60,8 @@ func (d *DLX) inputMatrix(rd io.Reader) error {
 }
 
 func (d *DLX) inputItemNames(line string) error {
+	cl, nd := d.cl, d.nd
+
 	for _, itm := range strings.Fields(line) {
 		if itm == "|" {
 			if d.second != maxCols {
@@ -77,11 +79,11 @@ func (d *DLX) inputItemNames(line string) error {
 			return fmt.Errorf("item name too long")
 		}
 
-		d.cl[d.lastItm].name = itm
+		cl[d.lastItm].name = itm
 
 		// Check for duplicate item name
 		var k int
-		for k = 1; d.cl[k].name != d.cl[d.lastItm].name; k++ {
+		for k = 1; cl[k].name != cl[d.lastItm].name; k++ {
 		}
 		if k < d.lastItm {
 			return fmt.Errorf("duplicate item name")
@@ -92,12 +94,12 @@ func (d *DLX) inputItemNames(line string) error {
 			return fmt.Errorf("too many items")
 		}
 
-		d.cl[d.lastItm-1].next = d.lastItm
-		d.cl[d.lastItm].prev = d.lastItm - 1
+		cl[d.lastItm-1].next = d.lastItm
+		cl[d.lastItm].prev = d.lastItm - 1
 
-		// d.nd[lastItm].itm = 0 (len)
-		d.nd[d.lastItm].down = d.lastItm
-		d.nd[d.lastItm].up = d.lastItm
+		// nd[lastItm].itm = 0 (len)
+		nd[d.lastItm].down = d.lastItm
+		nd[d.lastItm].up = d.lastItm
 		d.lastItm++
 	}
 
@@ -105,15 +107,15 @@ func (d *DLX) inputItemNames(line string) error {
 		d.second = d.lastItm
 	}
 
-	d.cl[d.lastItm].prev = d.lastItm - 1
-	d.cl[d.lastItm-1].next = d.lastItm
+	cl[d.lastItm].prev = d.lastItm - 1
+	cl[d.lastItm-1].next = d.lastItm
 
-	d.cl[d.second].prev = d.lastItm
-	d.cl[d.lastItm].next = d.second
+	cl[d.second].prev = d.lastItm
+	cl[d.lastItm].next = d.second
 	// this sequence works properly whether second == lastItm
 
-	d.cl[root].prev = d.second - 1
-	d.cl[d.second-1].next = root
+	cl[root].prev = d.second - 1
+	cl[d.second-1].next = root
 
 	d.lastNode = d.lastItm // reserve all the header nodes and the first spacer
 	// we have nd[lastNode].itm=0 in the first spacer
@@ -123,6 +125,8 @@ func (d *DLX) inputItemNames(line string) error {
 
 func (d *DLX) inputOptions(line string) error {
 	var (
+		cl      = d.cl
+		nd      = d.nd
 		options = 0          // options seen so far
 		i       = d.lastNode // remember the spacer at the left of this option
 		pp      = false
@@ -136,44 +140,44 @@ func (d *DLX) inputOptions(line string) error {
 			return fmt.Errorf("empty item name")
 		}
 		name := strings.Split(opt, ":")
-		d.cl[d.lastItm].name = name[0]
+		cl[d.lastItm].name = name[0]
 
 		// Create a node for the item named in opt
 		var k int
-		for k = 0; d.cl[k].name != d.cl[d.lastItm].name; k++ {
+		for k = 0; cl[k].name != cl[d.lastItm].name; k++ {
 		}
 		if k == d.lastItm {
 			return fmt.Errorf("unknown item name")
 		}
-		if d.nd[k].color >= i { // aux field
+		if nd[k].color >= i { // aux field
 			return fmt.Errorf("duplicate item name in this option")
 		}
 		d.lastNode++
 		if d.lastNode == maxNodes {
 			return fmt.Errorf("too many nodes")
 		}
-		d.nd[d.lastNode].itm = k
+		nd[d.lastNode].itm = k
 		if k < d.second {
 			pp = true
 		}
 
 		// Insert node lastNode into the list item k
-		d.nd[k].itm++              // len field; store the new length of the list
-		d.nd[k].color = d.lastNode // aux field
+		nd[k].itm++              // len field; store the new length of the list
+		nd[k].color = d.lastNode // aux field
 
-		r := d.nd[k].up // the "bottom" node of the item list
-		d.nd[k].up = d.lastNode
-		d.nd[r].down = d.lastNode
-		d.nd[d.lastNode].up = r
-		d.nd[d.lastNode].down = k
+		r := nd[k].up // the "bottom" node of the item list
+		nd[k].up = d.lastNode
+		nd[r].down = d.lastNode
+		nd[d.lastNode].up = r
+		nd[d.lastNode].down = k
 
 		if len(name) == 1 {
-			d.nd[d.lastNode].color = 0
-			d.nd[d.lastNode].scolor = ""
+			nd[d.lastNode].color = 0
+			nd[d.lastNode].colorName = ""
 		} else if k >= d.second {
 			c, _ := strconv.ParseInt(name[1], 36, 0)
-			d.nd[d.lastNode].color = int(c)
-			d.nd[d.lastNode].scolor = ":" + name[1]
+			nd[d.lastNode].color = int(c)
+			nd[d.lastNode].colorName = ":" + name[1]
 		} else {
 			return fmt.Errorf("primary item must be uncolored")
 		}
@@ -182,33 +186,34 @@ func (d *DLX) inputOptions(line string) error {
 	if !pp {
 		for d.lastNode > i {
 			// Remove lastNode from its item list
-			k := d.nd[d.lastNode].itm
-			d.nd[k].itm--
-			d.nd[k].color = i - 1
-			q := d.nd[d.lastNode].up
-			r := d.nd[d.lastNode].down
-			d.nd[q].down = r
-			d.nd[r].up = q
+			k := nd[d.lastNode].itm
+			nd[k].itm--
+			nd[k].color = i - 1
+			q := nd[d.lastNode].up
+			r := nd[d.lastNode].down
+			nd[q].down = r
+			nd[r].up = q
 			d.lastNode--
 		}
 	} else {
-		d.nd[i].down = d.lastNode
+		nd[i].down = d.lastNode
 		d.lastNode++ // create the next spacer
 		if d.lastNode == maxNodes {
 			return fmt.Errorf("too many nodes")
 		}
 		options++
-		d.nd[d.lastNode].up = i + 1
-		d.nd[d.lastNode].itm = -options
+		nd[d.lastNode].up = i + 1
+		nd[d.lastNode].itm = -options
 	}
 
 	return nil
 }
 
 func (d *DLX) InitialContent() {
+	cl, nd := d.cl, d.nd
 	for i := 0; i < d.lastItm; i++ {
 		fmt.Printf("%2d[%2s,%2d,%2d] ",
-			i, d.cl[i].name, d.cl[i].prev, d.cl[i].next)
+			i, cl[i].name, cl[i].prev, cl[i].next)
 	}
 	fmt.Println()
 	for i := 0; i <= d.lastNode; i++ {
@@ -216,7 +221,7 @@ func (d *DLX) InitialContent() {
 			fmt.Println()
 		}
 		fmt.Printf("%2d[%2d,%2d,%2d] ",
-			i, d.nd[i].itm, d.nd[i].up, d.nd[i].down)
+			i, nd[i].itm, nd[i].up, nd[i].down)
 	}
 	fmt.Println()
 }
