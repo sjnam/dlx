@@ -32,7 +32,6 @@ type DLX struct {
 	cl       []item // the master list of items
 	lastItm  int    // the first item in cl that's not yet used
 	second   int    // boundary between primary and secondary items
-	choice   []int  // the node chosen on each level
 }
 
 func NewDLX(rd io.Reader) (*DLX, error) {
@@ -40,7 +39,6 @@ func NewDLX(rd io.Reader) (*DLX, error) {
 		nd:     make([]node, maxNodes),
 		cl:     make([]item, maxCols+2),
 		second: maxCols,
-		choice: make([]int, maxLevel),
 	}
 
 	if err := d.inputMatrix(rd); err != nil {

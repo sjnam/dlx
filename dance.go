@@ -4,16 +4,17 @@ import (
 	"log"
 )
 
-func (d *DLX) solution(level int) [][]string {
+func (d *DLX) solution(level int, choice []int) [][]string {
 	var sol [][]string
+	cl, nd := d.cl, d.nd
 	for k := 0; k <= level; k++ {
 		var opt []string
-		p := d.choice[k]
+		p := choice[k]
 		for q := p; ; {
-			opt = append(opt, d.cl[d.nd[q].itm].name+d.nd[q].scolor)
+			opt = append(opt, cl[nd[q].itm].name+nd[q].scolor)
 			q++
-			if d.nd[q].itm <= 0 {
-				q = d.nd[q].up
+			if nd[q].itm <= 0 {
+				q = nd[q].up
 			}
 			if q == p {
 				break
@@ -130,15 +131,17 @@ func (d *DLX) Dance() <-chan [][]string {
 		defer close(ch)
 
 		var p, bestItm, count, curNode, maxl int
+		var choice [maxLevel]int
 
+		cl, nd := d.cl, d.nd
 		level := 0
 	forward:
 		t := maxNodes
-		for k := d.cl[root].next; t != 0 && k != root; k = d.cl[k].next {
-			if d.nd[k].itm <= t {
-				if d.nd[k].itm < t {
+		for k := cl[root].next; t != 0 && k != root; k = cl[k].next {
+			if nd[k].itm <= t {
+				if nd[k].itm < t {
 					bestItm = k
-					t = d.nd[k].itm
+					t = nd[k].itm
 					p = 1
 				} else {
 					p++ // this many items achieve the min
@@ -147,8 +150,8 @@ func (d *DLX) Dance() <-chan [][]string {
 		}
 
 		d.cover(bestItm)
-		d.choice[level] = d.nd[bestItm].down
-		curNode = d.choice[level]
+		choice[level] = nd[bestItm].down
+		curNode = choice[level]
 
 	advance:
 		if curNode == bestItm {
@@ -156,20 +159,20 @@ func (d *DLX) Dance() <-chan [][]string {
 		}
 
 		for pp := curNode + 1; pp != curNode; {
-			cc := d.nd[pp].itm
+			cc := nd[pp].itm
 			if cc <= 0 {
-				pp = d.nd[pp].up
+				pp = nd[pp].up
 			} else {
-				if d.nd[pp].color == 0 {
+				if nd[pp].color == 0 {
 					d.cover(cc)
-				} else if d.nd[pp].color > 0 {
+				} else if nd[pp].color > 0 {
 					d.purify(pp)
 				}
 				pp++
 			}
 		}
 
-		if d.cl[root].next == root {
+		if cl[root].next == root {
 			if level+1 > maxl {
 				if level+1 >= maxLevel {
 					log.Fatal("too many levels")
@@ -178,7 +181,7 @@ func (d *DLX) Dance() <-chan [][]string {
 			}
 
 			count++
-			ch <- d.solution(level)
+			ch <- d.solution(level, choice[:])
 			if count >= maxCount {
 				goto done
 			}
@@ -200,30 +203,32 @@ func (d *DLX) Dance() <-chan [][]string {
 			goto done
 		}
 		level--
-		curNode = d.choice[level]
-		bestItm = d.nd[curNode].itm
+		curNode = choice[level]
+		bestItm = nd[curNode].itm
 
 	recover:
 		for pp := curNode - 1; pp != curNode; {
-			cc := d.nd[pp].itm
+			cc := nd[pp].itm
 			if cc <= 0 {
-				pp = d.nd[pp].down
+				pp = nd[pp].down
 			} else {
-				if d.nd[pp].color == 0 {
+				if nd[pp].color == 0 {
 					d.uncover(cc)
-				} else if d.nd[pp].color > 0 {
+				} else if nd[pp].color > 0 {
 					d.unpurify(pp)
 				}
 				pp--
 			}
 		}
 
-		d.choice[level] = d.nd[curNode].down
-		curNode = d.choice[level]
+		choice[level] = nd[curNode].down
+		curNode = choice[level]
 
 		goto advance
 
 	done:
+		// do something to finish
+		return
 	}()
 
 	return ch

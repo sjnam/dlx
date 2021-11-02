@@ -11,10 +11,6 @@ import (
 const MaxNameLength = 32
 
 func (d *DLX) inputMatrix(rd io.Reader) error {
-	if maxNodes <= 2*maxCols {
-		return fmt.Errorf("recompile me: maxNodes must exceed twice maxCols")
-	} // every item will want a header node and at least one other node
-
 	scanner := bufio.NewScanner(rd)
 
 	var line string
