@@ -65,14 +65,14 @@ func (d *DLX) inputItemNames(line string) error {
 	for _, itm := range strings.Fields(line) {
 		if itm == "|" {
 			if d.second != maxCols {
-				return ErrIlligalItemNameLine
+				return ErrIllegalItemNameLine
 			}
 			d.second = d.lastItm
 			continue
 		}
 
 		if strings.ContainsAny(itm, ":|") {
-			return ErrIlligalCharacter
+			return ErrIllegalCharacter
 		}
 
 		if len(itm) > MaxNameLength {
