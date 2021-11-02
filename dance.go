@@ -179,7 +179,7 @@ func (d *DLX) Dance() <-chan [][]string {
 		if cl[root].next == root {
 			if level+1 > maxl {
 				if level+1 >= maxLevel {
-					log.Fatal("too many levels")
+					log.Fatal(ErrTooManyLevels)
 				}
 				maxl = level + 1
 			}
@@ -195,7 +195,7 @@ func (d *DLX) Dance() <-chan [][]string {
 		level++
 		if level > maxl {
 			if level >= maxLevel {
-				log.Fatal("too many levels")
+				log.Fatal(ErrTooManyLevels)
 			}
 			maxl = level
 		}

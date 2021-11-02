@@ -11,13 +11,13 @@ import (
 const MaxNameLength = 32
 
 func (d *DLX) inputMatrix(rd io.Reader) error {
-	scanner := bufio.NewScanner(rd)
-
 	var line string
+
+	scanner := bufio.NewScanner(rd)
 	for scanner.Scan() {
 		line = scanner.Text()
 		if len(line) > maxLine {
-			return fmt.Errorf("input line way too long")
+			return ErrInputLineTooLong
 		}
 		line = strings.TrimSpace(line)
 		if line == "" || line[0] == '|' {
@@ -29,7 +29,7 @@ func (d *DLX) inputMatrix(rd io.Reader) error {
 	}
 
 	if d.lastItm == 0 {
-		return fmt.Errorf("no items")
+		return ErrNoItems
 	}
 
 	if err := d.inputItemNames(line); err != nil {
@@ -39,7 +39,7 @@ func (d *DLX) inputMatrix(rd io.Reader) error {
 	for scanner.Scan() {
 		line = scanner.Text()
 		if len(line) > maxLine {
-			return fmt.Errorf("option line too long")
+			return ErrInputLineTooLong
 		}
 		line = strings.TrimSpace(line)
 		if line == "" || line[0] == '|' {
@@ -65,18 +65,18 @@ func (d *DLX) inputItemNames(line string) error {
 	for _, itm := range strings.Fields(line) {
 		if itm == "|" {
 			if d.second != maxCols {
-				return fmt.Errorf("item name line contains | twice")
+				return ErrIlligalItemNameLine
 			}
 			d.second = d.lastItm
 			continue
 		}
 
 		if strings.ContainsAny(itm, ":|") {
-			return fmt.Errorf("illegal character in item name")
+			return ErrIlligalCharacter
 		}
 
 		if len(itm) > MaxNameLength {
-			return fmt.Errorf("item name too long")
+			return ErrItemNameTooLong
 		}
 
 		cl[d.lastItm].name = itm
@@ -86,12 +86,12 @@ func (d *DLX) inputItemNames(line string) error {
 		for k = 1; cl[k].name != cl[d.lastItm].name; k++ {
 		}
 		if k < d.lastItm {
-			return fmt.Errorf("duplicate item name")
+			return ErrDuplicateItemName
 		}
 
 		// Initialize lastItm to a new item with an empty list
 		if d.lastItm > maxCols {
-			return fmt.Errorf("too many items")
+			return ErrTooManyItems
 		}
 
 		cl[d.lastItm-1].next = d.lastItm
@@ -134,10 +134,10 @@ func (d *DLX) inputOptions(line string) error {
 
 	for _, opt := range strings.Fields(line) {
 		if len(opt) > MaxNameLength {
-			return fmt.Errorf("item name too long")
+			return ErrItemNameTooLong
 		}
 		if opt[0] == ':' {
-			return fmt.Errorf("empty item name")
+			return ErrEmptyItemName
 		}
 		name := strings.Split(opt, ":")
 		cl[d.lastItm].name = name[0]
@@ -147,14 +147,14 @@ func (d *DLX) inputOptions(line string) error {
 		for k = 0; cl[k].name != cl[d.lastItm].name; k++ {
 		}
 		if k == d.lastItm {
-			return fmt.Errorf("unknown item name")
+			return ErrUnknownItemName
 		}
 		if nd[k].color >= i { // aux field
-			return fmt.Errorf("duplicate item name in this option")
+			return ErrDuplicateItemName
 		}
 		d.lastNode++
 		if d.lastNode == maxNodes {
-			return fmt.Errorf("too many nodes")
+			return ErrTooManyNodes
 		}
 		nd[d.lastNode].itm = k
 		if k < d.second {
@@ -179,7 +179,7 @@ func (d *DLX) inputOptions(line string) error {
 			nd[d.lastNode].color = int(c)
 			nd[d.lastNode].colorName = ":" + name[1]
 		} else {
-			return fmt.Errorf("primary item must be uncolored")
+			return ErrPrimaryItemColored
 		}
 	}
 
@@ -199,7 +199,7 @@ func (d *DLX) inputOptions(line string) error {
 		nd[i].down = d.lastNode
 		d.lastNode++ // create the next spacer
 		if d.lastNode == maxNodes {
-			return fmt.Errorf("too many nodes")
+			return ErrTooManyNodes
 		}
 		options++
 		nd[d.lastNode].up = i + 1
