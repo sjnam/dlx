@@ -145,10 +145,9 @@ func (d *DLX) Dance() <-chan Solution {
 		// Set bestItm to the best item for branching: MRV heuristic.
 		t := maxNodes
 		for k := cl[root].next; t != 0 && k != root; k = cl[k].next {
-			len := nd[k].itm
-			if len <= t {
+			if nd[k].itm <= t { // 'itm' is length of node list
 				bestItm = k
-				t = len
+				t = nd[k].itm
 			}
 		}
 
@@ -189,7 +188,7 @@ func (d *DLX) Dance() <-chan Solution {
 			count++
 			d.visitSolution(ch, level, choice)
 			if count >= maxCount {
-				return //goto done
+				return
 			}
 			goto recover
 		}
@@ -206,7 +205,7 @@ func (d *DLX) Dance() <-chan Solution {
 	backup:
 		d.uncover(bestItm)
 		if level == 0 {
-			return //goto done
+			return
 		}
 		level--
 		curNode = choice[level]
