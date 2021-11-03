@@ -30,6 +30,8 @@ var (
 	ErrPrimaryItemColored  = errors.New("primary item must be uncolored")
 )
 
+type Solution [][]string
+
 type node struct {
 	up, down  int    // predecessor and successor in item list
 	itm       int    // the item containing this node

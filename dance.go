@@ -2,9 +2,10 @@ package dlx
 
 import "log"
 
-func (d *DLX) solution(level int, choice []int) [][]string {
+func (d *DLX) visitSolution(ch chan<- Solution, level int, choice []int) {
+	var sol Solution
 	cl, nd := d.cl, d.nd
-	var sol [][]string
+
 	for k := 0; k <= level; k++ {
 		var opt []string
 		p := choice[k]
@@ -20,7 +21,7 @@ func (d *DLX) solution(level int, choice []int) [][]string {
 		}
 		sol = append(sol, opt)
 	}
-	return sol
+	ch <- sol
 }
 
 func (d *DLX) cover(c int) {
@@ -128,16 +129,15 @@ func (d *DLX) unpurify(p int) {
 	}
 }
 
-func (d *DLX) Dance() <-chan [][]string {
-	var bestItm, count, curNode, maxl int
-	var choice [maxLevel]int
-
-	cl, nd := d.cl, d.nd
-
-	ch := make(chan [][]string)
+func (d *DLX) Dance() <-chan Solution {
+	ch := make(chan Solution)
 
 	go func() {
 		defer close(ch)
+
+		var bestItm, curNode, count, maxl int
+		cl, nd := d.cl, d.nd
+		choice := make([]int, maxLevel)
 
 		level := 0
 
@@ -158,7 +158,7 @@ func (d *DLX) Dance() <-chan [][]string {
 		curNode = nd[bestItm].down
 
 	advance:
-		if curNode == bestItm { // we've tired all options for bestItm
+		if curNode == bestItm { // we've tried all options for bestItm
 			goto backup
 		}
 
@@ -187,9 +187,9 @@ func (d *DLX) Dance() <-chan [][]string {
 			}
 
 			count++
-			ch <- d.solution(level, choice[:])
+			d.visitSolution(ch, level, choice)
 			if count >= maxCount {
-				goto done
+				return //goto done
 			}
 			goto recover
 		}
@@ -206,7 +206,7 @@ func (d *DLX) Dance() <-chan [][]string {
 	backup:
 		d.uncover(bestItm)
 		if level == 0 {
-			goto done
+			return //goto done
 		}
 		level--
 		curNode = choice[level]
@@ -232,10 +232,6 @@ func (d *DLX) Dance() <-chan [][]string {
 		curNode = nd[curNode].down
 
 		goto advance
-
-	done:
-		// do something after finish if any
-		return
 	}()
 
 	return ch
