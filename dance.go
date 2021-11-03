@@ -29,6 +29,7 @@ func (d *DLX) cover(c int) {
 	cl[l].next = r
 	cl[r].prev = l
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
+		// hide(rr)
 		for nn := rr + 1; nn != rr; {
 			if nd[nn].color >= 0 {
 				uu := nd[nn].up
@@ -50,6 +51,7 @@ func (d *DLX) cover(c int) {
 func (d *DLX) uncover(c int) {
 	cl, nd := d.cl, d.nd
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
+		// unhide(rr)
 		for nn := rr + 1; nn != rr; {
 			if nd[nn].color >= 0 {
 				uu := nd[nn].up
@@ -127,39 +129,40 @@ func (d *DLX) unpurify(p int) {
 }
 
 func (d *DLX) Dance() <-chan [][]string {
+	var bestItm, count, curNode, maxl int
+	var choice [maxLevel]int
+
+	cl, nd := d.cl, d.nd
+
 	ch := make(chan [][]string)
 
 	go func() {
 		defer close(ch)
 
-		var p, bestItm, count, curNode, maxl int
-		var choice [maxLevel]int
-
-		cl, nd := d.cl, d.nd
 		level := 0
+
 	forward:
+		// Set bestItm to the best item for branching: MRV heuristic.
 		t := maxNodes
 		for k := cl[root].next; t != 0 && k != root; k = cl[k].next {
-			if nd[k].itm <= t {
-				if nd[k].itm < t {
-					bestItm = k
-					t = nd[k].itm
-					p = 1
-				} else {
-					p++ // this many items achieve the min
-				}
+			len := nd[k].itm
+			if len <= t {
+				bestItm = k
+				t = len
 			}
 		}
 
+		// Cover bestItm and set choice[level] to nd[bestItm].down
 		d.cover(bestItm)
 		choice[level] = nd[bestItm].down
-		curNode = choice[level]
+		curNode = nd[bestItm].down
 
 	advance:
-		if curNode == bestItm {
+		if curNode == bestItm { // we've tired all options for bestItm
 			goto backup
 		}
 
+		// Cover all other items of curNode
 		for pp := curNode + 1; pp != curNode; {
 			cc := nd[pp].itm
 			if cc <= 0 {
@@ -175,6 +178,7 @@ func (d *DLX) Dance() <-chan [][]string {
 		}
 
 		if cl[root].next == root {
+			// Visit a solution and goto recover
 			if level+1 > maxl {
 				if level+1 >= maxLevel {
 					log.Fatal(ErrTooManyLevels)
@@ -209,6 +213,7 @@ func (d *DLX) Dance() <-chan [][]string {
 		bestItm = nd[curNode].itm
 
 	recover:
+		// Uncover all other items of curNode
 		for pp := curNode - 1; pp != curNode; {
 			cc := nd[pp].itm
 			if cc <= 0 {
@@ -224,12 +229,12 @@ func (d *DLX) Dance() <-chan [][]string {
 		}
 
 		choice[level] = nd[curNode].down
-		curNode = choice[level]
+		curNode = nd[curNode].down
 
 		goto advance
 
 	done:
-		// do something to finish
+		// do something after finish if any
 		return
 	}()
 
