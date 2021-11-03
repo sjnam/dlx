@@ -1,5 +1,5 @@
 # go-dlx
-Go implementation of Donald Knuth's Algorithm 7.2.2.1C for exact cover with colors.
+Golang implementation of Donald Knuth's Algorithm 7.2.2.1C for Exact covering with colors.
 
 This code is based on the Algorithm C described in
 https://www-cs-faculty.stanford.edu/~knuth/fasc5c.ps.gz
