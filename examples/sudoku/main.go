@@ -127,26 +127,21 @@ func main() {
 		return
 	}
 
-	i := 0
-	for solution := range d.Dance() {
-		i++
-		fmt.Printf("%d:\n", i)
-		for _, opt := range solution {
-			sort.Strings(opt)
-			board[opt[2][1]-'0'][opt[2][2]-'0'] = string(opt[3][2])
-		}
-		for i, row := range board {
-			for j, col := range row {
-				fmt.Printf("%s ", col)
-				if (j+1)%3 == 0 {
-					fmt.Print(" ")
-				}
-			}
-			fmt.Println()
-			if (i+1)%3 == 0 && i != 8 {
-				fmt.Println()
+	solution := <-d.Dance()
+	for _, opt := range solution {
+		sort.Strings(opt)
+		board[opt[2][1]-'0'][opt[2][2]-'0'] = string(opt[3][2])
+	}
+	for i, row := range board {
+		for j, col := range row {
+			fmt.Printf("%s ", col)
+			if (j+1)%3 == 0 {
+				fmt.Print(" ")
 			}
 		}
 		fmt.Println()
+		if (i+1)%3 == 0 && i != 8 {
+			fmt.Println()
+		}
 	}
 }
