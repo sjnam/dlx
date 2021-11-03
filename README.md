@@ -126,11 +126,11 @@ Who trains the zebra, and who prefers to drink just plain water?
 
 ````
 $ go run examples/zebra/main.go
-water       tea         milk        orange      coffee
+Norway      Ukraine     England     Spain       Japan       
+diplomat    nurse       sculptor    violinist   painter     
+fox         horse       snail       dog         zebra       
+water       tea         milk        orange      coffee      
 yellow      blue        red         white       green
-Norway      Ukraine     England     Spain       Japan
-diplomat    nurse       sculptor    violinist   painter
-fox         horse       snail       dog         zebra
 ````
 
 ### Pentominoes
@@ -188,7 +188,6 @@ $ cd examples/filomino
 | .2...6.6..
 
 $ go run main.go 10 10 < 10x10.filomino.dlx 
-Solution: 1
 3 3 3 1 3 3 2 2 3 3 
 4 4 1 3 1 3 4 4 4 3 
 6 4 4 3 3 1 4 1 2 2 
@@ -210,7 +209,6 @@ Solution: 1
 | .....1..
 
 $ go run main.go 8 8 < 8x8.filomino.dlx
-Solution: 1
 4 4 4 4 6 6 6 6 
 3 3 2 6 2 2 6 6 
 3 5 2 6 6 6 2 4 
