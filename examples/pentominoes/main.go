@@ -25,7 +25,7 @@ func main() {
 		return
 	}
 
-	d, err := dlx.NewDLX(fp)
+	dx, err := dlx.NewDancer(fp)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -40,7 +40,7 @@ func main() {
 	}
 
 	i := 0
-	for solution := range d.Dance() {
+	for solution := range dx.Dance() {
 		i++
 		fmt.Printf("%d:\n", i)
 		for _, opt := range solution {

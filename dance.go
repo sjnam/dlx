@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func (d *DLX) getOption(p, head int) []string {
+func (d *MCC) getOption(p, head int) []string {
 	var option []string
 	cl, nd := d.cl, d.nd
 	if (p < d.lastItm && p == head) || (head >= d.lastItm && p == nd[head].itm) {
@@ -26,7 +26,7 @@ func (d *DLX) getOption(p, head int) []string {
 	return option
 }
 
-func (d *DLX) cover(c int, deact bool) {
+func (d *MCC) cover(c int, deact bool) {
 	cl, nd := d.cl, d.nd
 	if deact {
 		l, r := cl[c].prev, cl[c].next
@@ -49,7 +49,7 @@ func (d *DLX) cover(c int, deact bool) {
 	}
 }
 
-func (d *DLX) uncover(c int, react bool) {
+func (d *MCC) uncover(c int, react bool) {
 	cl, nd := d.cl, d.nd
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
@@ -72,7 +72,7 @@ func (d *DLX) uncover(c int, react bool) {
 	}
 }
 
-func (d *DLX) purify(p int) {
+func (d *MCC) purify(p int) {
 	nd := d.nd
 	cc := nd[p].itm
 	x := nd[p].color
@@ -98,7 +98,7 @@ func (d *DLX) purify(p int) {
 	}
 }
 
-func (d *DLX) unpurify(p int) {
+func (d *MCC) unpurify(p int) {
 	nd := d.nd
 	cc := nd[p].itm
 	x := nd[p].color
@@ -123,7 +123,7 @@ func (d *DLX) unpurify(p int) {
 	}
 }
 
-func (d *DLX) tweak(n, block int) {
+func (d *MCC) tweak(n, block int) {
 	nd := d.nd
 	nn := n
 	if block != 0 {
@@ -147,7 +147,7 @@ func (d *DLX) tweak(n, block int) {
 	}
 }
 
-func (d *DLX) untweak(c, x, unblock int) {
+func (d *MCC) untweak(c, x, unblock int) {
 	nd := d.nd
 	z := nd[c].down
 	nd[c].down = x
@@ -178,7 +178,11 @@ func (d *DLX) untweak(c, x, unblock int) {
 	}
 }
 
-func (d *DLX) Dance() <-chan [][]string {
+// Dance generates all exact covers will be to repeatedly
+// choose an active primary item and to branch on the ways to reduce
+// the possibilities for covering that item.
+// And we explore all possibilities via depth-first search.
+func (d *MCC) Dance() <-chan [][]string {
 	ch := make(chan [][]string)
 
 	go func() {

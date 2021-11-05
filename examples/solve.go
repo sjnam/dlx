@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	d, err := dlx.NewDLX(os.Stdin)
+	d, err := dlx.NewDancer(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

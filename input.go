@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-const MaxNameLength = 32
+const maxNameLength = 32
 
-func (d *DLX) inputMatrix(rd io.Reader) error {
+func (d *MCC) inputMatrix(rd io.Reader) error {
 	var line string
 
 	scanner := bufio.NewScanner(rd)
@@ -58,7 +58,7 @@ func (d *DLX) inputMatrix(rd io.Reader) error {
 	return nil
 }
 
-func (d *DLX) inputItemNames(line string) error {
+func (d *MCC) inputItemNames(line string) error {
 	cl, nd := d.cl, d.nd
 
 	for _, itm := range strings.Fields(line) {
@@ -70,7 +70,7 @@ func (d *DLX) inputItemNames(line string) error {
 			continue
 		}
 
-		if len(itm) > MaxNameLength {
+		if len(itm) > maxNameLength {
 			return ErrItemNameTooLong
 		}
 
@@ -134,7 +134,7 @@ func (d *DLX) inputItemNames(line string) error {
 	return nil
 }
 
-func (d *DLX) inputOptions(line string) error {
+func (d *MCC) inputOptions(line string) error {
 	var (
 		cl      = d.cl
 		nd      = d.nd
@@ -144,7 +144,7 @@ func (d *DLX) inputOptions(line string) error {
 	)
 
 	for _, opt := range strings.Fields(line) {
-		if len(opt) > MaxNameLength {
+		if len(opt) > maxNameLength {
 			return ErrItemNameTooLong
 		}
 		if opt[0] == ':' {

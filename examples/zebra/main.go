@@ -7,7 +7,7 @@ import (
 	"github.com/sjnam/go-dlx"
 )
 
-const dlxInput = `
+const xccInput = `
 |Zebra Puzzle
 #1 #2 #3 #4 #5 #6 #7 #8 #9 #10 #11 #12 #13 #14 #15 #16 | N0 N1 N2 N3 N4 J0 J1 J2 J3 J4 P0 P1 P2 P3 P4 D0 D1 D2 D3 D4 C0 C1 C2 C3 C4
 |The Englishman lives in a red house.
@@ -109,7 +109,7 @@ const dlxInput = `
 `
 
 func main() {
-	d, err := dlx.NewDLX(strings.NewReader(dlxInput))
+	xcc, err := dlx.NewDancer(strings.NewReader(xccInput))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -123,7 +123,7 @@ func main() {
 		'C': make([]string, 5),
 	}
 
-	solution := <-d.Dance()
+	solution := <-xcc.Dance()
 	for _, opt := range solution {
 		for i := 1; i < len(opt); i++ {
 			kv := strings.Split(opt[i], ":")

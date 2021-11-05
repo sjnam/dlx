@@ -110,7 +110,7 @@ func main() {
 	var buff bytes.Buffer
 
 	rd := io.TeeReader(os.Stdin, &buff)
-	d, err := dlx.NewDLX(sudokuDLX(rd))
+	dx, err := dlx.NewDancer(sudokuDLX(rd))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -127,7 +127,7 @@ func main() {
 		return
 	}
 
-	solution := <-d.Dance()
+	solution := <-dx.Dance()
 	for _, opt := range solution {
 		sort.Strings(opt)
 		board[opt[2][1]-'0'][opt[2][2]-'0'] = string(opt[3][2])

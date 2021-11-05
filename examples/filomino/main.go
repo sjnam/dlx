@@ -45,7 +45,7 @@ func main() {
 
 	go spinner(100 * time.Millisecond)
 
-	d, err := dlx.NewDLX(os.Stdin)
+	dx, err := dlx.NewDancer(os.Stdin)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -56,7 +56,7 @@ func main() {
 		box[i] = make([]int, nc)
 	}
 
-	solution := <-d.Dance()
+	solution := <-dx.Dance()
 	for _, opt := range solution {
 		n := 0
 		var coor [][2]int

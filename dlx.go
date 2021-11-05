@@ -30,6 +30,11 @@ var (
 	ErrPrimaryItemColored  = errors.New("primary item must be uncolored")
 )
 
+// Dancer solves exact cover problem
+type Dancer interface {
+	Dance() <-chan [][]string
+}
+
 type node struct {
 	up, down  int    // predecessor and successor in item list
 	itm       int    // the item containing this node
@@ -43,7 +48,8 @@ type item struct {
 	bound, slack int    // residual capacity of ths item
 }
 
-type DLX struct {
+// MCC dancing links object
+type MCC struct {
 	nd       []node // the master list of nodes
 	lastNode int    // the first node in nd that's not yet used
 	cl       []item // the master list of items
@@ -51,8 +57,9 @@ type DLX struct {
 	second   int    // boundary between primary and secondary items
 }
 
-func NewDLX(rd io.Reader) (*DLX, error) {
-	d := &DLX{
+// NewDancer let's dance.
+func NewDancer(rd io.Reader) (*MCC, error) {
+	d := &MCC{
 		nd:     make([]node, maxNodes),
 		cl:     make([]item, maxCols+2),
 		second: maxCols,

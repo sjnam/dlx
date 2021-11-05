@@ -7,7 +7,7 @@ import (
 )
 
 func solve(matrix string) {
-	d, err := NewDLX(strings.NewReader(matrix))
+	d, err := NewDancer(strings.NewReader(matrix))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -21,7 +21,7 @@ func solve(matrix string) {
 	}
 }
 
-func ExampleDLX() {
+func ExampleDLX_dance_dlx() {
 	dlxInput := `
 | A simple example
 A B C D E | F G
@@ -40,7 +40,7 @@ D E G
 	// [C E F]
 }
 
-func ExampleXCC() {
+func ExampleDLX_dance_xcc() {
 	xccInput := `
 |A simple example of color controls
 A B C | X Y
@@ -57,7 +57,7 @@ C Y:1
 	// [B X:1]
 }
 
-func ExampleMCC() {
+func ExampleDLX_dance_mcc() {
 	mccInput := `
 | A simple example of color controls
 A B 2:3|C | X Y

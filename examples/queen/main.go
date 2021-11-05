@@ -72,7 +72,7 @@ func main() {
 	}
 	n, _ := strconv.Atoi(os.Args[1])
 
-	d, err := dlx.NewDLX(queenDLX(n))
+	dx, err := dlx.NewDancer(queenDLX(n))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -83,7 +83,7 @@ func main() {
 	for r := 0; r < n; r++ {
 		board[r] = make([]string, n)
 	}
-	for solution := range d.Dance() {
+	for solution := range dx.Dance() {
 		i++
 		for r := 0; r < n; r++ {
 			for c := 0; c < n; c++ {
