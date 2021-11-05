@@ -5,10 +5,10 @@ import (
 	"log"
 )
 
-func (d *MCC) getOption(p, head int) []string {
+func (m *MCC) getOption(p, head int) []string {
 	var option []string
-	cl, nd := d.cl, d.nd
-	if (p < d.lastItm && p == head) || (head >= d.lastItm && p == nd[head].itm) {
+	cl, nd := m.cl, m.nd
+	if (p < m.lastItm && p == head) || (head >= m.lastItm && p == nd[head].itm) {
 		option = append(option, fmt.Sprintf("null %s", cl[p].name))
 	} else {
 		for q := p; ; {
@@ -26,13 +26,13 @@ func (d *MCC) getOption(p, head int) []string {
 	return option
 }
 
-func (d *MCC) cover(c int, deact bool) {
-	cl, nd := d.cl, d.nd
+func (m *MCC) cover(c int, deact bool) {
+	cl, nd := m.cl, m.nd
 	if deact {
 		l, r := cl[c].prev, cl[c].next
 		cl[l].next, cl[r].prev = r, l
 	}
-	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
+	for rr := nd[c].down; rr >= m.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
 			if nd[nn].color >= 0 {
 				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
@@ -49,9 +49,9 @@ func (d *MCC) cover(c int, deact bool) {
 	}
 }
 
-func (d *MCC) uncover(c int, react bool) {
-	cl, nd := d.cl, d.nd
-	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
+func (m *MCC) uncover(c int, react bool) {
+	cl, nd := m.cl, m.nd
+	for rr := nd[c].down; rr >= m.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
 			if nd[nn].color >= 0 {
 				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
@@ -72,12 +72,12 @@ func (d *MCC) uncover(c int, react bool) {
 	}
 }
 
-func (d *MCC) purify(p int) {
-	nd := d.nd
+func (m *MCC) purify(p int) {
+	nd := m.nd
 	cc := nd[p].itm
 	x := nd[p].color
 	nd[cc].color = x
-	for rr := nd[cc].down; rr >= d.lastItm; rr = nd[rr].down {
+	for rr := nd[cc].down; rr >= m.lastItm; rr = nd[rr].down {
 		if nd[rr].color != x {
 			for nn := rr + 1; nn != rr; {
 				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
@@ -98,11 +98,11 @@ func (d *MCC) purify(p int) {
 	}
 }
 
-func (d *MCC) unpurify(p int) {
-	nd := d.nd
+func (m *MCC) unpurify(p int) {
+	nd := m.nd
 	cc := nd[p].itm
 	x := nd[p].color
-	for rr := nd[cc].up; rr >= d.lastItm; rr = nd[rr].up {
+	for rr := nd[cc].up; rr >= m.lastItm; rr = nd[rr].up {
 		if nd[rr].color < 0 {
 			nd[rr].color = x
 		} else if rr != p {
@@ -123,8 +123,8 @@ func (d *MCC) unpurify(p int) {
 	}
 }
 
-func (d *MCC) tweak(n, block int) {
-	nd := d.nd
+func (m *MCC) tweak(n, block int) {
+	nd := m.nd
 	nn := n
 	if block != 0 {
 		nn = n + 1
@@ -147,8 +147,8 @@ func (d *MCC) tweak(n, block int) {
 	}
 }
 
-func (d *MCC) untweak(c, x, unblock int) {
-	nd := d.nd
+func (m *MCC) untweak(c, x, unblock int) {
+	nd := m.nd
 	z := nd[c].down
 	nd[c].down = x
 	rr, qq, k := x, c, 0
@@ -174,7 +174,7 @@ func (d *MCC) untweak(c, x, unblock int) {
 	nd[rr].up = qq
 	nd[c].itm += k
 	if unblock == 0 {
-		d.uncover(c, false)
+		m.uncover(c, false)
 	}
 }
 
@@ -182,7 +182,7 @@ func (d *MCC) untweak(c, x, unblock int) {
 // choose an active primary item and to branch on the ways to reduce
 // the possibilities for covering that item.
 // And we explore all possibilities via depth-first search.
-func (d *MCC) Dance() <-chan [][]string {
+func (m *MCC) Dance() <-chan [][]string {
 	ch := make(chan [][]string)
 
 	go func() {
@@ -190,7 +190,7 @@ func (d *MCC) Dance() <-chan [][]string {
 
 		var bestItm, bestL, bestS, curNode, count, maxl int
 
-		cl, nd := d.cl, d.nd
+		cl, nd := m.cl, m.nd
 
 		choice := make([]int, maxLevel)
 		scor := make([]int, maxLevel)
@@ -223,14 +223,14 @@ func (d *MCC) Dance() <-chan [][]string {
 			for k := 0; k < level; k++ {
 				pp := choice[k]
 				cc := nd[pp].itm
-				if pp < d.lastItm {
+				if pp < m.lastItm {
 					cc = pp
 				}
 				head := firstTweak[k]
 				if head == 0 {
 					head = nd[cc].down
 				}
-				sol[k] = d.getOption(pp, head)
+				sol[k] = m.getOption(pp, head)
 			}
 			ch <- sol
 
@@ -249,11 +249,11 @@ func (d *MCC) Dance() <-chan [][]string {
 		cl[bestItm].bound--
 
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			d.cover(bestItm, true)
+			m.cover(bestItm, true)
 		} else {
 			firstTweak[level] = curNode
 			if cl[bestItm].bound == 0 {
-				d.cover(bestItm, true)
+				m.cover(bestItm, true)
 			}
 		}
 
@@ -265,28 +265,28 @@ func (d *MCC) Dance() <-chan [][]string {
 		} else if nd[bestItm].itm <= cl[bestItm].bound-cl[bestItm].slack {
 			goto backup
 		} else if curNode != bestItm {
-			d.tweak(curNode, cl[bestItm].bound)
+			m.tweak(curNode, cl[bestItm].bound)
 		} else if cl[bestItm].bound != 0 {
 			p, q := cl[bestItm].prev, cl[bestItm].next
 			cl[p].next, cl[q].prev = q, p
 		}
 
-		if curNode > d.lastItm {
+		if curNode > m.lastItm {
 			for pp := curNode + 1; pp != curNode; {
 				cc := nd[pp].itm
 				if cc <= 0 {
 					pp = nd[pp].up
 				} else {
-					if cc < d.second {
+					if cc < m.second {
 						cl[cc].bound--
 						if cl[cc].bound == 0 {
-							d.cover(cc, true)
+							m.cover(cc, true)
 						}
 					} else {
 						if nd[pp].color == 0 {
-							d.cover(cc, true)
+							m.cover(cc, true)
 						} else if nd[pp].color > 0 {
-							d.purify(pp)
+							m.purify(pp)
 						}
 					}
 					pp++
@@ -305,9 +305,9 @@ func (d *MCC) Dance() <-chan [][]string {
 
 	backup:
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			d.uncover(bestItm, true)
+			m.uncover(bestItm, true)
 		} else {
-			d.untweak(bestItm, firstTweak[level], cl[bestItm].bound)
+			m.untweak(bestItm, firstTweak[level], cl[bestItm].bound)
 		}
 		cl[bestItm].bound++
 
@@ -320,7 +320,7 @@ func (d *MCC) Dance() <-chan [][]string {
 		bestItm = nd[curNode].itm
 		score = scor[level]
 
-		if curNode < d.lastItm {
+		if curNode < m.lastItm {
 			bestItm = curNode
 			p, q := cl[bestItm].prev, cl[bestItm].next
 			cl[q].prev, cl[p].next = bestItm, bestItm
@@ -332,16 +332,16 @@ func (d *MCC) Dance() <-chan [][]string {
 			if cc <= 0 {
 				pp = nd[pp].down
 			} else {
-				if cc < d.second {
+				if cc < m.second {
 					if cl[cc].bound == 0 {
-						d.uncover(cc, true)
+						m.uncover(cc, true)
 					}
 					cl[cc].bound++
 				} else {
 					if nd[pp].color == 0 {
-						d.uncover(cc, true)
+						m.uncover(cc, true)
 					} else if nd[pp].color > 0 {
-						d.unpurify(pp)
+						m.unpurify(pp)
 					}
 				}
 				pp--

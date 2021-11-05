@@ -30,7 +30,7 @@ var (
 	ErrPrimaryItemColored  = errors.New("primary item must be uncolored")
 )
 
-// Dancer solves exact cover problem
+// Dancer solves exact cover problem while dancing.
 type Dancer interface {
 	Dance() <-chan [][]string
 }
@@ -57,7 +57,7 @@ type MCC struct {
 	second   int    // boundary between primary and secondary items
 }
 
-// NewDancer let's dance.
+// NewDancer generates a dancing machine.
 func NewDancer(rd io.Reader) (*MCC, error) {
 	d := &MCC{
 		nd:     make([]node, maxNodes),
