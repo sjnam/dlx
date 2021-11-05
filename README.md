@@ -30,7 +30,7 @@ D E G
 	ctx, cancle := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancle()
 
-    dx, err := dlx.NewDancer(strings.NewReader(dlxInput))
+	dx, err := dlx.NewDancer(strings.NewReader(dlxInput))
 	if err != nil {
 		log.Fatal(err)
 	}
