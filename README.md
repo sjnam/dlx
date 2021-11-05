@@ -12,7 +12,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/sjnam/dlx"
+	"github.com/sjnam/go-dlx"
 )
 
 func main() {
@@ -26,8 +26,7 @@ A D
 B G
 D E G
 `
-	rd := strings.NewReader(dlxInput)
-	d, err := dlx.NewDLX(rd)
+	d, err := dlx.NewDLX(strings.NewReader(dlxInput))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -101,7 +100,7 @@ $ go run main.go < s17.dlx
 7 8 3  5 2 1  9 4 6
 ````
 
-### Zebra
+### Zebra puzzle
 Five people, from five different countries, have five different occupations,
 own five different pets, drink five different beverages, and live in a row of
 five different colored houses.
