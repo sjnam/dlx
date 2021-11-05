@@ -1,12 +1,14 @@
 package dlx
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 
 func (d *DLX) visitSolution(ch chan<- Solution,
 	level int, choice, firstTweak []int) {
-	var sol Solution
 	cl, nd := d.cl, d.nd
-
+	var solution Solution
 	for k := 0; k < level; k++ {
 		var opt []string
 		pp := choice[k]
@@ -22,10 +24,11 @@ func (d *DLX) visitSolution(ch chan<- Solution,
 
 		if (pp < d.lastItm && pp == head) ||
 			(head >= d.lastItm && pp == nd[head].itm) {
-			opt = append(opt, "null "+cl[pp].name)
+			opt = append(opt, fmt.Sprintf("null %s", cl[pp].name))
 		} else {
 			for q := pp; ; {
-				opt = append(opt, cl[nd[q].itm].name+nd[q].colorName)
+				opt = append(opt,
+					fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
 				q++
 				if nd[q].itm <= 0 {
 					q = nd[q].up
@@ -35,24 +38,21 @@ func (d *DLX) visitSolution(ch chan<- Solution,
 				}
 			}
 		}
-		sol = append(sol, opt)
+		solution = append(solution, opt)
 	}
-	ch <- sol
+	ch <- solution
 }
 
 func (d *DLX) cover(c int, deact bool) {
 	cl, nd := d.cl, d.nd
 	if deact {
 		l, r := cl[c].prev, cl[c].next
-		cl[l].next = r
-		cl[r].prev = l
+		cl[l].next, cl[r].prev = r, l
 	}
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
 			if nd[nn].color >= 0 {
-				uu := nd[nn].up
-				dd := nd[nn].down
-				cc := nd[nn].itm
+				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
 				if cc <= 0 {
 					nn = uu
 					continue
@@ -71,9 +71,7 @@ func (d *DLX) uncover(c int, react bool) {
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
 			if nd[nn].color >= 0 {
-				uu := nd[nn].up
-				dd := nd[nn].down
-				cc := nd[nn].itm
+				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
 				if cc <= 0 {
 					nn = uu
 					continue
@@ -87,8 +85,7 @@ func (d *DLX) uncover(c int, react bool) {
 	}
 	if react {
 		l, r := cl[c].prev, cl[c].next
-		cl[r].prev = c
-		cl[l].next = c
+		cl[r].prev, cl[l].next = c, c
 	}
 }
 
@@ -100,9 +97,7 @@ func (d *DLX) purify(p int) {
 	for rr := nd[cc].down; rr >= d.lastItm; rr = nd[rr].down {
 		if nd[rr].color != x {
 			for nn := rr + 1; nn != rr; {
-				uu := nd[nn].up
-				dd := nd[nn].down
-				cc = nd[nn].itm
+				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
 				if cc <= 0 {
 					nn = uu
 					continue
@@ -129,9 +124,7 @@ func (d *DLX) unpurify(p int) {
 			nd[rr].color = x
 		} else if rr != p {
 			for nn := rr - 1; nn != rr; {
-				uu := nd[nn].up
-				dd := nd[nn].down
-				cc = nd[nn].itm
+				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
 				if cc <= 0 {
 					nn = dd
 					continue
@@ -155,9 +148,7 @@ func (d *DLX) tweak(n, block int) {
 	}
 	for {
 		if nd[nn].color >= 0 {
-			uu := nd[nn].up
-			dd := nd[nn].down
-			cc := nd[nn].itm
+			uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
 			if cc <= 0 {
 				nn = uu
 				continue
@@ -184,9 +175,7 @@ func (d *DLX) untweak(c, x, unblock int) {
 		if unblock != 0 {
 			for nn := rr + 1; nn != rr; {
 				if nd[nn].color >= 0 {
-					uu := nd[nn].up
-					dd := nd[nn].down
-					cc := nd[nn].itm
+					uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
 					if cc <= 0 {
 						nn = uu
 						continue
@@ -212,7 +201,7 @@ func (d *DLX) Dance() <-chan Solution {
 	go func() {
 		defer close(ch)
 
-		var bestItm, bestL, bestS, curNode, count, maxl, score int
+		var bestItm, bestL, bestS, curNode, count, maxl int
 
 		cl, nd := d.cl, d.nd
 
@@ -222,7 +211,7 @@ func (d *DLX) Dance() <-chan Solution {
 
 		level := 0
 	forward:
-		score = infty
+		score := infty
 		for k := cl[root].next; k != root; k = cl[k].next {
 			s := cl[k].slack
 			if s > cl[k].bound {
@@ -278,8 +267,7 @@ func (d *DLX) Dance() <-chan Solution {
 			d.tweak(curNode, cl[bestItm].bound)
 		} else if cl[bestItm].bound != 0 {
 			p, q := cl[bestItm].prev, cl[bestItm].next
-			cl[p].next = q
-			cl[q].prev = p
+			cl[p].next, cl[q].prev = q, p
 		}
 
 		if curNode > d.lastItm {
@@ -334,8 +322,7 @@ func (d *DLX) Dance() <-chan Solution {
 		if curNode < d.lastItm {
 			bestItm = curNode
 			p, q := cl[bestItm].prev, cl[bestItm].next
-			cl[q].prev = bestItm
-			cl[p].next = bestItm
+			cl[q].prev, cl[p].next = bestItm, bestItm
 			goto backup
 		}
 
