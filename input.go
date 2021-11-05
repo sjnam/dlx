@@ -220,18 +220,3 @@ func (d *DLX) inputOptions(line string) error {
 
 	return nil
 }
-
-func (d *DLX) InitialContent() {
-	cl, nd := d.cl, d.nd
-	for i := 0; i < d.lastItm; i++ {
-		fmt.Printf("%2d[%2s,%2d,%2d] ", i, cl[i].name, cl[i].prev, cl[i].next)
-	}
-	fmt.Println()
-	for i := 0; i <= d.lastNode; i++ {
-		if i%d.lastItm == 0 {
-			fmt.Println()
-		}
-		fmt.Printf("%2d[%2d,%2d,%2d] ", i, nd[i].itm, nd[i].up, nd[i].down)
-	}
-	fmt.Println()
-}
