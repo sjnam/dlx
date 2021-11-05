@@ -40,9 +40,9 @@ func (d *DLX) visitSolution(ch chan<- Solution,
 	ch <- sol
 }
 
-func (d *DLX) cover(c, deact int) {
+func (d *DLX) cover(c int, deact bool) {
 	cl, nd := d.cl, d.nd
-	if deact != 0 {
+	if deact {
 		l, r := cl[c].prev, cl[c].next
 		cl[l].next = r
 		cl[r].prev = l
@@ -66,7 +66,7 @@ func (d *DLX) cover(c, deact int) {
 	}
 }
 
-func (d *DLX) uncover(c, react int) {
+func (d *DLX) uncover(c int, react bool) {
 	cl, nd := d.cl, d.nd
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
@@ -85,7 +85,7 @@ func (d *DLX) uncover(c, react int) {
 			nn++
 		}
 	}
-	if react != 0 {
+	if react {
 		l, r := cl[c].prev, cl[c].next
 		cl[r].prev = c
 		cl[l].next = c
@@ -202,7 +202,7 @@ func (d *DLX) untweak(c, x, unblock int) {
 	nd[rr].up = qq
 	nd[c].itm += k
 	if unblock == 0 {
-		d.uncover(c, 0)
+		d.uncover(c, false)
 	}
 }
 
@@ -259,11 +259,11 @@ func (d *DLX) Dance() <-chan Solution {
 		cl[bestItm].bound--
 
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			d.cover(bestItm, 1)
+			d.cover(bestItm, true)
 		} else {
 			firstTweak[level] = curNode
 			if cl[bestItm].bound == 0 {
-				d.cover(bestItm, 1)
+				d.cover(bestItm, true)
 			}
 		}
 
@@ -291,11 +291,11 @@ func (d *DLX) Dance() <-chan Solution {
 					if cc < d.second {
 						cl[cc].bound--
 						if cl[cc].bound == 0 {
-							d.cover(cc, 1)
+							d.cover(cc, true)
 						}
 					} else {
 						if nd[pp].color == 0 {
-							d.cover(cc, 1)
+							d.cover(cc, true)
 						} else if nd[pp].color > 0 {
 							d.purify(pp)
 						}
@@ -316,7 +316,7 @@ func (d *DLX) Dance() <-chan Solution {
 
 	backup:
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			d.uncover(bestItm, 1)
+			d.uncover(bestItm, true)
 		} else {
 			d.untweak(bestItm, firstTweak[level], cl[bestItm].bound)
 		}
@@ -346,12 +346,12 @@ func (d *DLX) Dance() <-chan Solution {
 			} else {
 				if cc < d.second {
 					if cl[cc].bound == 0 {
-						d.uncover(cc, 1)
+						d.uncover(cc, true)
 					}
 					cl[cc].bound++
 				} else {
 					if nd[pp].color == 0 {
-						d.uncover(cc, 1)
+						d.uncover(cc, true)
 					} else if nd[pp].color > 0 {
 						d.unpurify(pp)
 					}
