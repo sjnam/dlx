@@ -5,42 +5,26 @@ import (
 	"log"
 )
 
-func (d *DLX) visitSolution(ch chan<- Solution,
-	level int, choice, firstTweak []int) {
+func (d *DLX) getOption(p, head int) []string {
+	var option []string
 	cl, nd := d.cl, d.nd
-	var solution Solution
-	for k := 0; k < level; k++ {
-		var opt []string
-		pp := choice[k]
-		cc := nd[pp].itm
-		if pp < d.lastItm {
-			cc = pp
-		}
-
-		head := firstTweak[k]
-		if head == 0 {
-			head = nd[cc].down
-		}
-
-		if (pp < d.lastItm && pp == head) ||
-			(head >= d.lastItm && pp == nd[head].itm) {
-			opt = append(opt, fmt.Sprintf("null %s", cl[pp].name))
-		} else {
-			for q := pp; ; {
-				opt = append(opt,
-					fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
-				q++
-				if nd[q].itm <= 0 {
-					q = nd[q].up
-				}
-				if q == pp {
-					break
-				}
+	if (p < d.lastItm && p == head) ||
+		(head >= d.lastItm && p == nd[head].itm) {
+		option = append(option, fmt.Sprintf("null %s", cl[p].name))
+	} else {
+		for q := p; ; {
+			option = append(option,
+				fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
+			q++
+			if nd[q].itm <= 0 {
+				q = nd[q].up
+			}
+			if q == p {
+				break
 			}
 		}
-		solution = append(solution, opt)
 	}
-	ch <- solution
+	return option
 }
 
 func (d *DLX) cover(c int, deact bool) {
@@ -195,8 +179,8 @@ func (d *DLX) untweak(c, x, unblock int) {
 	}
 }
 
-func (d *DLX) Dance() <-chan Solution {
-	ch := make(chan Solution)
+func (d *DLX) Dance() <-chan [][]string {
+	ch := make(chan [][]string)
 
 	go func() {
 		defer close(ch)
@@ -232,8 +216,22 @@ func (d *DLX) Dance() <-chan Solution {
 			goto backdown
 		}
 		if score == infty {
+			sol := make([][]string, level)
+			for k := 0; k < level; k++ {
+				pp := choice[k]
+				cc := nd[pp].itm
+				if pp < d.lastItm {
+					cc = pp
+				}
+				head := firstTweak[k]
+				if head == 0 {
+					head = nd[cc].down
+				}
+				sol[k] = d.getOption(pp, head)
+			}
+			ch <- sol
+
 			count++
-			d.visitSolution(ch, level, choice, firstTweak)
 			if count >= maxCount {
 				return
 			}
