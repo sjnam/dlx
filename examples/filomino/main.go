@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -43,6 +44,9 @@ func main() {
 		return
 	}
 
+	ctx, cancle := context.WithCancel(context.Background())
+	defer cancle()
+
 	go spinner(100 * time.Millisecond)
 
 	dx, err := dlx.NewDancer(os.Stdin)
@@ -56,7 +60,7 @@ func main() {
 		box[i] = make([]int, nc)
 	}
 
-	solution := <-dx.Dance()
+	solution := <-dx.Dance(ctx)
 	for _, opt := range solution {
 		n := 0
 		var coor [][2]int

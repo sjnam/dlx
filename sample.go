@@ -1,31 +1,26 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"strings"
+	"os"
+	"time"
 
 	"github.com/sjnam/go-dlx/dlx"
 )
 
 func main() {
-	dlxInput := `
-| A simple example
-A B C D E | F G
-C E F
-A D G
-B C F
-A D
-B G
-D E G
-`
-	dx, err := dlx.NewDancer(strings.NewReader(dlxInput))
+	ctx, cancle := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancle()
+
+	dx, err := dlx.NewDancer(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	i := 0
-	for sol := range dx.Dance() {
+	for sol := range dx.Dance(ctx) {
 		i++
 		fmt.Printf("%d:\n", i)
 		for _, opt := range sol {

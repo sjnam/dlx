@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -72,6 +73,9 @@ func main() {
 	}
 	n, _ := strconv.Atoi(os.Args[1])
 
+	ctx, cancle := context.WithCancel(context.Background())
+	defer cancle()
+
 	dx, err := dlx.NewDancer(queenDLX(n))
 	if err != nil {
 		fmt.Println(err)
@@ -83,7 +87,7 @@ func main() {
 	for r := 0; r < n; r++ {
 		board[r] = make([]string, n)
 	}
-	for solution := range dx.Dance() {
+	for solution := range dx.Dance(ctx) {
 		i++
 		for r := 0; r < n; r++ {
 			for c := 0; c < n; c++ {

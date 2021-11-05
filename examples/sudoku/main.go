@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -107,6 +108,9 @@ func sudokuDLX(rd io.Reader) io.Reader {
 }
 
 func main() {
+	ctx, cancle := context.WithCancel(context.Background())
+	defer cancle()
+
 	var buff bytes.Buffer
 
 	rd := io.TeeReader(os.Stdin, &buff)
@@ -127,7 +131,7 @@ func main() {
 		return
 	}
 
-	solution := <-dx.Dance()
+	solution := <-dx.Dance(ctx)
 	for _, opt := range solution {
 		sort.Strings(opt)
 		board[opt[2][1]-'0'][opt[2][2]-'0'] = string(opt[3][2])

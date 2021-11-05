@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -109,6 +110,9 @@ const xccInput = `
 `
 
 func main() {
+	ctx, cancle := context.WithCancel(context.Background())
+	defer cancle()
+
 	xcc, err := dlx.NewDancer(strings.NewReader(xccInput))
 	if err != nil {
 		fmt.Println(err)
@@ -123,7 +127,7 @@ func main() {
 		'C': make([]string, 5),
 	}
 
-	solution := <-xcc.Dance()
+	solution := <-xcc.Dance(ctx)
 	for _, opt := range solution {
 		for i := 1; i < len(opt); i++ {
 			kv := strings.Split(opt[i], ":")

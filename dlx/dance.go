@@ -1,13 +1,16 @@
 package dlx
 
 import (
+	"context"
 	"fmt"
 	"log"
 )
 
 func (m *MCC) getOption(p, head int) []string {
-	var option []string
-	cl, nd := m.cl, m.nd
+	var (
+		option []string
+		cl, nd = m.cl, m.nd
+	)
 	if (p < m.lastItm && p == head) || (head >= m.lastItm && p == nd[head].itm) {
 		option = append(option, fmt.Sprintf("null %s", cl[p].name))
 	} else {
@@ -178,25 +181,23 @@ func (m *MCC) untweak(c, x, unblock int) {
 	}
 }
 
-// Dance generates all exact covers will be to repeatedly
-// choose an active primary item and to branch on the ways to reduce
-// the possibilities for covering that item.
-// And we explore all possibilities via depth-first search.
-func (m *MCC) Dance() <-chan [][]string {
+// Dance generates all exact covers
+func (m *MCC) Dance(ctx context.Context) <-chan [][]string {
 	ch := make(chan [][]string)
 
 	go func() {
 		defer close(ch)
 
-		var bestItm, bestL, bestS, curNode, count, maxl int
+		var (
+			bestItm, curNode   int
+			bestL, bestS       int
+			count, level, maxl int
+			cl, nd             = m.cl, m.nd
+			choice             = make([]int, maxLevel)
+			scor               = make([]int, maxLevel)
+			firstTweak         = make([]int, maxLevel)
+		)
 
-		cl, nd := m.cl, m.nd
-
-		choice := make([]int, maxLevel)
-		scor := make([]int, maxLevel)
-		firstTweak := make([]int, maxLevel)
-
-		level := 0
 	forward:
 		score := infty
 		for k := cl[root].next; k != root; k = cl[k].next {
@@ -232,7 +233,13 @@ func (m *MCC) Dance() <-chan [][]string {
 				}
 				sol[k] = m.getOption(pp, head)
 			}
-			ch <- sol
+
+			select {
+			case <-ctx.Done():
+				log.Println("Cancelled!")
+				return
+			case ch <- sol:
+			}
 
 			count++
 			if count >= maxCount {

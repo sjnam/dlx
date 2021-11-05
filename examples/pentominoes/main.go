@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sort"
@@ -18,6 +19,9 @@ func main() {
 
 	nr, _ := strconv.Atoi(args[1])
 	nc, _ := strconv.Atoi(args[2])
+
+	ctx, cancle := context.WithCancel(context.Background())
+	defer cancle()
 
 	fp, err := os.Open(fmt.Sprintf("%dx%d.dlx", nr, nc))
 	if err != nil {
@@ -40,7 +44,7 @@ func main() {
 	}
 
 	i := 0
-	for solution := range dx.Dance() {
+	for solution := range dx.Dance(ctx) {
 		i++
 		fmt.Printf("%d:\n", i)
 		for _, opt := range solution {

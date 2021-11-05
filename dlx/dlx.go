@@ -1,6 +1,7 @@
 package dlx
 
 import (
+	"context"
 	"errors"
 	"io"
 )
@@ -32,7 +33,7 @@ var (
 
 // Dancer solves exact cover problem while dancing.
 type Dancer interface {
-	Dance() <-chan [][]string
+	Dance(context.Context) <-chan [][]string
 }
 
 type node struct {
@@ -59,15 +60,15 @@ type MCC struct {
 
 // NewDancer generates a dancing machine.
 func NewDancer(rd io.Reader) (*MCC, error) {
-	d := &MCC{
+	m := &MCC{
 		nd:     make([]node, maxNodes),
 		cl:     make([]item, maxCols+2),
 		second: maxCols,
 	}
 
-	if err := d.inputMatrix(rd); err != nil {
+	if err := m.inputMatrix(rd); err != nil {
 		return nil, err
 	}
 
-	return d, nil
+	return m, nil
 }
