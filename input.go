@@ -71,15 +71,27 @@ func (d *DLX) inputItemNames(line string) error {
 			continue
 		}
 
-		if strings.ContainsAny(itm, ":|") {
-			return ErrIllegalCharacter
-		}
-
 		if len(itm) > MaxNameLength {
 			return ErrItemNameTooLong
 		}
 
-		cl[d.lastItm].name = itm
+		q, r := 1, 1
+		bn := strings.Split(itm, "|")
+		if len(bn) == 1 {
+			cl[d.lastItm].name = itm
+		} else {
+			cl[d.lastItm].name = bn[1]
+			bounds := strings.Split(bn[0], ":")
+			if len(bounds) == 1 {
+				q, _ = strconv.Atoi(bounds[0])
+				r = q
+			} else {
+				r, _ = strconv.Atoi(bounds[0])
+				q, _ = strconv.Atoi(bounds[1])
+			}
+		}
+		cl[d.lastItm].bound = q
+		cl[d.lastItm].slack = q - r
 
 		// Check for duplicate item name
 		var k int
