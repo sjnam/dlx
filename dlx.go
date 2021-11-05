@@ -9,10 +9,10 @@ const (
 	infty    = int(^uint(0) >> 1)
 	maxCount = infty
 	root     = 0             // cl[root] is the gateway to the unsettled items
-	maxCols  = 100000        // at most this many items
-	maxNodes = 10000000      // at most this many nonzero elements in the matrix
+	maxLevel = 500           // at most this many options in a solution
+	maxCols  = 10000         // at most this many items
+	maxNodes = 100000000     // at most this many nonzero elements in the matrix
 	maxLine  = 9*maxCols + 3 // a size big enough to hold all item names
-	maxLevel = 5000          // at most this many options in a solution
 )
 
 var (
@@ -40,8 +40,9 @@ type node struct {
 }
 
 type item struct {
-	name       string // symbolic identification of the item, for printing
-	prev, next int    // neighbors of this item
+	name         string // symbolic identification of the item, for printing
+	prev, next   int    // neighbors of this item
+	bound, slack int    // residual capacity of ths item
 }
 
 type DLX struct {

@@ -27,11 +27,22 @@ X:0 Y:1
 B X:1
 C Y:1
 `
+	mccInput := `
+| A simple example of color controls
+A B 2:3|C | X Y
+A B X:0 Y:0
+A C X:1 Y:1
+C X:0
+B X:1
+C Y:1
+`
+
 	cases := []struct {
 		in, want string
 	}{
 		{dlxInput, "[[A D] [B G] [C E F]]"},
 		{xccInput, "[[A C X:1 Y:1] [B X:1]]"},
+		{mccInput, "[[A C X:1 Y:1] [B X:1] [C Y:1] [null C]]"},
 	}
 	for _, c := range cases {
 		d, err := NewDLX(strings.NewReader(c.in))
