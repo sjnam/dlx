@@ -21,7 +21,7 @@ func solve(matrix string) {
 	}
 }
 
-func ExampleDLX_dance_dlx() {
+func ExampleDancer_dlx() {
 	dlxInput := `
 | A simple example
 A B C D E | F G
@@ -40,7 +40,7 @@ D E G
 	// [C E F]
 }
 
-func ExampleDLX_dance_xcc() {
+func ExampleDancer_xcc() {
 	xccInput := `
 |A simple example of color controls
 A B C | X Y
@@ -57,7 +57,7 @@ C Y:1
 	// [B X:1]
 }
 
-func ExampleDLX_dance_mcc() {
+func ExampleDancer_mcc() {
 	mccInput := `
 | A simple example of color controls
 A B 2:3|C | X Y
