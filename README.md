@@ -12,7 +12,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/sjnam/go-dlx"
+	"github.com/sjnam/go-dlx/dlx"
 )
 
 func main() {
