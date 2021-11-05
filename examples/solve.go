@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/sjnam/dlx"
+	"github.com/sjnam/go-dlx"
 )
 
 func main() {

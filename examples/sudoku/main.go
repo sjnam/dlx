@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/sjnam/dlx"
+	"github.com/sjnam/go-dlx"
 )
 
 func bx(j, k int) int {

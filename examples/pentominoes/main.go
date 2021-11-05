@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/sjnam/dlx"
+	"github.com/sjnam/go-dlx"
 )
 
 func main() {

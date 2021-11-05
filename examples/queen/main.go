@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/sjnam/dlx"
+	"github.com/sjnam/go-dlx"
 )
 
 func encode(x int) byte {
