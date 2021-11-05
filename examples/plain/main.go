@@ -9,13 +9,13 @@ import (
 )
 
 func main() {
-	d, err := dlx.NewDancer(os.Stdin)
+	dx, err := dlx.NewDancer(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	i := 0
-	for sol := range d.Dance() {
+	for sol := range dx.Dance() {
 		i++
 		fmt.Printf("%d:\n", i)
 		for _, opt := range sol {

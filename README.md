@@ -26,12 +26,12 @@ A D
 B G
 D E G
 `
-	d, err := dlx.NewDLX(strings.NewReader(dlxInput))
+	dx, err := dlx.NewDancer(strings.NewReader(dlxInput))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for solution := range d.Dance() {
+	for solution := range dx.Dance() {
 		for _, option := range solution {
 			// do something with an option
 			fmt.Println(option)
