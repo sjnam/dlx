@@ -4,10 +4,24 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"testing"
 )
 
-func TestDLX(t *testing.T) {
+func solve(matrix string) {
+	d, err := NewDLX(strings.NewReader(matrix))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	for sol := range d.Dance() {
+		for _, opt := range sol {
+			sort.Strings(opt)
+			fmt.Println(opt)
+		}
+	}
+}
+
+func ExampleDLX() {
 	dlxInput := `
 | A simple example
 A B C D E | F G
@@ -18,6 +32,15 @@ A D
 B G
 D E G
 `
+	solve(dlxInput)
+
+	// Unordered Output:
+	// [A D]
+	// [B G]
+	// [C E F]
+}
+
+func ExampleXCC() {
 	xccInput := `
 |A simple example of color controls
 A B C | X Y
@@ -27,6 +50,14 @@ X:0 Y:1
 B X:1
 C Y:1
 `
+	solve(xccInput)
+
+	// Unordered Output:
+	// [A C X:1 Y:1]
+	// [B X:1]
+}
+
+func ExampleMCC() {
 	mccInput := `
 | A simple example of color controls
 A B 2:3|C | X Y
@@ -36,29 +67,11 @@ C X:0
 B X:1
 C Y:1
 `
+	solve(mccInput)
 
-	cases := []struct {
-		in, want string
-	}{
-		{dlxInput, "[[A D] [B G] [C E F]]"},
-		{xccInput, "[[A C X:1 Y:1] [B X:1]]"},
-		{mccInput, "[[A C X:1 Y:1] [B X:1] [C Y:1] [null C]]"},
-	}
-	for _, c := range cases {
-		d, err := NewDLX(strings.NewReader(c.in))
-		if err != nil {
-			t.Fatal(err)
-		}
-		sol := <-d.Dance()
-		sort.Slice(sol, func(i, j int) bool {
-			for _, opt := range sol {
-				sort.Strings(opt)
-			}
-			return sol[i][0] < sol[j][0]
-		})
-		got := fmt.Sprint(sol)
-		if got != c.want {
-			t.Errorf("DLX.Dance() == %q, want %q", got, c.want)
-		}
-	}
+	// Unordered Output:
+	// [A C X:1 Y:1]
+	// [B X:1]
+	// [C Y:1]
+	// [null C]
 }
