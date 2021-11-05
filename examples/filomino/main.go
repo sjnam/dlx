@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/sjnam/go-dlx"
+	"github.com/sjnam/go-dlx/dlx"
 )
 
 func spinner(delay time.Duration) {
