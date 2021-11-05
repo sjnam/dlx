@@ -8,6 +8,7 @@ Algorithm M described in https://www-cs-faculty.stanford.edu/~knuth/fasc5c.ps.gz
 package main
 
 import (
+    "context"
 	"fmt"
 	"log"
 	"strings"
@@ -26,12 +27,15 @@ A D
 B G
 D E G
 `
-	dx, err := dlx.NewDancer(strings.NewReader(dlxInput))
+	ctx, cancle := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancle()
+
+    dx, err := dlx.NewDancer(strings.NewReader(dlxInput))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for solution := range dx.Dance() {
+	for solution := range dx.Dance(ctx) {
 		for _, option := range solution {
 			// do something with an option
 			fmt.Println(option)
