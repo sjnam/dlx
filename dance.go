@@ -8,8 +8,7 @@ import (
 func (d *DLX) getOption(p, head int) []string {
 	var option []string
 	cl, nd := d.cl, d.nd
-	if (p < d.lastItm && p == head) ||
-		(head >= d.lastItm && p == nd[head].itm) {
+	if (p < d.lastItm && p == head) || (head >= d.lastItm && p == nd[head].itm) {
 		option = append(option, fmt.Sprintf("null %s", cl[p].name))
 	} else {
 		for q := p; ; {
