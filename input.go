@@ -2,7 +2,6 @@ package dlx
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"strconv"
 	"strings"
