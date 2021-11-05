@@ -3,13 +3,23 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
+	"strings"
 
 	"github.com/sjnam/go-dlx/dlx"
 )
 
 func main() {
-	dx, err := dlx.NewDancer(os.Stdin)
+	dlxInput := `
+| A simple example
+A B C D E | F G
+C E F
+A D G
+B C F
+A D
+B G
+D E G
+`
+	dx, err := dlx.NewDancer(strings.NewReader(dlxInput))
 	if err != nil {
 		log.Fatal(err)
 	}
