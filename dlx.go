@@ -23,7 +23,6 @@ var (
 	ErrUnknownItemName     = errors.New("unknown item name")
 	ErrItemNameTooLong     = errors.New("item name too long")
 	ErrDuplicateItemName   = errors.New("duplicate item name")
-	ErrIllegalCharacter    = errors.New("illegal character in item name")
 	ErrIllegalItemNameLine = errors.New("item name line contains | twice")
 	ErrTooManyItems        = errors.New("too many items")
 	ErrTooManyNodes        = errors.New("too many nodes")
