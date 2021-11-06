@@ -78,22 +78,22 @@ func newDLX() *DLX {
 }
 
 // NewXC generates a dancing machine.
-func NewXC() XC {
-	return XC{
+func NewXC() *XC {
+	return &XC{
 		DLX: newDLX(),
 	}
 }
 
 // NewXCC generates a dancing machine.
-func NewXCC() XCC {
-	return XCC{
+func NewXCC() *XCC {
+	return &XCC{
 		DLX: newDLX(),
 	}
 }
 
 // NewMCC generates a dancing machine.
-func NewMCC() MCC {
-	return MCC{
+func NewMCC() *MCC {
+	return &MCC{
 		DLX: newDLX(),
 	}
 }
