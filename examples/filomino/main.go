@@ -13,11 +13,16 @@ import (
 )
 
 func spinner(delay time.Duration) {
-	for {
-		for _, r := range `-\|/` {
-			fmt.Printf("\r%c", r)
-			time.Sleep(delay)
+	s := "."
+	for i := 1; ; i++ {
+		if i%40 == 0 {
+			fmt.Printf("\n")
+			s = "."
+			i = 1
 		}
+		fmt.Printf("\r%s", s)
+		time.Sleep(delay)
+		s = s + "."
 	}
 }
 
@@ -77,7 +82,7 @@ func main() {
 		}
 	}
 
-	fmt.Printf("\r")
+	fmt.Printf("\n")
 	for j := 0; j < nr; j++ {
 		for k := 0; k < nc; k++ {
 			fmt.Printf("%d ", box[j][k])
