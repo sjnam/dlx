@@ -3,34 +3,36 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/sjnam/dlx"
 )
 
 func main() {
 	args := os.Args
-	if len(args) != 3 {
-		fmt.Printf("usage: %s w d\n", args[0])
-		return
+	if len(args) != 2 {
+		log.Fatalf("usage: %s dlx-file\n", args[0])
 	}
 
-	nr, _ := strconv.Atoi(args[1])
-	nc, _ := strconv.Atoi(args[2])
+	dlxInput := args[1]
+	name := strings.Split(dlxInput, ".")
+	dimen := strings.Split(name[0], "x")
+	nr, _ := strconv.Atoi(dimen[0])
+	nc, _ := strconv.Atoi(dimen[1])
 
-	fp, err := os.Open(fmt.Sprintf("%dx%d.dlx", nr, nc))
+	fd, err := os.Open(dlxInput)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(context.Background(), fp)
+	solStream, err := d.Dance(context.Background(), fd)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	box := make([][]string, nr)

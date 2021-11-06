@@ -108,14 +108,23 @@ func sudokuDLX(rd io.Reader) io.Reader {
 }
 
 func main() {
+	args := os.Args
+	if len(args) != 2 {
+		log.Fatalf("usage: %s dlx-file\n", args[0])
+	}
+
+	fd, err := os.Open(args[1])
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var buff bytes.Buffer
 
-	rd := io.TeeReader(os.Stdin, &buff)
+	rd := io.TeeReader(fd, &buff)
 	d := dlx.NewDancer()
 	solStream, err := d.Dance(context.Background(), sudokuDLX(rd))
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	var board [][]string
@@ -125,8 +134,7 @@ func main() {
 		board = append(board, strings.Split(buf, ""))
 	}
 	if err := scanner.Err(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	solution := <-solStream

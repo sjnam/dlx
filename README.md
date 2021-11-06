@@ -127,7 +127,7 @@ Q . . . . . . .
 | .83....4.
 
 $ cd examples/sudoku
-$ go run main.go < s17.dlx
+$ go run main.go s17.dlx
 5 9 7  2 1 8  3 6 4
 1 3 2  4 6 5  8 9 7
 8 6 4  3 7 9  1 2 5
@@ -177,7 +177,7 @@ yellow      blue        red         white       green
 
 ````
 $ cd example/pentominoes
-$ go run main.go 8 8
+$ go run main.go 8x8.dlx
 Solution: 1
 P P P W U U U Y 
 P P W W U T U Y 
@@ -226,7 +226,7 @@ $ cd examples/filomino
 | 24...161..
 | .2...6.6..
 
-$ go run main.go 10 10 < 10x10.filomino.dlx 
+$ go run main.go 10x10.filomino.dlx 
 3 3 3 1 3 3 2 2 3 3 
 4 4 1 3 1 3 4 4 4 3 
 6 4 4 3 3 1 4 1 2 2 
@@ -237,23 +237,4 @@ $ go run main.go 10 10 < 10x10.filomino.dlx
 2 4 4 3 4 4 6 6 1 2 
 2 4 4 3 4 1 6 1 3 2 
 1 2 2 3 4 6 6 6 3 3 
-
-| ..4.....
-| .32..26.
-| .5....24
-| ...46...
-| ...33...
-| 15....7.
-| .21..24.
-| .....1..
-
-$ go run main.go 8 8 < 8x8.filomino.dlx
-4 4 4 4 6 6 6 6 
-3 3 2 6 2 2 6 6 
-3 5 2 6 6 6 2 4 
-1 5 4 4 6 6 2 4 
-5 5 4 3 3 3 4 4 
-1 5 4 7 7 7 7 1 
-2 2 1 7 2 2 4 4 
-3 3 3 7 7 1 4 4 
 ````
