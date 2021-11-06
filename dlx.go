@@ -1,9 +1,5 @@
 package dlx
 
-import (
-	"errors"
-)
-
 const (
 	infty    = int(^uint(0) >> 1)
 	maxCount = infty
@@ -14,20 +10,6 @@ const (
 	maxLine  = 9*maxCols + 3 // a size big enough to hold all item names
 
 	maxNameLength = 32 // max item name length
-)
-
-var (
-	ErrInputLineTooLong    = errors.New("input line way too long")
-	ErrNoItems             = errors.New("no items")
-	ErrEmptyItemName       = errors.New("empty item name")
-	ErrUnknownItemName     = errors.New("unknown item name")
-	ErrItemNameTooLong     = errors.New("item name too long")
-	ErrDuplicateItemName   = errors.New("duplicate item name")
-	ErrIllegalItemNameLine = errors.New("item name line contains | twice")
-	ErrTooManyItems        = errors.New("too many items")
-	ErrTooManyNodes        = errors.New("too many nodes")
-	ErrTooManyLevels       = errors.New("too many levels")
-	ErrPrimaryItemColored  = errors.New("primary item must be uncolored")
 )
 
 type node struct {

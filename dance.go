@@ -312,7 +312,7 @@ func (d *Dancer) Dance(
 		level++
 		if level > maxl {
 			if level >= maxLevel {
-				log.Fatal(ErrTooManyLevels)
+				log.Fatalf("too many levels")
 			}
 			maxl = level
 		}

@@ -2,6 +2,7 @@ package dlx
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -14,7 +15,7 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 	for scanner.Scan() {
 		line = scanner.Text()
 		if len(line) > maxLine {
-			return ErrInputLineTooLong
+			return fmt.Errorf("input line way too long")
 		}
 		line = strings.TrimSpace(line)
 		if line == "" || line[0] == '|' {
@@ -32,7 +33,7 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 	for scanner.Scan() {
 		line = scanner.Text()
 		if len(line) > maxLine {
-			return ErrInputLineTooLong
+			return fmt.Errorf("input line way too long")
 		}
 		line = strings.TrimSpace(line)
 		if line == "" || line[0] == '|' {
@@ -54,7 +55,7 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 
 func (d *Dancer) inputItemNames(line string) error {
 	if line == "" {
-		return ErrNoItems
+		return fmt.Errorf("no items")
 	}
 
 	d.lastItm = 1
@@ -64,14 +65,14 @@ func (d *Dancer) inputItemNames(line string) error {
 	for _, itm := range strings.Fields(line) {
 		if itm == "|" {
 			if d.second != maxCols {
-				return ErrIllegalItemNameLine
+				return fmt.Errorf("item name line contains | twice")
 			}
 			d.second = d.lastItm
 			continue
 		}
 
 		if len(itm) > maxNameLength {
-			return ErrItemNameTooLong
+			return fmt.Errorf("item name too long")
 		}
 
 		q, r := 1, 1
@@ -97,12 +98,12 @@ func (d *Dancer) inputItemNames(line string) error {
 		for k = 1; cl[k].name != cl[d.lastItm].name; k++ {
 		}
 		if k < d.lastItm {
-			return ErrDuplicateItemName
+			return fmt.Errorf("duplicate item name")
 		}
 
 		// Initialize lastItm to a new item with an empty list
 		if d.lastItm > maxCols {
-			return ErrTooManyItems
+			return fmt.Errorf("too many items")
 		}
 
 		cl[d.lastItm-1].next = d.lastItm
@@ -145,10 +146,10 @@ func (d *Dancer) inputOptions(line string) error {
 
 	for _, opt := range strings.Fields(line) {
 		if len(opt) > maxNameLength {
-			return ErrItemNameTooLong
+			return fmt.Errorf("item name too long")
 		}
 		if opt[0] == ':' {
-			return ErrEmptyItemName
+			return fmt.Errorf("empty item name")
 		}
 		name := strings.Split(opt, ":")
 		cl[d.lastItm].name = name[0]
@@ -158,14 +159,14 @@ func (d *Dancer) inputOptions(line string) error {
 		for k = 0; cl[k].name != cl[d.lastItm].name; k++ {
 		}
 		if k == d.lastItm {
-			return ErrUnknownItemName
+			return fmt.Errorf("unknown item name")
 		}
 		if nd[k].color >= i { // aux field
-			return ErrDuplicateItemName
+			return fmt.Errorf("duplicate item name")
 		}
 		d.lastNode++
 		if d.lastNode == maxNodes {
-			return ErrTooManyNodes
+			return fmt.Errorf("too many nodes")
 		}
 		nd[d.lastNode].itm = k
 		if k < d.second {
@@ -190,7 +191,7 @@ func (d *Dancer) inputOptions(line string) error {
 			nd[d.lastNode].color = int(c)
 			nd[d.lastNode].colorName = ":" + name[1]
 		} else {
-			return ErrPrimaryItemColored
+			return fmt.Errorf("primary item must be uncolored")
 		}
 	}
 
@@ -210,7 +211,7 @@ func (d *Dancer) inputOptions(line string) error {
 		nd[i].down = d.lastNode
 		d.lastNode++ // create the next spacer
 		if d.lastNode == maxNodes {
-			return ErrTooManyNodes
+			return fmt.Errorf("too many nodes")
 		}
 		options++
 		nd[d.lastNode].up = i + 1
