@@ -1,3 +1,3 @@
-module github.com/sjnam/go-dlx
+module github.com/sjnam/dlx
 
 go 1.17

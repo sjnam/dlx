@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sjnam/go-dlx/dlx"
+	"github.com/sjnam/dlx"
 )
 
 const xccInput = `
