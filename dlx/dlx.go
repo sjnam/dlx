@@ -100,8 +100,8 @@ func NewMCC() *MCC {
 
 // Dancer solves exact cover problem while dancing.
 type Dancer interface {
-	InputItemNames(string) error
-	InputOptions(string) error
+	inputItemNames(string) error
+	inputOptions(string) error
 	Dance(context.Context, io.Reader) (<-chan [][]string, error)
 }
 
@@ -123,7 +123,7 @@ func inputMatrix(m Dancer, rd io.Reader) error {
 		break
 	}
 
-	if err := m.InputItemNames(line); err != nil {
+	if err := m.inputItemNames(line); err != nil {
 		return err
 	}
 
@@ -138,7 +138,7 @@ func inputMatrix(m Dancer, rd io.Reader) error {
 			continue
 		}
 
-		if err := m.InputOptions(line); err != nil {
+		if err := m.inputOptions(line); err != nil {
 			return err
 		}
 	}
