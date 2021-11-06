@@ -49,7 +49,7 @@ func main() {
 
 	go spinner(100 * time.Millisecond)
 
-	dx, err := dlx.NewDancer(os.Stdin)
+	dx, err := dlx.NewMCC(os.Stdin)
 	if err != nil {
 		fmt.Println(err)
 		return

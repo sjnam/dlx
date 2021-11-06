@@ -7,7 +7,7 @@ import (
 )
 
 func solve(matrix string) {
-	d, err := NewDancer(strings.NewReader(matrix))
+	d, err := NewMCC(strings.NewReader(matrix))
 	if err != nil {
 		fmt.Println(err)
 		return

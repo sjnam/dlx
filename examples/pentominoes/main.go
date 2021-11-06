@@ -29,7 +29,7 @@ func main() {
 		return
 	}
 
-	dx, err := dlx.NewDancer(fp)
+	dx, err := dlx.NewMCC(fp)
 	if err != nil {
 		fmt.Println(err)
 		return

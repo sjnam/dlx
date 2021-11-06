@@ -3,6 +3,7 @@ package dlx
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 )
 
@@ -63,7 +64,7 @@ func (m *MCC) uncover(c int, react bool) {
 					continue
 				}
 				nd[dd].up = nn
-				nd[uu].down = nd[dd].up
+				nd[uu].down = nn
 				nd[cc].itm++
 			}
 			nn++
@@ -182,7 +183,11 @@ func (m *MCC) untweak(c, x, unblock int) {
 }
 
 // Dance generates all exact covers
-func (m *MCC) Dance(ctx context.Context) <-chan [][]string {
+func (m *MCC) Dance(ctx context.Context, rd io.Reader) (<-chan [][]string, error) {
+	if err := inputMatrix(m, rd); err != nil {
+		return nil, err
+	}
+
 	ch := make(chan [][]string)
 
 	go func() {
@@ -361,5 +366,5 @@ func (m *MCC) Dance(ctx context.Context) <-chan [][]string {
 		goto advance
 	}()
 
-	return ch
+	return ch, nil
 }

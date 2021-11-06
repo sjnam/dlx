@@ -113,7 +113,8 @@ func main() {
 	ctx, cancle := context.WithCancel(context.Background())
 	defer cancle()
 
-	xcc, err := dlx.NewDancer(strings.NewReader(xccInput))
+	xcc := dlx.NewXCC()
+	solStream, err := xcc.Dance(ctx, strings.NewReader(xccInput))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -127,7 +128,7 @@ func main() {
 		'C': make([]string, 5),
 	}
 
-	solution := <-xcc.Dance(ctx)
+	solution := <-solStream
 	for _, opt := range solution {
 		for i := 1; i < len(opt); i++ {
 			kv := strings.Split(opt[i], ":")

@@ -1,9 +1,11 @@
 package dlx
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"io"
+	"strings"
 )
 
 const (
@@ -14,6 +16,8 @@ const (
 	maxCols  = 10000         // at most this many items
 	maxNodes = 100000000     // at most this many nonzero elements in the matrix
 	maxLine  = 9*maxCols + 3 // a size big enough to hold all item names
+
+	maxNameLength = 32 // max item name length
 )
 
 var (
@@ -31,11 +35,6 @@ var (
 	ErrPrimaryItemColored  = errors.New("primary item must be uncolored")
 )
 
-// Dancer solves exact cover problem while dancing.
-type Dancer interface {
-	Dance(context.Context) <-chan [][]string
-}
-
 type node struct {
 	up, down  int    // predecessor and successor in item list
 	itm       int    // the item containing this node
@@ -49,8 +48,8 @@ type item struct {
 	bound, slack int    // residual capacity of ths item
 }
 
-// MCC dancing links object
-type MCC struct {
+// DLX dancing links object
+type DLX struct {
 	nd       []node // the master list of nodes
 	lastNode int    // the first node in nd that's not yet used
 	cl       []item // the master list of items
@@ -58,17 +57,95 @@ type MCC struct {
 	second   int    // boundary between primary and secondary items
 }
 
-// NewDancer generates a dancing machine.
-func NewDancer(rd io.Reader) (*MCC, error) {
-	m := &MCC{
+type XC struct {
+	*DLX
+}
+
+type XCC struct {
+	*DLX
+}
+
+type MCC struct {
+	*DLX
+}
+
+func newDLX() *DLX {
+	return &DLX{
 		nd:     make([]node, maxNodes),
 		cl:     make([]item, maxCols+2),
 		second: maxCols,
 	}
+}
 
-	if err := m.inputMatrix(rd); err != nil {
-		return nil, err
+// NewXC generates a dancing machine.
+func NewXC() XC {
+	return XC{
+		DLX: newDLX(),
+	}
+}
+
+// NewXCC generates a dancing machine.
+func NewXCC() XCC {
+	return XCC{
+		DLX: newDLX(),
+	}
+}
+
+// NewMCC generates a dancing machine.
+func NewMCC() MCC {
+	return MCC{
+		DLX: newDLX(),
+	}
+}
+
+// Dancer solves exact cover problem while dancing.
+type Dancer interface {
+	InputItemNames(string) error
+	InputOptions(string) error
+	Dance(context.Context, io.Reader) (<-chan [][]string, error)
+}
+
+func inputMatrix(m Dancer, rd io.Reader) error {
+	var line string
+
+	scanner := bufio.NewScanner(rd)
+	for scanner.Scan() {
+		line = scanner.Text()
+		if len(line) > maxLine {
+			return ErrInputLineTooLong
+		}
+		line = strings.TrimSpace(line)
+		if line == "" || line[0] == '|' {
+			// bypass comment or blank line
+			line = ""
+			continue
+		}
+		break
 	}
 
-	return m, nil
+	if err := m.InputItemNames(line); err != nil {
+		return err
+	}
+
+	for scanner.Scan() {
+		line = scanner.Text()
+		if len(line) > maxLine {
+			return ErrInputLineTooLong
+		}
+		line = strings.TrimSpace(line)
+		if line == "" || line[0] == '|' {
+			// bypass comment or blank line
+			continue
+		}
+
+		if err := m.InputOptions(line); err != nil {
+			return err
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	return nil
 }

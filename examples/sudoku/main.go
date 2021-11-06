@@ -114,7 +114,7 @@ func main() {
 	var buff bytes.Buffer
 
 	rd := io.TeeReader(os.Stdin, &buff)
-	dx, err := dlx.NewDancer(sudokuDLX(rd))
+	dx, err := dlx.NewMCC(sudokuDLX(rd))
 	if err != nil {
 		fmt.Println(err)
 		return

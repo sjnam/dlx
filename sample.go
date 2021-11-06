@@ -14,13 +14,14 @@ func main() {
 	ctx, cancle := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancle()
 
-	dx, err := dlx.NewDancer(os.Stdin)
+	mcc := dlx.NewMCC()
+	solStream, err := mcc.Dance(ctx, os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	i := 0
-	for sol := range dx.Dance(ctx) {
+	for sol := range solStream {
 		i++
 		fmt.Printf("%d:\n", i)
 		for _, opt := range sol {

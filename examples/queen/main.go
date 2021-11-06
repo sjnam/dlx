@@ -76,7 +76,7 @@ func main() {
 	ctx, cancle := context.WithCancel(context.Background())
 	defer cancle()
 
-	dx, err := dlx.NewDancer(queenDLX(n))
+	dx, err := dlx.NewMCC(queenDLX(n))
 	if err != nil {
 		fmt.Println(err)
 		return
