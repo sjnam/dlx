@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 )
 
 func (d *Dancer) getOption(p, head int) []string {
@@ -214,12 +215,19 @@ func (d *Dancer) Dance(
 				s = cl[k].bound
 			}
 			t := nd[k].itm + s - cl[k].bound + 1
+			p := 0
 			if t <= score {
 				if t < score || s < bestS || (s == bestS && nd[k].itm > bestL) {
 					score = t
 					bestItm = k
 					bestS = s
 					bestL = nd[k].itm
+					p = 1
+				} else if s == bestS && nd[k].itm == bestL {
+					p++
+					if rand.Intn(p) == 0 {
+						bestItm = k
+					}
 				}
 			}
 		}

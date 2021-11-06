@@ -1,5 +1,10 @@
 package dlx
 
+import (
+	"math/rand"
+	"time"
+)
+
 const (
 	infty    = int(^uint(0) >> 1)
 	maxCount = infty
@@ -36,6 +41,7 @@ type Dancer struct {
 
 // NewDancer Wake me up before you Go Go
 func NewDancer() *Dancer {
+	rand.Seed(time.Now().UnixNano())
 	return &Dancer{
 		nd:     make([]node, maxNodes),
 		cl:     make([]item, maxCols+2),

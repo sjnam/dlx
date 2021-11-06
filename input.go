@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"math/rand"
 	"strconv"
 	"strings"
 )
@@ -174,14 +175,23 @@ func (d *Dancer) inputOptions(line string) error {
 		}
 
 		// Insert node lastNode into the list item k
-		nd[k].itm++              // len field; store the new length of the list
+		t := nd[k].itm + 1
+
+		// we want to put the node into a random position of the list
+		// we store the position of the new node into nd[k].color,
+		// so that the test for duplicate items above will be correct.
+		nd[k].itm = t            // len field; store the new length of the list
 		nd[k].color = d.lastNode // aux field
 
-		r := nd[k].up // the "bottom" node of the item list
-		nd[k].up = d.lastNode
-		nd[r].down = d.lastNode
-		nd[d.lastNode].up = r
-		nd[d.lastNode].down = k
+		r := k
+		for t = rand.Intn(t); t > 0; t-- {
+			r = nd[r].down
+		}
+		q := nd[r].up
+		nd[q].down = d.lastNode
+		nd[r].up = d.lastNode
+		nd[d.lastNode].up = q
+		nd[d.lastNode].down = r
 
 		if len(name) == 1 {
 			nd[d.lastNode].color = 0
