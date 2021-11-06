@@ -51,7 +51,7 @@ X:0 Y:1
 B X:1
 C Y:1
 `
-	solve(NewMCC(), xccInput)
+	solve(NewXCC(), xccInput)
 
 	// Unordered Output:
 	// [A C X:1 Y:1]
