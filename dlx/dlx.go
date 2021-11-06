@@ -44,7 +44,7 @@ type item struct {
 	bound, slack int    // residual capacity of ths item
 }
 
-// DLX dancing links object
+// Dancer dancing links object
 type Dancer struct {
 	nd       []node // the master list of nodes
 	lastNode int    // the first node in nd that's not yet used
@@ -53,6 +53,7 @@ type Dancer struct {
 	second   int    // boundary between primary and secondary items
 }
 
+// NewDancer Wake me up before you Go Go
 func NewDancer() *Dancer {
 	return &Dancer{
 		nd:     make([]node, maxNodes),
