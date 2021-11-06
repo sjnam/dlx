@@ -2,19 +2,17 @@ package dlx
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 )
 
-func (xcc *XCC) getOption(p int) []string {
+func (xc *XC) getOption(p int) []string {
 	var (
 		option []string
-		cl, nd = xcc.cl, xcc.nd
+		cl, nd = xc.cl, xc.nd
 	)
 	for q := p; ; {
-		option = append(option,
-			fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
+		option = append(option, cl[nd[q].itm].name)
 		q++
 		if nd[q].itm <= 0 {
 			q = nd[q].up
@@ -26,42 +24,38 @@ func (xcc *XCC) getOption(p int) []string {
 	return option
 }
 
-func (xcc *XCC) cover(c int) {
-	cl, nd := xcc.cl, xcc.nd
+func (xc *XC) cover(c int) {
+	cl, nd := xc.cl, xc.nd
 	l, r := cl[c].prev, cl[c].next
 	cl[l].next = r
 	cl[r].prev = l
-	for rr := nd[c].down; rr >= xcc.lastItm; rr = nd[rr].down {
+	for rr := nd[c].down; rr >= xc.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
-			if nd[nn].color >= 0 {
-				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-				if cc <= 0 {
-					nn = uu
-					continue
-				}
-				nd[uu].down = dd
-				nd[dd].up = uu
-				nd[cc].itm--
+			uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
+			if cc <= 0 {
+				nn = uu
+				continue
 			}
+			nd[uu].down = dd
+			nd[dd].up = uu
+			nd[cc].itm--
 			nn++
 		}
 	}
 }
 
-func (xcc *XCC) uncover(c int) {
-	cl, nd := xcc.cl, xcc.nd
-	for rr := nd[c].down; rr >= xcc.lastItm; rr = nd[rr].down {
+func (xc *XC) uncover(c int) {
+	cl, nd := xc.cl, xc.nd
+	for rr := nd[c].down; rr >= xc.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
-			if nd[nn].color >= 0 {
-				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-				if cc <= 0 {
-					nn = uu
-					continue
-				}
-				nd[dd].up = nn
-				nd[uu].down = nn
-				nd[cc].itm++
+			uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
+			if cc <= 0 {
+				nn = uu
+				continue
 			}
+			nd[dd].up = nn
+			nd[uu].down = nn
+			nd[cc].itm++
 			nn++
 		}
 	}
@@ -70,62 +64,11 @@ func (xcc *XCC) uncover(c int) {
 	cl[l].next = cl[r].prev
 }
 
-func (xcc *XCC) purify(p int) {
-	nd := xcc.nd
-	cc := nd[p].itm
-	x := nd[p].color
-	nd[cc].color = x
-	for rr := nd[cc].down; rr >= xcc.lastItm; rr = nd[rr].down {
-		if nd[rr].color != x {
-			for nn := rr + 1; nn != rr; {
-				if nd[nn].color >= 0 {
-					uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-					if cc <= 0 {
-						nn = uu
-						continue
-					}
-					nd[uu].down = dd
-					nd[dd].up = uu
-					nd[cc].itm--
-				}
-				nn++
-			}
-		} else {
-			nd[rr].color = -1
-		}
-	}
-}
-
-func (xcc *XCC) unpurify(p int) {
-	nd := xcc.nd
-	cc := nd[p].itm
-	x := nd[p].color
-	for rr := nd[cc].up; rr >= xcc.lastItm; rr = nd[rr].up {
-		if nd[rr].color < 0 {
-			nd[rr].color = x
-		} else {
-			for nn := rr - 1; nn != rr; {
-				if nd[nn].color >= 0 {
-					uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-					if cc <= 0 {
-						nn = dd
-						continue
-					}
-					nd[dd].up = nn
-					nd[uu].down = nn
-					nd[cc].itm++
-				}
-				nn--
-			}
-		}
-	}
-}
-
-func (xcc *XCC) Dance(
+func (xc *XC) Dance(
 	ctx context.Context,
 	rd io.Reader,
 ) (<-chan [][]string, error) {
-	if err := inputMatrix(xcc, rd); err != nil {
+	if err := inputMatrix(xc, rd); err != nil {
 		return nil, err
 	}
 
@@ -137,7 +80,7 @@ func (xcc *XCC) Dance(
 		var (
 			bestItm, curNode   int
 			count, level, maxl int
-			cl, nd             = xcc.cl, xcc.nd
+			cl, nd             = xc.cl, xc.nd
 			choice             = make([]int, maxLevel)
 		)
 
@@ -152,7 +95,7 @@ func (xcc *XCC) Dance(
 		}
 
 		// Cover bestItm and set choice[level] to nd[bestItm].down
-		xcc.cover(bestItm)
+		xc.cover(bestItm)
 		choice[level] = nd[bestItm].down
 		curNode = nd[bestItm].down
 
@@ -167,11 +110,7 @@ func (xcc *XCC) Dance(
 			if cc <= 0 {
 				pp = nd[pp].up
 			} else {
-				if nd[pp].color == 0 {
-					xcc.cover(cc)
-				} else if nd[pp].color > 0 {
-					xcc.purify(pp)
-				}
+				xc.cover(cc)
 				pp++
 			}
 		}
@@ -187,7 +126,7 @@ func (xcc *XCC) Dance(
 			count++
 			var sol [][]string
 			for k := 0; k <= level; k++ {
-				sol = append(sol, xcc.getOption(choice[k]))
+				sol = append(sol, xc.getOption(choice[k]))
 			}
 			select {
 			case <-ctx.Done():
@@ -212,7 +151,7 @@ func (xcc *XCC) Dance(
 		goto forward
 
 	backup:
-		xcc.uncover(bestItm)
+		xc.uncover(bestItm)
 		if level == 0 {
 			return
 		}
@@ -226,11 +165,7 @@ func (xcc *XCC) Dance(
 			if cc <= 0 {
 				pp = nd[pp].down
 			} else {
-				if nd[pp].color == 0 {
-					xcc.uncover(cc)
-				} else if nd[pp].color > 0 {
-					xcc.unpurify(pp)
-				}
+				xc.uncover(cc)
 				pp--
 			}
 		}

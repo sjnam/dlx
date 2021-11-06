@@ -1,19 +1,22 @@
 package dlx
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
 )
 
 func solve(matrix string) {
-	d, err := NewMCC(strings.NewReader(matrix))
+	d := NewMCC()
+
+	solStream, err := d.Dance(context.Background(), strings.NewReader(matrix))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	for sol := range d.Dance() {
+	for sol := range solStream {
 		for _, opt := range sol {
 			sort.Strings(opt)
 			fmt.Println(opt)

@@ -183,7 +183,10 @@ func (m *MCC) untweak(c, x, unblock int) {
 }
 
 // Dance generates all exact covers
-func (m *MCC) Dance(ctx context.Context, rd io.Reader) (<-chan [][]string, error) {
+func (m *MCC) Dance(
+	ctx context.Context,
+	rd io.Reader,
+) (<-chan [][]string, error) {
 	if err := inputMatrix(m, rd); err != nil {
 		return nil, err
 	}

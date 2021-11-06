@@ -110,11 +110,8 @@ const xccInput = `
 `
 
 func main() {
-	ctx, cancle := context.WithCancel(context.Background())
-	defer cancle()
-
 	xcc := dlx.NewXCC()
-	solStream, err := xcc.Dance(ctx, strings.NewReader(xccInput))
+	solStream, err := xcc.Dance(context.Background(), strings.NewReader(xccInput))
 	if err != nil {
 		fmt.Println(err)
 		return
