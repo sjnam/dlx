@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,15 +20,16 @@ func main() {
 	}
 
 	dlxInput := args[1]
-	name := strings.Split(dlxInput, ".")
-	dimen := strings.Split(name[0], "x")
-	nr, _ := strconv.Atoi(dimen[0])
-	nc, _ := strconv.Atoi(dimen[1])
-
 	fd, err := os.Open(dlxInput)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	dlxInput = filepath.Base(dlxInput)
+	name := strings.Split(dlxInput, ".")
+	dimen := strings.Split(name[0], "x")
+	nr, _ := strconv.Atoi(dimen[0])
+	nc, _ := strconv.Atoi(dimen[1])
 
 	d := dlx.NewDancer()
 	solStream, err := d.Dance(context.Background(), fd)
