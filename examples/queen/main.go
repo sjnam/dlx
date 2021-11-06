@@ -73,8 +73,8 @@ func main() {
 	}
 	n, _ := strconv.Atoi(os.Args[1])
 
-	xc := dlx.NewXC()
-	solStream, err := xc.Dance(context.Background(), queenDLX(n))
+	d := dlx.NewDancer()
+	solStream, err := d.Dance(context.Background(), queenDLX(n))
 	if err != nil {
 		fmt.Println(err)
 		return

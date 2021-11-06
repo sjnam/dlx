@@ -1,329 +1,72 @@
 package dlx
 
 import (
+	"bufio"
+	"io"
 	"strconv"
 	"strings"
 )
 
-// XC
+func (d *Dancer) inputMatrix(rd io.Reader) error {
+	var line string
 
-func (xc *XC) inputItemNames(line string) error {
-	if line == "" {
-		return ErrNoItems
+	scanner := bufio.NewScanner(rd)
+	for scanner.Scan() {
+		line = scanner.Text()
+		if len(line) > maxLine {
+			return ErrInputLineTooLong
+		}
+		line = strings.TrimSpace(line)
+		if line == "" || line[0] == '|' {
+			// bypass comment or blank line
+			line = ""
+			continue
+		}
+		break
 	}
 
-	xc.lastItm = 1
+	if err := d.inputItemNames(line); err != nil {
+		return err
+	}
 
-	cl, nd := xc.cl, xc.nd
-
-	for _, itm := range strings.Fields(line) {
-		if itm == "|" {
-			if xc.second != maxCols {
-				return ErrIllegalItemNameLine
-			}
-			xc.second = xc.lastItm
+	for scanner.Scan() {
+		line = scanner.Text()
+		if len(line) > maxLine {
+			return ErrInputLineTooLong
+		}
+		line = strings.TrimSpace(line)
+		if line == "" || line[0] == '|' {
+			// bypass comment or blank line
 			continue
 		}
 
-		if strings.ContainsAny(itm, ":|") {
-			return ErrIllegalCharacter
+		if err := d.inputOptions(line); err != nil {
+			return err
 		}
-
-		if len(itm) > maxNameLength {
-			return ErrItemNameTooLong
-		}
-
-		cl[xc.lastItm].name = itm
-
-		// Check for duplicate item name
-		var k int
-		for k = 1; cl[k].name != cl[xc.lastItm].name; k++ {
-		}
-		if k < xc.lastItm {
-			return ErrDuplicateItemName
-		}
-
-		// Initialize lastItm to a new item with an empty list
-		if xc.lastItm > maxCols {
-			return ErrTooManyItems
-		}
-
-		cl[xc.lastItm-1].next = xc.lastItm
-		cl[xc.lastItm].prev = xc.lastItm - 1
-
-		// nd[lastItm].itm = 0 (len)
-		nd[xc.lastItm].down = xc.lastItm
-		nd[xc.lastItm].up = xc.lastItm
-		xc.lastItm++
 	}
 
-	if xc.second == maxCols {
-		xc.second = xc.lastItm
-	}
-
-	cl[xc.lastItm].prev = xc.lastItm - 1
-	cl[xc.lastItm-1].next = xc.lastItm
-
-	cl[xc.second].prev = xc.lastItm
-	cl[xc.lastItm].next = xc.second
-	// this sequence works properly whether second == lastItm
-
-	cl[root].prev = xc.second - 1
-	cl[xc.second-1].next = root
-
-	xc.lastNode = xc.lastItm // reserve all the header nodes and the first spacer
-	// we have nd[lastNode].itm=0 in the first spacer
-
-	return nil
-}
-
-func (xc *XC) inputOptions(line string) error {
-	var (
-		cl      = xc.cl
-		nd      = xc.nd
-		options = 0           // options seen so far
-		i       = xc.lastNode // remember the spacer at the left of this option
-		pp      = false
-	)
-
-	for _, opt := range strings.Fields(line) {
-		if len(opt) > maxNameLength {
-			return ErrItemNameTooLong
-		}
-
-		cl[xc.lastItm].name = opt
-
-		// Create a node for the item named in opt
-		var k int
-		for k = 0; cl[k].name != cl[xc.lastItm].name; k++ {
-		}
-		if k == xc.lastItm {
-			return ErrUnknownItemName
-		}
-		if nd[k].color >= i { // aux field
-			return ErrDuplicateItemName
-		}
-		xc.lastNode++
-		if xc.lastNode == maxNodes {
-			return ErrTooManyNodes
-		}
-		nd[xc.lastNode].itm = k
-		if k < xc.second {
-			pp = true
-		}
-
-		// Insert node lastNode into the list item k
-		nd[k].itm++               // len field; store the new length of the list
-		nd[k].color = xc.lastNode // aux field
-
-		r := nd[k].up // the "bottom" node of the item list
-		nd[k].up = xc.lastNode
-		nd[r].down = xc.lastNode
-		nd[xc.lastNode].up = r
-		nd[xc.lastNode].down = k
-	}
-
-	if !pp {
-		for xc.lastNode > i {
-			// Remove lastNode from its item list
-			k := nd[xc.lastNode].itm
-			nd[k].itm--
-			nd[k].color = i - 1
-			q := nd[xc.lastNode].up
-			r := nd[xc.lastNode].down
-			nd[q].down = r
-			nd[r].up = q
-			xc.lastNode--
-		}
-	} else {
-		nd[i].down = xc.lastNode
-		xc.lastNode++ // create the next spacer
-		if xc.lastNode == maxNodes {
-			return ErrTooManyNodes
-		}
-		options++
-		nd[xc.lastNode].up = i + 1
-		nd[xc.lastNode].itm = -options
+	if err := scanner.Err(); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-// XCC
-
-func (xcc *XCC) inputItemNames(line string) error {
+func (d *Dancer) inputItemNames(line string) error {
 	if line == "" {
 		return ErrNoItems
 	}
 
-	xcc.lastItm = 1
+	d.lastItm = 1
 
-	cl, nd := xcc.cl, xcc.nd
-
-	for _, itm := range strings.Fields(line) {
-		if itm == "|" {
-			if xcc.second != maxCols {
-				return ErrIllegalItemNameLine
-			}
-			xcc.second = xcc.lastItm
-			continue
-		}
-
-		if strings.ContainsAny(itm, ":|") {
-			return ErrIllegalCharacter
-		}
-
-		if len(itm) > maxNameLength {
-			return ErrItemNameTooLong
-		}
-
-		cl[xcc.lastItm].name = itm
-
-		// Check for duplicate item name
-		var k int
-		for k = 1; cl[k].name != cl[xcc.lastItm].name; k++ {
-		}
-		if k < xcc.lastItm {
-			return ErrDuplicateItemName
-		}
-
-		// Initialize lastItm to a new item with an empty list
-		if xcc.lastItm > maxCols {
-			return ErrTooManyItems
-		}
-
-		cl[xcc.lastItm-1].next = xcc.lastItm
-		cl[xcc.lastItm].prev = xcc.lastItm - 1
-
-		// nd[lastItm].itm = 0 (len)
-		nd[xcc.lastItm].down = xcc.lastItm
-		nd[xcc.lastItm].up = xcc.lastItm
-		xcc.lastItm++
-	}
-
-	if xcc.second == maxCols {
-		xcc.second = xcc.lastItm
-	}
-
-	cl[xcc.lastItm].prev = xcc.lastItm - 1
-	cl[xcc.lastItm-1].next = xcc.lastItm
-
-	cl[xcc.second].prev = xcc.lastItm
-	cl[xcc.lastItm].next = xcc.second
-	// this sequence works properly whether second == lastItm
-
-	cl[root].prev = xcc.second - 1
-	cl[xcc.second-1].next = root
-
-	xcc.lastNode = xcc.lastItm // reserve all the header nodes and the first spacer
-	// we have nd[lastNode].itm=0 in the first spacer
-
-	return nil
-}
-
-func (xcc *XCC) inputOptions(line string) error {
-	var (
-		cl      = xcc.cl
-		nd      = xcc.nd
-		options = 0            // options seen so far
-		i       = xcc.lastNode // remember the spacer at the left of this option
-		pp      = false
-	)
-
-	for _, opt := range strings.Fields(line) {
-		if len(opt) > maxNameLength {
-			return ErrItemNameTooLong
-		}
-		if opt[0] == ':' {
-			return ErrEmptyItemName
-		}
-		name := strings.Split(opt, ":")
-		cl[xcc.lastItm].name = name[0]
-
-		// Create a node for the item named in opt
-		var k int
-		for k = 0; cl[k].name != cl[xcc.lastItm].name; k++ {
-		}
-		if k == xcc.lastItm {
-			return ErrUnknownItemName
-		}
-		if nd[k].color >= i { // aux field
-			return ErrDuplicateItemName
-		}
-		xcc.lastNode++
-		if xcc.lastNode == maxNodes {
-			return ErrTooManyNodes
-		}
-		nd[xcc.lastNode].itm = k
-		if k < xcc.second {
-			pp = true
-		}
-
-		// Insert node lastNode into the list item k
-		nd[k].itm++                // len field; store the new length of the list
-		nd[k].color = xcc.lastNode // aux field
-
-		r := nd[k].up // the "bottom" node of the item list
-		nd[k].up = xcc.lastNode
-		nd[r].down = xcc.lastNode
-		nd[xcc.lastNode].up = r
-		nd[xcc.lastNode].down = k
-
-		if len(name) == 1 {
-			nd[xcc.lastNode].color = 0
-			nd[xcc.lastNode].colorName = ""
-		} else if k >= xcc.second {
-			c, _ := strconv.ParseInt(name[1], 36, 0)
-			nd[xcc.lastNode].color = int(c)
-			nd[xcc.lastNode].colorName = ":" + name[1]
-		} else {
-			return ErrPrimaryItemColored
-		}
-	}
-
-	if !pp {
-		for xcc.lastNode > i {
-			// Remove lastNode from its item list
-			k := nd[xcc.lastNode].itm
-			nd[k].itm--
-			nd[k].color = i - 1
-			q := nd[xcc.lastNode].up
-			r := nd[xcc.lastNode].down
-			nd[q].down = r
-			nd[r].up = q
-			xcc.lastNode--
-		}
-	} else {
-		nd[i].down = xcc.lastNode
-		xcc.lastNode++ // create the next spacer
-		if xcc.lastNode == maxNodes {
-			return ErrTooManyNodes
-		}
-		options++
-		nd[xcc.lastNode].up = i + 1
-		nd[xcc.lastNode].itm = -options
-	}
-
-	return nil
-}
-
-// MCC
-
-func (mcc *MCC) inputItemNames(line string) error {
-	if line == "" {
-		return ErrNoItems
-	}
-
-	mcc.lastItm = 1
-
-	cl, nd := mcc.cl, mcc.nd
+	cl, nd := d.cl, d.nd
 
 	for _, itm := range strings.Fields(line) {
 		if itm == "|" {
-			if mcc.second != maxCols {
+			if d.second != maxCols {
 				return ErrIllegalItemNameLine
 			}
-			mcc.second = mcc.lastItm
+			d.second = d.lastItm
 			continue
 		}
 
@@ -334,9 +77,9 @@ func (mcc *MCC) inputItemNames(line string) error {
 		q, r := 1, 1
 		bn := strings.Split(itm, "|")
 		if len(bn) == 1 {
-			cl[mcc.lastItm].name = itm
+			cl[d.lastItm].name = itm
 		} else {
-			cl[mcc.lastItm].name = bn[1]
+			cl[d.lastItm].name = bn[1]
 			bounds := strings.Split(bn[0], ":")
 			if len(bounds) == 1 {
 				q, _ = strconv.Atoi(bounds[0])
@@ -346,57 +89,57 @@ func (mcc *MCC) inputItemNames(line string) error {
 				q, _ = strconv.Atoi(bounds[1])
 			}
 		}
-		cl[mcc.lastItm].bound = q
-		cl[mcc.lastItm].slack = q - r
+		cl[d.lastItm].bound = q
+		cl[d.lastItm].slack = q - r
 
 		// Check for duplicate item name
 		var k int
-		for k = 1; cl[k].name != cl[mcc.lastItm].name; k++ {
+		for k = 1; cl[k].name != cl[d.lastItm].name; k++ {
 		}
-		if k < mcc.lastItm {
+		if k < d.lastItm {
 			return ErrDuplicateItemName
 		}
 
 		// Initialize lastItm to a new item with an empty list
-		if mcc.lastItm > maxCols {
+		if d.lastItm > maxCols {
 			return ErrTooManyItems
 		}
 
-		cl[mcc.lastItm-1].next = mcc.lastItm
-		cl[mcc.lastItm].prev = mcc.lastItm - 1
+		cl[d.lastItm-1].next = d.lastItm
+		cl[d.lastItm].prev = d.lastItm - 1
 
 		// nd[lastItm].itm = 0 (len)
-		nd[mcc.lastItm].down = mcc.lastItm
-		nd[mcc.lastItm].up = mcc.lastItm
-		mcc.lastItm++
+		nd[d.lastItm].down = d.lastItm
+		nd[d.lastItm].up = d.lastItm
+		d.lastItm++
 	}
 
-	if mcc.second == maxCols {
-		mcc.second = mcc.lastItm
+	if d.second == maxCols {
+		d.second = d.lastItm
 	}
 
-	cl[mcc.lastItm].prev = mcc.lastItm - 1
-	cl[mcc.lastItm-1].next = mcc.lastItm
+	cl[d.lastItm].prev = d.lastItm - 1
+	cl[d.lastItm-1].next = d.lastItm
 
-	cl[mcc.second].prev = mcc.lastItm
-	cl[mcc.lastItm].next = mcc.second
+	cl[d.second].prev = d.lastItm
+	cl[d.lastItm].next = d.second
 	// this sequence works properly whether second == lastItm
 
-	cl[root].prev = mcc.second - 1
-	cl[mcc.second-1].next = root
+	cl[root].prev = d.second - 1
+	cl[d.second-1].next = root
 
-	mcc.lastNode = mcc.lastItm // reserve all the header nodes and the first spacer
+	d.lastNode = d.lastItm // reserve all the header nodes and the first spacer
 	// we have nd[lastNode].itm=0 in the first spacer
 
 	return nil
 }
 
-func (mcc *MCC) inputOptions(line string) error {
+func (d *Dancer) inputOptions(line string) error {
 	var (
-		cl      = mcc.cl
-		nd      = mcc.nd
-		options = 0            // options seen so far
-		i       = mcc.lastNode // remember the spacer at the left of this option
+		cl      = d.cl
+		nd      = d.nd
+		options = 0          // options seen so far
+		i       = d.lastNode // remember the spacer at the left of this option
 		pp      = false
 	)
 
@@ -408,70 +151,70 @@ func (mcc *MCC) inputOptions(line string) error {
 			return ErrEmptyItemName
 		}
 		name := strings.Split(opt, ":")
-		cl[mcc.lastItm].name = name[0]
+		cl[d.lastItm].name = name[0]
 
 		// Create a node for the item named in opt
 		var k int
-		for k = 0; cl[k].name != cl[mcc.lastItm].name; k++ {
+		for k = 0; cl[k].name != cl[d.lastItm].name; k++ {
 		}
-		if k == mcc.lastItm {
+		if k == d.lastItm {
 			return ErrUnknownItemName
 		}
 		if nd[k].color >= i { // aux field
 			return ErrDuplicateItemName
 		}
-		mcc.lastNode++
-		if mcc.lastNode == maxNodes {
+		d.lastNode++
+		if d.lastNode == maxNodes {
 			return ErrTooManyNodes
 		}
-		nd[mcc.lastNode].itm = k
-		if k < mcc.second {
+		nd[d.lastNode].itm = k
+		if k < d.second {
 			pp = true
 		}
 
 		// Insert node lastNode into the list item k
-		nd[k].itm++                // len field; store the new length of the list
-		nd[k].color = mcc.lastNode // aux field
+		nd[k].itm++              // len field; store the new length of the list
+		nd[k].color = d.lastNode // aux field
 
 		r := nd[k].up // the "bottom" node of the item list
-		nd[k].up = mcc.lastNode
-		nd[r].down = mcc.lastNode
-		nd[mcc.lastNode].up = r
-		nd[mcc.lastNode].down = k
+		nd[k].up = d.lastNode
+		nd[r].down = d.lastNode
+		nd[d.lastNode].up = r
+		nd[d.lastNode].down = k
 
 		if len(name) == 1 {
-			nd[mcc.lastNode].color = 0
-			nd[mcc.lastNode].colorName = ""
-		} else if k >= mcc.second {
+			nd[d.lastNode].color = 0
+			nd[d.lastNode].colorName = ""
+		} else if k >= d.second {
 			c, _ := strconv.ParseInt(name[1], 36, 0)
-			nd[mcc.lastNode].color = int(c)
-			nd[mcc.lastNode].colorName = ":" + name[1]
+			nd[d.lastNode].color = int(c)
+			nd[d.lastNode].colorName = ":" + name[1]
 		} else {
 			return ErrPrimaryItemColored
 		}
 	}
 
 	if !pp {
-		for mcc.lastNode > i {
+		for d.lastNode > i {
 			// Remove lastNode from its item list
-			k := nd[mcc.lastNode].itm
+			k := nd[d.lastNode].itm
 			nd[k].itm--
 			nd[k].color = i - 1
-			q := nd[mcc.lastNode].up
-			r := nd[mcc.lastNode].down
+			q := nd[d.lastNode].up
+			r := nd[d.lastNode].down
 			nd[q].down = r
 			nd[r].up = q
-			mcc.lastNode--
+			d.lastNode--
 		}
 	} else {
-		nd[i].down = mcc.lastNode
-		mcc.lastNode++ // create the next spacer
-		if mcc.lastNode == maxNodes {
+		nd[i].down = d.lastNode
+		d.lastNode++ // create the next spacer
+		if d.lastNode == maxNodes {
 			return ErrTooManyNodes
 		}
 		options++
-		nd[mcc.lastNode].up = i + 1
-		nd[mcc.lastNode].itm = -options
+		nd[d.lastNode].up = i + 1
+		nd[d.lastNode].itm = -options
 	}
 
 	return nil

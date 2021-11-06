@@ -111,8 +111,8 @@ func main() {
 	var buff bytes.Buffer
 
 	rd := io.TeeReader(os.Stdin, &buff)
-	xc := dlx.NewXC()
-	solStream, err := xc.Dance(context.Background(), sudokuDLX(rd))
+	d := dlx.NewDancer()
+	solStream, err := d.Dance(context.Background(), sudokuDLX(rd))
 	if err != nil {
 		fmt.Println(err)
 		return

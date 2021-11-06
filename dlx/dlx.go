@@ -1,11 +1,7 @@
 package dlx
 
 import (
-	"bufio"
-	"context"
 	"errors"
-	"io"
-	"strings"
 )
 
 const (
@@ -49,7 +45,7 @@ type item struct {
 }
 
 // DLX dancing links object
-type DLX struct {
+type Dancer struct {
 	nd       []node // the master list of nodes
 	lastNode int    // the first node in nd that's not yet used
 	cl       []item // the master list of items
@@ -57,95 +53,10 @@ type DLX struct {
 	second   int    // boundary between primary and secondary items
 }
 
-type XC struct {
-	*DLX
-}
-
-type XCC struct {
-	*DLX
-}
-
-type MCC struct {
-	*DLX
-}
-
-func newDLX() *DLX {
-	return &DLX{
+func NewDancer() *Dancer {
+	return &Dancer{
 		nd:     make([]node, maxNodes),
 		cl:     make([]item, maxCols+2),
 		second: maxCols,
 	}
-}
-
-// NewXC generates a dancing machine.
-func NewXC() *XC {
-	return &XC{
-		DLX: newDLX(),
-	}
-}
-
-// NewXCC generates a dancing machine.
-func NewXCC() *XCC {
-	return &XCC{
-		DLX: newDLX(),
-	}
-}
-
-// NewMCC generates a dancing machine.
-func NewMCC() *MCC {
-	return &MCC{
-		DLX: newDLX(),
-	}
-}
-
-// Dancer solves exact cover problem while dancing.
-type Dancer interface {
-	inputItemNames(string) error
-	inputOptions(string) error
-	Dance(context.Context, io.Reader) (<-chan [][]string, error)
-}
-
-func inputMatrix(m Dancer, rd io.Reader) error {
-	var line string
-
-	scanner := bufio.NewScanner(rd)
-	for scanner.Scan() {
-		line = scanner.Text()
-		if len(line) > maxLine {
-			return ErrInputLineTooLong
-		}
-		line = strings.TrimSpace(line)
-		if line == "" || line[0] == '|' {
-			// bypass comment or blank line
-			line = ""
-			continue
-		}
-		break
-	}
-
-	if err := m.inputItemNames(line); err != nil {
-		return err
-	}
-
-	for scanner.Scan() {
-		line = scanner.Text()
-		if len(line) > maxLine {
-			return ErrInputLineTooLong
-		}
-		line = strings.TrimSpace(line)
-		if line == "" || line[0] == '|' {
-			// bypass comment or blank line
-			continue
-		}
-
-		if err := m.inputOptions(line); err != nil {
-			return err
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-
-	return nil
 }

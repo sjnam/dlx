@@ -110,8 +110,8 @@ const xccInput = `
 `
 
 func main() {
-	xcc := dlx.NewXCC()
-	solStream, err := xcc.Dance(context.Background(), strings.NewReader(xccInput))
+	d := dlx.NewDancer()
+	solStream, err := d.Dance(context.Background(), strings.NewReader(xccInput))
 	if err != nil {
 		fmt.Println(err)
 		return

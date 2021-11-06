@@ -26,8 +26,8 @@ func main() {
 		return
 	}
 
-	xc := dlx.NewXC()
-	solStream, err := xc.Dance(context.Background(), fp)
+	d := dlx.NewDancer()
+	solStream, err := d.Dance(context.Background(), fp)
 	if err != nil {
 		fmt.Println(err)
 		return

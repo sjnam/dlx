@@ -46,8 +46,8 @@ func main() {
 
 	go spinner(100 * time.Millisecond)
 
-	xc := dlx.NewXC()
-	solStream, err := xc.Dance(context.Background(), os.Stdin)
+	d := dlx.NewDancer()
+	solStream, err := d.Dance(context.Background(), os.Stdin)
 	if err != nil {
 		fmt.Println(err)
 		return

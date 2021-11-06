@@ -7,428 +7,12 @@ import (
 	"log"
 )
 
-// XC
-
-func (xc *XC) getOption(p int) []string {
+func (d *Dancer) getOption(p, head int) []string {
 	var (
 		option []string
-		cl, nd = xc.cl, xc.nd
+		cl, nd = d.cl, d.nd
 	)
-	for q := p; ; {
-		option = append(option, cl[nd[q].itm].name)
-		q++
-		if nd[q].itm <= 0 {
-			q = nd[q].up
-		}
-		if q == p {
-			break
-		}
-	}
-	return option
-}
-
-func (xc *XC) cover(c int) {
-	cl, nd := xc.cl, xc.nd
-	l, r := cl[c].prev, cl[c].next
-	cl[l].next = r
-	cl[r].prev = l
-	for rr := nd[c].down; rr >= xc.lastItm; rr = nd[rr].down {
-		for nn := rr + 1; nn != rr; {
-			uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-			if cc <= 0 {
-				nn = uu
-				continue
-			}
-			nd[uu].down = dd
-			nd[dd].up = uu
-			nd[cc].itm--
-			nn++
-		}
-	}
-}
-
-func (xc *XC) uncover(c int) {
-	cl, nd := xc.cl, xc.nd
-	for rr := nd[c].down; rr >= xc.lastItm; rr = nd[rr].down {
-		for nn := rr + 1; nn != rr; {
-			uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-			if cc <= 0 {
-				nn = uu
-				continue
-			}
-			nd[dd].up = nn
-			nd[uu].down = nn
-			nd[cc].itm++
-			nn++
-		}
-	}
-	l, r := cl[c].prev, cl[c].next
-	cl[r].prev = c
-	cl[l].next = cl[r].prev
-}
-
-func (xc *XC) Dance(
-	ctx context.Context,
-	rd io.Reader,
-) (<-chan [][]string, error) {
-	if err := inputMatrix(xc, rd); err != nil {
-		return nil, err
-	}
-
-	ch := make(chan [][]string)
-
-	go func() {
-		defer close(ch)
-
-		var (
-			bestItm, curNode   int
-			count, level, maxl int
-			cl, nd             = xc.cl, xc.nd
-			choice             = make([]int, maxLevel)
-		)
-
-	forward:
-		// Set bestItm to the best item for branching: MRV heuristic.
-		t := maxNodes
-		for k := cl[root].next; t != 0 && k != root; k = cl[k].next {
-			if nd[k].itm <= t { // 'itm' is length of node list
-				bestItm = k
-				t = nd[k].itm
-			}
-		}
-
-		// Cover bestItm and set choice[level] to nd[bestItm].down
-		xc.cover(bestItm)
-		choice[level] = nd[bestItm].down
-		curNode = nd[bestItm].down
-
-	advance:
-		if curNode == bestItm { // we've tried all options for bestItm
-			goto backup
-		}
-
-		// Cover all other items of curNode
-		for pp := curNode + 1; pp != curNode; {
-			cc := nd[pp].itm
-			if cc <= 0 {
-				pp = nd[pp].up
-			} else {
-				xc.cover(cc)
-				pp++
-			}
-		}
-
-		if cl[root].next == root {
-			if level+1 > maxl {
-				if level+1 >= maxLevel {
-					log.Fatal(ErrTooManyLevels)
-				}
-				maxl = level + 1
-			}
-
-			count++
-			var sol [][]string
-			for k := 0; k <= level; k++ {
-				sol = append(sol, xc.getOption(choice[k]))
-			}
-			select {
-			case <-ctx.Done():
-				log.Println("Cancelled!")
-				return
-			case ch <- sol:
-			}
-
-			if count >= maxCount {
-				return
-			}
-			goto recover
-		}
-
-		level++
-		if level > maxl {
-			if level >= maxLevel {
-				log.Fatal(ErrTooManyLevels)
-			}
-			maxl = level
-		}
-		goto forward
-
-	backup:
-		xc.uncover(bestItm)
-		if level == 0 {
-			return
-		}
-		level--
-		curNode = choice[level]
-		bestItm = nd[curNode].itm
-
-	recover:
-		for pp := curNode - 1; pp != curNode; {
-			cc := nd[pp].itm
-			if cc <= 0 {
-				pp = nd[pp].down
-			} else {
-				xc.uncover(cc)
-				pp--
-			}
-		}
-
-		choice[level] = nd[curNode].down
-		curNode = nd[curNode].down
-
-		goto advance
-	}()
-
-	return ch, nil
-}
-
-// XCC
-
-func (xcc *XCC) getOption(p int) []string {
-	var (
-		option []string
-		cl, nd = xcc.cl, xcc.nd
-	)
-	for q := p; ; {
-		option = append(option,
-			fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
-		q++
-		if nd[q].itm <= 0 {
-			q = nd[q].up
-		}
-		if q == p {
-			break
-		}
-	}
-	return option
-}
-
-func (xcc *XCC) cover(c int) {
-	cl, nd := xcc.cl, xcc.nd
-	l, r := cl[c].prev, cl[c].next
-	cl[l].next = r
-	cl[r].prev = l
-	for rr := nd[c].down; rr >= xcc.lastItm; rr = nd[rr].down {
-		for nn := rr + 1; nn != rr; {
-			if nd[nn].color >= 0 {
-				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-				if cc <= 0 {
-					nn = uu
-					continue
-				}
-				nd[uu].down = dd
-				nd[dd].up = uu
-				nd[cc].itm--
-			}
-			nn++
-		}
-	}
-}
-
-func (xcc *XCC) uncover(c int) {
-	cl, nd := xcc.cl, xcc.nd
-	for rr := nd[c].down; rr >= xcc.lastItm; rr = nd[rr].down {
-		for nn := rr + 1; nn != rr; {
-			if nd[nn].color >= 0 {
-				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-				if cc <= 0 {
-					nn = uu
-					continue
-				}
-				nd[dd].up = nn
-				nd[uu].down = nn
-				nd[cc].itm++
-			}
-			nn++
-		}
-	}
-	l, r := cl[c].prev, cl[c].next
-	cl[r].prev = c
-	cl[l].next = cl[r].prev
-}
-
-func (xcc *XCC) purify(p int) {
-	nd := xcc.nd
-	cc := nd[p].itm
-	x := nd[p].color
-	nd[cc].color = x
-	for rr := nd[cc].down; rr >= xcc.lastItm; rr = nd[rr].down {
-		if nd[rr].color != x {
-			for nn := rr + 1; nn != rr; {
-				if nd[nn].color >= 0 {
-					uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-					if cc <= 0 {
-						nn = uu
-						continue
-					}
-					nd[uu].down = dd
-					nd[dd].up = uu
-					nd[cc].itm--
-				}
-				nn++
-			}
-		} else {
-			nd[rr].color = -1
-		}
-	}
-}
-
-func (xcc *XCC) unpurify(p int) {
-	nd := xcc.nd
-	cc := nd[p].itm
-	x := nd[p].color
-	for rr := nd[cc].up; rr >= xcc.lastItm; rr = nd[rr].up {
-		if nd[rr].color < 0 {
-			nd[rr].color = x
-		} else {
-			for nn := rr - 1; nn != rr; {
-				if nd[nn].color >= 0 {
-					uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-					if cc <= 0 {
-						nn = dd
-						continue
-					}
-					nd[dd].up = nn
-					nd[uu].down = nn
-					nd[cc].itm++
-				}
-				nn--
-			}
-		}
-	}
-}
-
-func (xcc *XCC) Dance(
-	ctx context.Context,
-	rd io.Reader,
-) (<-chan [][]string, error) {
-	if err := inputMatrix(xcc, rd); err != nil {
-		return nil, err
-	}
-
-	ch := make(chan [][]string)
-
-	go func() {
-		defer close(ch)
-
-		var (
-			bestItm, curNode   int
-			count, level, maxl int
-			cl, nd             = xcc.cl, xcc.nd
-			choice             = make([]int, maxLevel)
-		)
-
-	forward:
-		// Set bestItm to the best item for branching: MRV heuristic.
-		t := maxNodes
-		for k := cl[root].next; t != 0 && k != root; k = cl[k].next {
-			if nd[k].itm <= t { // 'itm' is length of node list
-				bestItm = k
-				t = nd[k].itm
-			}
-		}
-
-		// Cover bestItm and set choice[level] to nd[bestItm].down
-		xcc.cover(bestItm)
-		choice[level] = nd[bestItm].down
-		curNode = nd[bestItm].down
-
-	advance:
-		if curNode == bestItm { // we've tried all options for bestItm
-			goto backup
-		}
-
-		// Cover all other items of curNode
-		for pp := curNode + 1; pp != curNode; {
-			cc := nd[pp].itm
-			if cc <= 0 {
-				pp = nd[pp].up
-			} else {
-				if nd[pp].color == 0 {
-					xcc.cover(cc)
-				} else if nd[pp].color > 0 {
-					xcc.purify(pp)
-				}
-				pp++
-			}
-		}
-
-		if cl[root].next == root {
-			if level+1 > maxl {
-				if level+1 >= maxLevel {
-					log.Fatal(ErrTooManyLevels)
-				}
-				maxl = level + 1
-			}
-
-			count++
-			var sol [][]string
-			for k := 0; k <= level; k++ {
-				sol = append(sol, xcc.getOption(choice[k]))
-			}
-			select {
-			case <-ctx.Done():
-				log.Println("Cancelled!")
-				return
-			case ch <- sol:
-			}
-
-			if count >= maxCount {
-				return
-			}
-			goto recover
-		}
-
-		level++
-		if level > maxl {
-			if level >= maxLevel {
-				log.Fatal(ErrTooManyLevels)
-			}
-			maxl = level
-		}
-		goto forward
-
-	backup:
-		xcc.uncover(bestItm)
-		if level == 0 {
-			return
-		}
-		level--
-		curNode = choice[level]
-		bestItm = nd[curNode].itm
-
-	recover:
-		for pp := curNode - 1; pp != curNode; {
-			cc := nd[pp].itm
-			if cc <= 0 {
-				pp = nd[pp].down
-			} else {
-				if nd[pp].color == 0 {
-					xcc.uncover(cc)
-				} else if nd[pp].color > 0 {
-					xcc.unpurify(pp)
-				}
-				pp--
-			}
-		}
-
-		choice[level] = nd[curNode].down
-		curNode = nd[curNode].down
-
-		goto advance
-	}()
-
-	return ch, nil
-}
-
-// MCC
-
-func (mcc *MCC) getOption(p, head int) []string {
-	var (
-		option []string
-		cl, nd = mcc.cl, mcc.nd
-	)
-	if (p < mcc.lastItm && p == head) || (head >= mcc.lastItm && p == nd[head].itm) {
+	if (p < d.lastItm && p == head) || (head >= d.lastItm && p == nd[head].itm) {
 		option = append(option, fmt.Sprintf("null %s", cl[p].name))
 	} else {
 		for q := p; ; {
@@ -446,13 +30,13 @@ func (mcc *MCC) getOption(p, head int) []string {
 	return option
 }
 
-func (mcc *MCC) cover(c int, deact bool) {
-	cl, nd := mcc.cl, mcc.nd
+func (d *Dancer) cover(c int, deact bool) {
+	cl, nd := d.cl, d.nd
 	if deact {
 		l, r := cl[c].prev, cl[c].next
 		cl[l].next, cl[r].prev = r, l
 	}
-	for rr := nd[c].down; rr >= mcc.lastItm; rr = nd[rr].down {
+	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
 			if nd[nn].color >= 0 {
 				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
@@ -469,9 +53,9 @@ func (mcc *MCC) cover(c int, deact bool) {
 	}
 }
 
-func (mcc *MCC) uncover(c int, react bool) {
-	cl, nd := mcc.cl, mcc.nd
-	for rr := nd[c].down; rr >= mcc.lastItm; rr = nd[rr].down {
+func (d *Dancer) uncover(c int, react bool) {
+	cl, nd := d.cl, d.nd
+	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
 			if nd[nn].color >= 0 {
 				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
@@ -492,12 +76,12 @@ func (mcc *MCC) uncover(c int, react bool) {
 	}
 }
 
-func (mcc *MCC) purify(p int) {
-	nd := mcc.nd
+func (d *Dancer) purify(p int) {
+	nd := d.nd
 	cc := nd[p].itm
 	x := nd[p].color
 	nd[cc].color = x
-	for rr := nd[cc].down; rr >= mcc.lastItm; rr = nd[rr].down {
+	for rr := nd[cc].down; rr >= d.lastItm; rr = nd[rr].down {
 		if nd[rr].color != x {
 			for nn := rr + 1; nn != rr; {
 				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
@@ -518,11 +102,11 @@ func (mcc *MCC) purify(p int) {
 	}
 }
 
-func (mcc *MCC) unpurify(p int) {
-	nd := mcc.nd
+func (d *Dancer) unpurify(p int) {
+	nd := d.nd
 	cc := nd[p].itm
 	x := nd[p].color
-	for rr := nd[cc].up; rr >= mcc.lastItm; rr = nd[rr].up {
+	for rr := nd[cc].up; rr >= d.lastItm; rr = nd[rr].up {
 		if nd[rr].color < 0 {
 			nd[rr].color = x
 		} else if rr != p {
@@ -543,8 +127,8 @@ func (mcc *MCC) unpurify(p int) {
 	}
 }
 
-func (mcc *MCC) tweak(n, block int) {
-	nd := mcc.nd
+func (d *Dancer) tweak(n, block int) {
+	nd := d.nd
 	nn := n
 	if block != 0 {
 		nn = n + 1
@@ -567,8 +151,8 @@ func (mcc *MCC) tweak(n, block int) {
 	}
 }
 
-func (mcc *MCC) untweak(c, x, unblock int) {
-	nd := mcc.nd
+func (d *Dancer) untweak(c, x, unblock int) {
+	nd := d.nd
 	z := nd[c].down
 	nd[c].down = x
 	rr, qq, k := x, c, 0
@@ -594,16 +178,16 @@ func (mcc *MCC) untweak(c, x, unblock int) {
 	nd[rr].up = qq
 	nd[c].itm += k
 	if unblock == 0 {
-		mcc.uncover(c, false)
+		d.uncover(c, false)
 	}
 }
 
 // Dance generates all exact covers
-func (mcc *MCC) Dance(
+func (d *Dancer) Dance(
 	ctx context.Context,
 	rd io.Reader,
 ) (<-chan [][]string, error) {
-	if err := inputMatrix(mcc, rd); err != nil {
+	if err := d.inputMatrix(rd); err != nil {
 		return nil, err
 	}
 
@@ -616,7 +200,7 @@ func (mcc *MCC) Dance(
 			bestItm, curNode   int
 			bestL, bestS       int
 			count, level, maxl int
-			cl, nd             = mcc.cl, mcc.nd
+			cl, nd             = d.cl, d.nd
 			choice             = make([]int, maxLevel)
 			scor               = make([]int, maxLevel)
 			firstTweak         = make([]int, maxLevel)
@@ -648,14 +232,14 @@ func (mcc *MCC) Dance(
 			for k := 0; k < level; k++ {
 				pp := choice[k]
 				cc := nd[pp].itm
-				if pp < mcc.lastItm {
+				if pp < d.lastItm {
 					cc = pp
 				}
 				head := firstTweak[k]
 				if head == 0 {
 					head = nd[cc].down
 				}
-				sol[k] = mcc.getOption(pp, head)
+				sol[k] = d.getOption(pp, head)
 			}
 
 			select {
@@ -680,11 +264,11 @@ func (mcc *MCC) Dance(
 		cl[bestItm].bound--
 
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			mcc.cover(bestItm, true)
+			d.cover(bestItm, true)
 		} else {
 			firstTweak[level] = curNode
 			if cl[bestItm].bound == 0 {
-				mcc.cover(bestItm, true)
+				d.cover(bestItm, true)
 			}
 		}
 
@@ -696,28 +280,28 @@ func (mcc *MCC) Dance(
 		} else if nd[bestItm].itm <= cl[bestItm].bound-cl[bestItm].slack {
 			goto backup
 		} else if curNode != bestItm {
-			mcc.tweak(curNode, cl[bestItm].bound)
+			d.tweak(curNode, cl[bestItm].bound)
 		} else if cl[bestItm].bound != 0 {
 			p, q := cl[bestItm].prev, cl[bestItm].next
 			cl[p].next, cl[q].prev = q, p
 		}
 
-		if curNode > mcc.lastItm {
+		if curNode > d.lastItm {
 			for pp := curNode + 1; pp != curNode; {
 				cc := nd[pp].itm
 				if cc <= 0 {
 					pp = nd[pp].up
 				} else {
-					if cc < mcc.second {
+					if cc < d.second {
 						cl[cc].bound--
 						if cl[cc].bound == 0 {
-							mcc.cover(cc, true)
+							d.cover(cc, true)
 						}
 					} else {
 						if nd[pp].color == 0 {
-							mcc.cover(cc, true)
+							d.cover(cc, true)
 						} else if nd[pp].color > 0 {
-							mcc.purify(pp)
+							d.purify(pp)
 						}
 					}
 					pp++
@@ -736,9 +320,9 @@ func (mcc *MCC) Dance(
 
 	backup:
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			mcc.uncover(bestItm, true)
+			d.uncover(bestItm, true)
 		} else {
-			mcc.untweak(bestItm, firstTweak[level], cl[bestItm].bound)
+			d.untweak(bestItm, firstTweak[level], cl[bestItm].bound)
 		}
 		cl[bestItm].bound++
 
@@ -751,7 +335,7 @@ func (mcc *MCC) Dance(
 		bestItm = nd[curNode].itm
 		score = scor[level]
 
-		if curNode < mcc.lastItm {
+		if curNode < d.lastItm {
 			bestItm = curNode
 			p, q := cl[bestItm].prev, cl[bestItm].next
 			cl[q].prev, cl[p].next = bestItm, bestItm
@@ -763,16 +347,16 @@ func (mcc *MCC) Dance(
 			if cc <= 0 {
 				pp = nd[pp].down
 			} else {
-				if cc < mcc.second {
+				if cc < d.second {
 					if cl[cc].bound == 0 {
-						mcc.uncover(cc, true)
+						d.uncover(cc, true)
 					}
 					cl[cc].bound++
 				} else {
 					if nd[pp].color == 0 {
-						mcc.uncover(cc, true)
+						d.uncover(cc, true)
 					} else if nd[pp].color > 0 {
-						mcc.unpurify(pp)
+						d.unpurify(pp)
 					}
 				}
 				pp--

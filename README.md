@@ -14,7 +14,8 @@ import (
 	"strings"
 )
 
-func solve(d Dancer, matrix string) {
+func solve(matrix string) {
+	d := NewDancer()
 	solStream, err := d.Dance(context.Background(), strings.NewReader(matrix))
 	if err != nil {
 		fmt.Println(err)
@@ -40,7 +41,7 @@ A D
 B G
 D E G
 `
-	solve(NewXC(), xcInput)
+	solve(xcInput)
 
 	// Unordered Output:
 	// [A D]
@@ -58,7 +59,7 @@ X:0 Y:1
 B X:1
 C Y:1
 `
-	solve(NewXCC(), xccInput)
+	solve(xccInput)
 
 	// Unordered Output:
 	// [A C X:1 Y:1]
@@ -75,7 +76,7 @@ C X:0
 B X:1
 C Y:1
 `
-	solve(NewMCC(), mccInput)
+	solve(mccInput)
 
 	// Unordered Output:
 	// [A C X:1 Y:1]
