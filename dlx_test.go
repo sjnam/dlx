@@ -25,10 +25,14 @@ func solve(matrix string) {
 
 func ExampleDancer_dlx() {
 	xcInput := `
+
 | A simple example
+
 A B C D E | F G
 C E F
 A D G
+
+
 B C F
 A D
 B G
@@ -48,6 +52,7 @@ func ExampleDancer_xcc() {
 A B C | X Y
 A B X:0 Y:0
 A C X:1 Y:1
+| comments
 X:0 Y:1
 B X:1
 C Y:1
@@ -62,12 +67,18 @@ C Y:1
 func ExampleDancer_mcc() {
 	mccInput := `
 | A simple example of color controls
+
+| and multiplicity
+
 A B 2:3|C | X Y
 A B X:0 Y:0
+
 A C X:1 Y:1
 C X:0
+
 B X:1
 C Y:1
+| finished
 `
 	solve(mccInput)
 

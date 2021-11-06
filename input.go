@@ -21,10 +21,13 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 		line = strings.TrimSpace(line)
 		if line == "" || line[0] == '|' {
 			// bypass comment or blank line
-			line = ""
 			continue
 		}
+		d.lastItm = 1
 		break
+	}
+	if err := scanner.Err(); err != nil {
+		return err
 	}
 
 	if err := d.inputItemNames(line); err != nil {
@@ -46,7 +49,6 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 			return err
 		}
 	}
-
 	if err := scanner.Err(); err != nil {
 		return err
 	}
@@ -55,11 +57,9 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 }
 
 func (d *Dancer) inputItemNames(line string) error {
-	if line == "" {
+	if d.lastItm == 0 {
 		return fmt.Errorf("no items")
 	}
-
-	d.lastItm = 1
 
 	cl, nd := d.cl, d.nd
 
@@ -156,8 +156,8 @@ func (d *Dancer) inputOptions(line string) error {
 		cl[d.lastItm].name = name[0]
 
 		// Create a node for the item named in opt
-		var k int
-		for k = 0; cl[k].name != cl[d.lastItm].name; k++ {
+		k := 0
+		for ; cl[k].name != cl[d.lastItm].name; k++ {
 		}
 		if k == d.lastItm {
 			return fmt.Errorf("unknown item name")
@@ -176,13 +176,11 @@ func (d *Dancer) inputOptions(line string) error {
 
 		// Insert node lastNode into the list item k
 		t := nd[k].itm + 1
-
 		// we want to put the node into a random position of the list
 		// we store the position of the new node into nd[k].color,
 		// so that the test for duplicate items above will be correct.
 		nd[k].itm = t            // len field; store the new length of the list
 		nd[k].color = d.lastNode // aux field
-
 		r := k
 		for t = rand.Intn(t); t > 0; t-- {
 			r = nd[r].down
@@ -193,15 +191,16 @@ func (d *Dancer) inputOptions(line string) error {
 		nd[d.lastNode].up = q
 		nd[d.lastNode].down = r
 
-		if len(name) == 1 {
-			nd[d.lastNode].color = 0
-			nd[d.lastNode].colorName = ""
-		} else if k >= d.second {
-			c, _ := strconv.ParseInt(name[1], 36, 0)
-			nd[d.lastNode].color = int(c)
-			nd[d.lastNode].colorName = ":" + name[1]
-		} else {
-			return fmt.Errorf("primary item must be uncolored")
+		nd[d.lastNode].color = 0
+		nd[d.lastNode].colorName = ""
+		if len(name) == 2 {
+			if k >= d.second {
+				c, _ := strconv.ParseInt(name[1], 36, 0)
+				nd[d.lastNode].color = int(c)
+				nd[d.lastNode].colorName = ":" + name[1]
+			} else {
+				return fmt.Errorf("primary item must be uncolored")
+			}
 		}
 	}
 
@@ -211,10 +210,8 @@ func (d *Dancer) inputOptions(line string) error {
 			k := nd[d.lastNode].itm
 			nd[k].itm--
 			nd[k].color = i - 1
-			q := nd[d.lastNode].up
-			r := nd[d.lastNode].down
-			nd[q].down = r
-			nd[r].up = q
+			q, r := nd[d.lastNode].up, nd[d.lastNode].down
+			nd[q].down, nd[r].up = r, q
 			d.lastNode--
 		}
 	} else {
