@@ -1,6 +1,6 @@
 # go-dlx
-Golang implementation of Donald Knuth's Algorithm 7.2.2.1M
-for covering with multiplicities and colors. This code is based on the
+Golang implementation of Donald Knuth's Algorithm 7.2.2.1{**X, C, M**}
+for exact covering or covering with multiplicities and colors. This code is based on the
 Algorithm M described in https://www-cs-faculty.stanford.edu/~knuth/fasc5c.ps.gz
 
 ## Usage
