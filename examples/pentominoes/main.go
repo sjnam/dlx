@@ -20,16 +20,14 @@ func main() {
 	nr, _ := strconv.Atoi(args[1])
 	nc, _ := strconv.Atoi(args[2])
 
-	ctx, cancle := context.WithCancel(context.Background())
-	defer cancle()
-
 	fp, err := os.Open(fmt.Sprintf("%dx%d.dlx", nr, nc))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	dx, err := dlx.NewDancer(fp)
+	xc := dlx.NewXC()
+	solStream, err := xc.Dance(context.Background(), fp)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -44,7 +42,7 @@ func main() {
 	}
 
 	i := 0
-	for solution := range dx.Dance(ctx) {
+	for solution := range solStream {
 		i++
 		fmt.Printf("%d:\n", i)
 		for _, opt := range solution {

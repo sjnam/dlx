@@ -1,19 +1,20 @@
 package dlx
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
 )
 
-func solve(matrix string) {
-	d, err := NewDancer(strings.NewReader(matrix))
+func solve(d Dancer, matrix string) {
+	solStream, err := d.Dance(context.Background(), strings.NewReader(matrix))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	for sol := range d.Dance() {
+	for sol := range solStream {
 		for _, opt := range sol {
 			sort.Strings(opt)
 			fmt.Println(opt)
@@ -22,7 +23,7 @@ func solve(matrix string) {
 }
 
 func ExampleDancer_dlx() {
-	dlxInput := `
+	xcInput := `
 | A simple example
 A B C D E | F G
 C E F
@@ -32,7 +33,7 @@ A D
 B G
 D E G
 `
-	solve(dlxInput)
+	solve(NewXC(), xcInput)
 
 	// Unordered Output:
 	// [A D]
@@ -50,7 +51,7 @@ X:0 Y:1
 B X:1
 C Y:1
 `
-	solve(xccInput)
+	solve(NewMCC(), xccInput)
 
 	// Unordered Output:
 	// [A C X:1 Y:1]
@@ -67,7 +68,7 @@ C X:0
 B X:1
 C Y:1
 `
-	solve(mccInput)
+	solve(NewMCC(), mccInput)
 
 	// Unordered Output:
 	// [A C X:1 Y:1]

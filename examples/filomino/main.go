@@ -44,12 +44,10 @@ func main() {
 		return
 	}
 
-	ctx, cancle := context.WithCancel(context.Background())
-	defer cancle()
-
 	go spinner(100 * time.Millisecond)
 
-	dx, err := dlx.NewDancer(os.Stdin)
+	xc := dlx.NewXC()
+	solStream, err := xc.Dance(context.Background(), os.Stdin)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -60,7 +58,7 @@ func main() {
 		box[i] = make([]int, nc)
 	}
 
-	solution := <-dx.Dance(ctx)
+	solution := <-solStream
 	for _, opt := range solution {
 		n := 0
 		var coor [][2]int

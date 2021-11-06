@@ -73,10 +73,8 @@ func main() {
 	}
 	n, _ := strconv.Atoi(os.Args[1])
 
-	ctx, cancle := context.WithCancel(context.Background())
-	defer cancle()
-
-	dx, err := dlx.NewDancer(queenDLX(n))
+	xc := dlx.NewXC()
+	solStream, err := xc.Dance(context.Background(), queenDLX(n))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -87,7 +85,7 @@ func main() {
 	for r := 0; r < n; r++ {
 		board[r] = make([]string, n)
 	}
-	for solution := range dx.Dance(ctx) {
+	for solution := range solStream {
 		i++
 		for r := 0; r < n; r++ {
 			for c := 0; c < n; c++ {
