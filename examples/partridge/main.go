@@ -14,16 +14,16 @@ import (
 	"github.com/sjnam/dlx"
 )
 
-var color = [9]string{
-	"",  // dummy
-	"🟫", // white
-	"⬛", // black
-	"🟦", // blue
-	"🟧", // orange
-	"🟩", // green
-	"🟪", // purple
-	"🟨", // yellow
-	"🟥", // red
+var color = [9]rune{
+	'\U00002B1C', // white
+	'\U0001F7EB', // brown
+	'\U00002B1B', // black
+	'\U0001F7E6', // blue
+	'\U0001F7E7', // orange
+	'\U0001F7E9', // green
+	'\U0001F7EA', // purple
+	'\U0001F7E8', // yello
+	'\U0001F7E5', // red
 }
 
 func spinner(delay time.Duration) {
@@ -54,6 +54,7 @@ func patridgeDLX(n int) io.Reader {
 				fmt.Fprintf(w, "%d,%d ", i, j)
 			}
 		}
+
 		fmt.Fprintf(w, "\n")
 
 		for t := 1; t <= n; t++ {
@@ -82,7 +83,7 @@ func drawSquare(sol, board [][]string) {
 			co := strings.Split(coord, ",")
 			r, _ := strconv.Atoi(co[0])
 			c, _ := strconv.Atoi(co[1])
-			board[r][c] = fmt.Sprintf("%s", color[s])
+			board[r][c] = fmt.Sprintf("%c", color[s])
 		}
 	}
 
