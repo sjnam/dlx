@@ -88,6 +88,13 @@ C Y:1
 
 ## Examples
 
+### Langford pairing
+````
+$go run main.go 4
+[2 3 4 2 1 3 1 4]
+[4 1 3 1 2 4 3 2]
+````
+
 ### Partridge puzzle
 ````
 $ go run example/partridge/main.go 8
