@@ -37,6 +37,7 @@ type Dancer struct {
 	cl       []item // the master list of items
 	lastItm  int    // the first item in cl that's not yet used
 	second   int    // boundary between primary and secondary items
+	options  int    //  options seen so far
 }
 
 // NewDancer Wake me up before you Go Go

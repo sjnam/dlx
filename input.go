@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -52,6 +53,9 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 	if err := scanner.Err(); err != nil {
 		return err
 	}
+
+	fmt.Fprintf(os.Stderr, "(%d options, %d+%d items, %d entries successfully read)\n",
+		d.options, d.second-1, d.lastItm-d.second, d.lastNode-d.lastItm)
 
 	return nil
 }
@@ -138,11 +142,10 @@ func (d *Dancer) inputItemNames(line string) error {
 
 func (d *Dancer) inputOptions(line string) error {
 	var (
-		cl      = d.cl
-		nd      = d.nd
-		options = 0          // options seen so far
-		i       = d.lastNode // remember the spacer at the left of this option
-		pp      = false
+		cl = d.cl
+		nd = d.nd
+		i  = d.lastNode // remember the spacer at the left of this option
+		pp = false
 	)
 
 	for _, opt := range strings.Fields(line) {
@@ -220,9 +223,9 @@ func (d *Dancer) inputOptions(line string) error {
 		if d.lastNode == maxNodes {
 			return fmt.Errorf("too many nodes")
 		}
-		options++
+		d.options++
 		nd[d.lastNode].up = i + 1
-		nd[d.lastNode].itm = -options
+		nd[d.lastNode].itm = -d.options
 	}
 
 	return nil

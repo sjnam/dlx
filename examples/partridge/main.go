@@ -27,16 +27,11 @@ var color = [9]rune{
 }
 
 func spinner(delay time.Duration) {
-	s := "."
-	for i := 1; ; i++ {
-		if i%100 == 0 {
-			fmt.Printf("\n")
-			s = "."
-			i = 1
+	for {
+		for _, r := range `-\|/` {
+			fmt.Printf("\r%c", r)
+			time.Sleep(delay)
 		}
-		fmt.Printf("\r%s", s)
-		time.Sleep(delay)
-		s = s + "."
 	}
 }
 
@@ -99,8 +94,6 @@ func drawSquare(sol, board [][]string) {
 }
 
 func main() {
-	go spinner(100 * time.Millisecond)
-
 	args := os.Args
 	if len(args) != 2 {
 		fmt.Printf("usage: %s n\n", args[0])
@@ -113,6 +106,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	go spinner(100 * time.Millisecond)
 
 	N := n * (n + 1) / 2
 	board := make([][]string, N)

@@ -14,16 +14,11 @@ import (
 )
 
 func spinner(delay time.Duration) {
-	s := "."
-	for i := 1; ; i++ {
-		if i%40 == 0 {
-			fmt.Printf("\n")
-			s = "."
-			i = 1
+	for {
+		for _, r := range `-\|/` {
+			fmt.Printf("\r%c", r)
+			time.Sleep(delay)
 		}
-		fmt.Printf("\r%s", s)
-		time.Sleep(delay)
-		s = s + "."
 	}
 }
 
@@ -56,13 +51,13 @@ func main() {
 	nr, _ := strconv.Atoi(dimen[0])
 	nc, _ := strconv.Atoi(dimen[1])
 
-	go spinner(100 * time.Millisecond)
-
 	d := dlx.NewDancer()
 	solStream, err := d.Dance(context.Background(), fd)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	go spinner(100 * time.Millisecond)
 
 	box := make([][]int, nr)
 	for i := range box {
