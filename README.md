@@ -90,7 +90,7 @@ C Y:1
 
 ### Langford pairing
 ````
-$go run main.go 4
+$ go run main.go 4
 [2 3 4 2 1 3 1 4]
 ````
 
