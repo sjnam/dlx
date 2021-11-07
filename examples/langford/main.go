@@ -29,7 +29,9 @@ func langfordDLX(n int) io.Reader {
 		fmt.Fprintln(w)
 		for i := 1; i <= n; i++ {
 			for j := 1; j < 2*n-i; j++ {
-				fmt.Fprintf(w, "%d s%d s%d\n", i, j, j+i+1)
+				if i != n-(1-n&0x1) || j <= n/2 {
+					fmt.Fprintf(w, "%d s%d s%d\n", i, j, j+i+1)
+				}
 			}
 		}
 	}()
