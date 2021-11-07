@@ -16,7 +16,7 @@ import (
 
 var color = [9]string{
 	"",  // dummy
-	"⬜", // white
+	"🟫", // white
 	"⬛", // black
 	"🟦", // blue
 	"🟧", // orange
