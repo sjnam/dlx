@@ -15,14 +15,14 @@ import (
 )
 
 var color = [9]rune{
-	'\U00002B1C', // white
 	'\U0001F7EB', // brown
+	'\U00002B1C', // white
 	'\U00002B1B', // black
-	'\U0001F7E6', // blue
 	'\U0001F7E7', // orange
-	'\U0001F7E9', // green
 	'\U0001F7EA', // purple
-	'\U0001F7E8', // yello
+	'\U0001F7E9', // green
+	'\U0001F7E6', // blue
+	'\U0001F7E8', // yellow
 	'\U0001F7E5', // red
 }
 
@@ -44,7 +44,9 @@ func patridgeDLX(n int) io.Reader {
 	N := n * (n + 1) / 2
 	r, w := io.Pipe()
 	go func() {
-		defer w.Close()
+		defer func() {
+			_ = w.Close()
+		}()
 
 		for i := 1; i <= n; i++ {
 			fmt.Fprintf(w, "%d:%d|#%d ", i, i, i)
