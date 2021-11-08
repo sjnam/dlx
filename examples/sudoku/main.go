@@ -6,10 +6,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
-	"sort"
 	"strings"
+	"sync"
 
 	"github.com/sjnam/dlx"
 )
@@ -21,10 +22,14 @@ func bx(j, k int) int {
 func sudokuDLX(rd io.Reader) io.Reader {
 	var pos, row, col, box [9][9]int
 
+	buf := make([]byte, 9)
 	var c, j int
-	scanner := bufio.NewScanner(rd)
-	for scanner.Scan() {
-		buf := scanner.Text()
+	for {
+		_, err := io.ReadFull(rd, buf)
+		if err == io.EOF {
+			break
+		}
+
 		for k := 0; k < 9; k++ {
 			if buf[k] >= '1' && buf[k] <= '9' {
 				d := int(buf[k] - '1')
@@ -49,9 +54,6 @@ func sudokuDLX(rd io.Reader) io.Reader {
 			}
 		}
 		j++
-	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
 	}
 
 	r, w := io.Pipe()
@@ -107,6 +109,85 @@ func sudokuDLX(rd io.Reader) io.Reader {
 	return r
 }
 
+func sudokuSolve(line string) <-chan [][]byte {
+	sudokuStream := make(chan [][]byte)
+	go func() {
+		defer close(sudokuStream)
+
+		r := strings.NewReader(strings.TrimSpace(line))
+		var buff bytes.Buffer
+
+		rd := io.TeeReader(r, &buff)
+		d := dlx.NewDancer()
+
+		solStream, err := d.Dance(context.Background(), sudokuDLX(rd))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		res := make([][]byte, 2)
+		qu, _ := ioutil.ReadAll(&buff)
+		res[0] = qu
+		board := make([]byte, len(qu))
+		copy(board, qu)
+
+		solution := <-solStream
+		for _, opt := range solution {
+			var x, y int
+			var z byte
+			fin := 0
+			for _, v := range opt {
+				if v[0] == 'p' {
+					x = int(v[1] - '0')
+					y = int(v[2] - '0')
+					fin++
+				}
+				if v[0] == 'r' {
+					z = v[2]
+					fin++
+				}
+				if fin == 2 {
+					break
+				}
+			}
+
+			board[x*9+y] = z
+		}
+		res[1] = board
+		sudokuStream <- res
+	}()
+
+	return sudokuStream
+}
+
+func fanIn(
+	channels ...<-chan [][]byte,
+) <-chan [][]byte {
+	var wg sync.WaitGroup
+	multiplexedStream := make(chan [][]byte)
+
+	multiplex := func(c <-chan [][]byte) {
+		defer wg.Done()
+		for i := range c {
+			select {
+			case multiplexedStream <- i:
+			}
+		}
+	}
+
+	wg.Add(len(channels))
+	for _, c := range channels {
+		go multiplex(c)
+	}
+
+	go func() {
+		wg.Wait()
+		close(multiplexedStream)
+	}()
+
+	return multiplexedStream
+}
+
 func main() {
 	args := os.Args
 	if len(args) != 2 {
@@ -117,41 +198,22 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer fd.Close()
 
-	var buff bytes.Buffer
+	var solutions []<-chan [][]byte
 
-	rd := io.TeeReader(fd, &buff)
-	d := dlx.NewDancer()
-	solStream, err := d.Dance(context.Background(), sudokuDLX(rd))
-	if err != nil {
+	scnr := bufio.NewScanner(fd)
+	for scnr.Scan() {
+		solutions = append(solutions, sudokuSolve(scnr.Text()))
+	}
+	if err := scnr.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	var board [][]string
-	scanner := bufio.NewScanner(&buff)
-	for scanner.Scan() {
-		buf := scanner.Text()
-		board = append(board, strings.Split(buf, ""))
-	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	solution := <-solStream
-	for _, opt := range solution {
-		sort.Strings(opt)
-		board[opt[2][1]-'0'][opt[2][2]-'0'] = string(opt[3][2])
-	}
-	for i, row := range board {
-		for j, col := range row {
-			fmt.Printf("%s ", col)
-			if (j+1)%3 == 0 {
-				fmt.Print(" ")
-			}
-		}
-		fmt.Println()
-		if (i+1)%3 == 0 && i != 8 {
-			fmt.Println()
-		}
+	i := 0
+	for sol := range fanIn(solutions...) {
+		i++
+		fmt.Printf("Q[%2d]: %s\n", i, string(sol[0]))
+		fmt.Printf("A[%2d]: %s\n", i, string(sol[1]))
 	}
 }
