@@ -96,7 +96,7 @@ $ go run main.go 4
 
 ### Partridge puzzle
 ````
-$ go run example/partridge/main.go 8
+$ go run example/partridge/main.go
 1:
 🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟪🟪🟪🟪🟪🟪🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨
 🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟪🟪🟪🟪🟪🟪🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨

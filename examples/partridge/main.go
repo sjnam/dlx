@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -51,9 +50,7 @@ func patridgeDLX(n int) io.Reader {
 				fmt.Fprintf(w, "%d,%d ", i, j)
 			}
 		}
-
-		fmt.Fprintf(w, "\n")
-
+		fmt.Fprintln(w)
 		for t := 1; t <= n; t++ {
 			for r := 0; r < N-t+1; r++ {
 				for c := 0; c < N-t+1; c++ {
@@ -63,16 +60,15 @@ func patridgeDLX(n int) io.Reader {
 							fmt.Fprintf(w, "%d,%d ", r+rr, c+cc)
 						}
 					}
-					fmt.Fprintf(w, "\n")
+					fmt.Fprintln(w)
 				}
 			}
 		}
 	}()
-
 	return r
 }
 
-func drawSquare(sol, board [][]string) {
+func fillBoard(sol, board [][]string) {
 	for _, opt := range sol {
 		sort.Strings(opt)
 		s, _ := strconv.Atoi(opt[0][1:])
@@ -94,13 +90,7 @@ func drawSquare(sol, board [][]string) {
 }
 
 func main() {
-	args := os.Args
-	if len(args) != 2 {
-		fmt.Printf("usage: %s n\n", args[0])
-		return
-	}
-	n, _ := strconv.Atoi(os.Args[1])
-
+	n := 8
 	d := dlx.NewDancer()
 	solStream, err := d.Dance(context.Background(), patridgeDLX(n))
 	if err != nil {
@@ -119,6 +109,6 @@ func main() {
 	for sol := range solStream {
 		i++
 		fmt.Printf("%d:\n", i)
-		drawSquare(sol, board)
+		fillBoard(sol, board)
 	}
 }

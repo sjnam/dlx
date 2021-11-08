@@ -125,9 +125,9 @@ func sudokuSolve(line string) <-chan [][]byte {
 			log.Fatal(err)
 		}
 
-		res := make([][]byte, 2)
+		qna := make([][]byte, 2)
 		qu, _ := ioutil.ReadAll(&buff)
-		res[0] = qu
+		qna[0] = qu
 		board := make([]byte, len(qu))
 		copy(board, qu)
 
@@ -141,8 +141,7 @@ func sudokuSolve(line string) <-chan [][]byte {
 					x = int(v[1] - '0')
 					y = int(v[2] - '0')
 					fin++
-				}
-				if v[0] == 'r' {
+				} else if v[0] == 'r' {
 					z = v[2]
 					fin++
 				}
@@ -150,28 +149,22 @@ func sudokuSolve(line string) <-chan [][]byte {
 					break
 				}
 			}
-
 			board[x*9+y] = z
 		}
-		res[1] = board
-		sudokuStream <- res
+		qna[1] = board
+		sudokuStream <- qna
 	}()
-
 	return sudokuStream
 }
 
-func fanIn(
-	channels ...<-chan [][]byte,
-) <-chan [][]byte {
+func fanIn(channels ...<-chan [][]byte) <-chan [][]byte {
 	var wg sync.WaitGroup
 	multiplexedStream := make(chan [][]byte)
 
 	multiplex := func(c <-chan [][]byte) {
 		defer wg.Done()
-		for i := range c {
-			select {
-			case multiplexedStream <- i:
-			}
+		for s := range c {
+			multiplexedStream <- s
 		}
 	}
 
@@ -201,7 +194,6 @@ func main() {
 	defer fd.Close()
 
 	var solutions []<-chan [][]byte
-
 	scnr := bufio.NewScanner(fd)
 	for scnr.Scan() {
 		solutions = append(solutions, sudokuSolve(scnr.Text()))
@@ -211,9 +203,9 @@ func main() {
 	}
 
 	i := 0
-	for sol := range fanIn(solutions...) {
+	for s := range fanIn(solutions...) {
 		i++
-		fmt.Printf("Q[%2d]: %s\n", i, string(sol[0]))
-		fmt.Printf("A[%2d]: %s\n", i, string(sol[1]))
+		fmt.Printf("Q[%2d]: %s\n", i, string(s[0]))
+		fmt.Printf("A[%2d]: %s\n", i, string(s[1]))
 	}
 }
