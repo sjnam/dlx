@@ -54,8 +54,11 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 		return err
 	}
 
-	fmt.Fprintf(os.Stderr, "(%d options, %d+%d items, %d entries successfully read)\n",
-		d.options, d.second-1, d.lastItm-d.second, d.lastNode-d.lastItm)
+	if d.Info {
+		fmt.Fprintf(os.Stderr,
+			"(%d options, %d+%d items, %d entries successfully read)\n",
+			d.options, d.second-1, d.lastItm-d.second, d.lastNode-d.lastItm)
+	}
 
 	return nil
 }

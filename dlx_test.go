@@ -9,6 +9,7 @@ import (
 
 func solve(matrix string) {
 	d := NewDancer()
+	d.Info = true
 	solStream, err := d.Dance(context.Background(), strings.NewReader(matrix))
 	if err != nil {
 		fmt.Println(err)
