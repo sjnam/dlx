@@ -232,6 +232,7 @@ func (d *Dancer) inputOptions(line string) error {
 		if d.lastNode == maxNodes {
 			return fmt.Errorf("too many nodes")
 		}
+		d.nd = append(d.nd, node{})
 		d.options++
 		d.nd[d.lastNode].up = i + 1
 		d.nd[d.lastNode].itm = -d.options
