@@ -191,14 +191,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer fd.Close()
+	defer func() {
+		_ = fd.Close()
+	}()
 
 	var solutions []<-chan [][]byte
-	scnr := bufio.NewScanner(fd)
-	for scnr.Scan() {
-		solutions = append(solutions, sudokuSolve(scnr.Text()))
+	scanner := bufio.NewScanner(fd)
+	for scanner.Scan() {
+		solutions = append(solutions, sudokuSolve(scanner.Text()))
 	}
-	if err := scnr.Err(); err != nil {
+	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
 
