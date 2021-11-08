@@ -119,7 +119,6 @@ func sudokuSolve(line string) <-chan [][]byte {
 
 		rd := io.TeeReader(r, &buff)
 		d := dlx.NewDancer()
-
 		solStream, err := d.Dance(context.Background(), sudokuDLX(rd))
 		if err != nil {
 			log.Fatal(err)

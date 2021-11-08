@@ -68,6 +68,8 @@ func (d *Dancer) inputItemNames(line string) error {
 		return fmt.Errorf("no items")
 	}
 
+	d.cl = append(d.cl, item{})
+	d.nd = append(d.nd, node{})
 	for _, itm := range strings.Fields(line) {
 		if itm == "|" {
 			if d.second != maxCols {
@@ -80,9 +82,6 @@ func (d *Dancer) inputItemNames(line string) error {
 		if len(itm) > maxNameLength {
 			return fmt.Errorf("item name too long")
 		}
-
-		d.cl = append(d.cl, item{})
-		d.nd = append(d.nd, node{})
 
 		q, r := 1, 1
 		bn := strings.Split(itm, "|")
@@ -123,6 +122,7 @@ func (d *Dancer) inputItemNames(line string) error {
 		d.nd[d.lastItm].up = d.lastItm
 		d.lastItm++
 		d.cl = append(d.cl, item{})
+		d.nd = append(d.nd, node{})
 	}
 
 	if d.second == maxCols {
@@ -151,6 +151,7 @@ func (d *Dancer) inputOptions(line string) error {
 		pp = false
 	)
 
+	d.nd = append(d.nd, node{})
 	for _, opt := range strings.Fields(line) {
 		if len(opt) > maxNameLength {
 			return fmt.Errorf("item name too long")
@@ -163,7 +164,6 @@ func (d *Dancer) inputOptions(line string) error {
 
 		// Create a node for the item named in opt
 		k := 0
-		d.nd = append(d.nd, node{})
 		for ; d.cl[k].name != d.cl[d.lastItm].name; k++ {
 		}
 		if k == d.lastItm {
@@ -172,12 +172,14 @@ func (d *Dancer) inputOptions(line string) error {
 		if d.nd[k].color >= i { // aux field
 			return fmt.Errorf("duplicate item name")
 		}
-		d.lastNode++
-		d.nd = append(d.nd, node{})
 
+		d.lastNode++
 		if d.lastNode == maxNodes {
 			return fmt.Errorf("too many nodes")
 		}
+
+		d.nd = append(d.nd, node{})
+
 		d.nd[d.lastNode].itm = k
 		if k < d.second {
 			pp = true
@@ -222,6 +224,7 @@ func (d *Dancer) inputOptions(line string) error {
 			q, r := d.nd[d.lastNode].up, d.nd[d.lastNode].down
 			d.nd[q].down, d.nd[r].up = r, q
 			d.lastNode--
+			d.nd = d.nd[:len(d.nd)-1]
 		}
 	} else {
 		d.nd[i].down = d.lastNode
