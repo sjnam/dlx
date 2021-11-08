@@ -14,9 +14,9 @@ import (
 )
 
 var color = [9]rune{
-	'\U0001F7EB', // brown
 	'\U00002B1C', // white
 	'\U00002B1B', // black
+	'\U0001F7EB', // brown
 	'\U0001F7E7', // orange
 	'\U0001F7EA', // purple
 	'\U0001F7E9', // green
@@ -68,7 +68,7 @@ func patridgeDLX(n int) io.Reader {
 	return r
 }
 
-func fillBoard(sol, board [][]string) {
+func fillBoard(sol [][]string, board [][]rune) {
 	for _, opt := range sol {
 		sort.Strings(opt)
 		s, _ := strconv.Atoi(opt[0][1:])
@@ -76,14 +76,14 @@ func fillBoard(sol, board [][]string) {
 			co := strings.Split(coord, ",")
 			r, _ := strconv.Atoi(co[0])
 			c, _ := strconv.Atoi(co[1])
-			board[r][c] = fmt.Sprintf("%c", color[s])
+			board[r][c] = color[s]
 		}
 	}
 
 	N := len(board)
 	for i := 0; i < N; i++ {
 		for j := 0; j < N; j++ {
-			fmt.Print(board[i][j])
+			fmt.Printf("%c", board[i][j])
 		}
 		fmt.Println()
 	}
@@ -100,9 +100,9 @@ func main() {
 	go spinner(100 * time.Millisecond)
 
 	N := n * (n + 1) / 2
-	board := make([][]string, N)
+	board := make([][]rune, N)
 	for i := 0; i < len(board); i++ {
-		board[i] = make([]string, N)
+		board[i] = make([]rune, N)
 	}
 
 	i := 0
