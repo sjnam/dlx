@@ -45,8 +45,8 @@ type Dancer struct {
 func NewDancer() *Dancer {
 	rand.Seed(time.Now().UnixNano())
 	return &Dancer{
-		nd:     make([]node, maxNodes),
-		cl:     make([]item, maxCols+2),
+		nd:     make([]node, 1), // maxNodes
+		cl:     make([]item, 1), // maxCols+2
 		second: maxCols,
 	}
 }
