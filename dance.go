@@ -208,6 +208,12 @@ func (d *Dancer) Dance(
 		)
 
 	forward:
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
 		score := infty
 		for k := cl[root].next; k != root; k = cl[k].next {
 			s := cl[k].slack

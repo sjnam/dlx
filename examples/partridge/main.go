@@ -90,9 +90,12 @@ func fillBoard(sol [][]string, board [][]rune) {
 }
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	n := 8
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(context.Background(), patridgeDLX(n))
+	solStream, err := d.Dance(ctx, patridgeDLX(n))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -108,7 +111,10 @@ func main() {
 	i := 0
 	for sol := range solStream {
 		i++
-		fmt.Printf("%d:\n", i)
+		if i == 4 {
+			cancel()
+		}
+		fmt.Printf("\n%d:\n", i)
 		fillBoard(sol, board)
 	}
 }

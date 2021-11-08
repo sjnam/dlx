@@ -73,8 +73,11 @@ func main() {
 	}
 	n, _ := strconv.Atoi(os.Args[1])
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(context.Background(), queenDLX(n))
+	solStream, err := d.Dance(ctx, queenDLX(n))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -87,6 +90,9 @@ func main() {
 	}
 	for solution := range solStream {
 		i++
+		if i == 1000 {
+			cancel()
+		}
 		for r := 0; r < n; r++ {
 			for c := 0; c < n; c++ {
 				board[r][c] = "."
