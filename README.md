@@ -106,6 +106,23 @@ $ go run main.go land.txt 13 13
 과계타에는순하어둠의발소리
 적절밤자운명적인것사바하라
 추바사아카리자의실인래거귀
+
+$ go run main.go mathematicians.txt 15 15
+H I L B E R T L C A N T O R O 
+X O L F W Q F F O H H C R I K 
+G T C A T A L A N R E T S D O 
+C T Q S M I N K O W S K I R T 
+G E S Y L V E S T E R V R A M 
+F N A W N O R R E P Y K T M E 
+S I A B E L U A D N A L V A L 
+J T W E I E R S T R A S S D L 
+S U I Z T I W R U H L X C A I 
+U D Z E C R E H S I A L G H N 
+B O R E L W D N A R T R E B X 
+D G R A M T S U I N E B O R F 
+R U N G E O J J E N S E N C X 
+F F O K R A M E E T I M R E H 
+E K N O P P L E S N E H X S N 
 ````
 ### Langford pairing
 ````
