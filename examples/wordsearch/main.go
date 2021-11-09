@@ -104,9 +104,9 @@ func decode(str string) (int, int) {
 var hangul []rune = []rune("가나다라마바사아차카타파하")
 
 func puzzleBoard(sol [][]string, wd, ht int) {
-	board := make([][]string, ht)
+	board := make([][]rune, ht)
 	for i := 0; i < ht; i++ {
-		board[i] = make([]string, wd)
+		board[i] = make([]rune, wd)
 	}
 
 	for _, opt := range sol {
@@ -114,30 +114,28 @@ func puzzleBoard(sol [][]string, wd, ht int) {
 		for _, pos := range opt {
 			chr := strings.Split(pos, ":")
 			x, y := decode(chr[0])
-			board[x][y] = chr[1]
+			board[x][y], _ = utf8.DecodeRuneInString(chr[1])
 		}
 	}
 
 	ascii := true
 	for i := 0; i < wd; i++ {
-		if board[0][i] != "" {
-			if len(board[0][i]) > 1 {
-				ascii = false
-			}
+		if board[0][i] != 0 {
+			ascii = utf8.RuneLen(board[0][i]) <= 1
 			break
 		}
 	}
 
 	for i := 0; i < ht; i++ {
 		for j := 0; j < wd; j++ {
-			if board[i][j] == "" {
+			if board[i][j] == 0 {
 				if ascii {
-					board[i][j] = "_"
+					board[i][j] = rune('A' + rand.Intn(26))
 				} else {
-					board[i][j] = string(hangul[rand.Intn(len(hangul))])
+					board[i][j] = hangul[rand.Intn(len(hangul))]
 				}
 			}
-			fmt.Print(board[i][j])
+			fmt.Printf("%c", board[i][j])
 			if ascii {
 				fmt.Print(" ")
 			}
