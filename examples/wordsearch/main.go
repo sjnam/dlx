@@ -118,12 +118,29 @@ func puzzleBoard(sol [][]string, wd, ht int) {
 		}
 	}
 
+	ascii := true
+	for i := 0; i < wd; i++ {
+		if board[0][i] != "" {
+			if len(board[0][i]) > 1 {
+				ascii = false
+			}
+			break
+		}
+	}
+
 	for i := 0; i < ht; i++ {
 		for j := 0; j < wd; j++ {
 			if board[i][j] == "" {
-				board[i][j] = string(hangul[rand.Intn(len(hangul))])
+				if ascii {
+					board[i][j] = "_"
+				} else {
+					board[i][j] = string(hangul[rand.Intn(len(hangul))])
+				}
 			}
-			fmt.Printf("%s", board[i][j])
+			fmt.Print(board[i][j])
+			if ascii {
+				fmt.Print(" ")
+			}
 		}
 		fmt.Println()
 	}
