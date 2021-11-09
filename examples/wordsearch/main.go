@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -100,6 +101,8 @@ func decode(str string) (int, int) {
 	return x[0], x[1]
 }
 
+var hangul []rune = []rune("가나다라마바사아차카타파하")
+
 func puzzleBoard(sol [][]string, wd, ht int) {
 	board := make([][]string, ht)
 	for i := 0; i < ht; i++ {
@@ -118,7 +121,7 @@ func puzzleBoard(sol [][]string, wd, ht int) {
 	for i := 0; i < ht; i++ {
 		for j := 0; j < wd; j++ {
 			if board[i][j] == "" {
-				board[i][j] = "과"
+				board[i][j] = string(hangul[rand.Intn(len(hangul))])
 			}
 			fmt.Printf("%s", board[i][j])
 		}
