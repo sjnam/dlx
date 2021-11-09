@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/sjnam/dlx"
 )
@@ -22,7 +23,7 @@ func reverse(sa []rune) []rune {
 	return r
 }
 
-func wordSearch(words []string, wd, ht int) io.Reader {
+func wordSearchDLX(words []string, wd, ht int) io.Reader {
 	pr, pw := io.Pipe()
 	go func() {
 		defer func() {
@@ -41,38 +42,39 @@ func wordSearch(words []string, wd, ht int) io.Reader {
 
 		// option lines
 		for _, word := range words {
-			nm := []rune(word)
-			for _, a := range [][]rune{nm, reverse(nm)} {
+			wlen := utf8.RuneCountInString(word)
+			runew := []rune(word)
+			for _, a := range [][]rune{runew, reverse(runew)} {
 				for r := 0; r < ht; r++ {
 					for c := 0; c < wd; c++ {
 						// horizontal placement
-						if c+len(word) <= wd {
+						if c+wlen <= wd {
 							fmt.Fprintf(pw, "%s ", word)
-							for i := 0; i < len(word); i++ {
+							for i := 0; i < wlen; i++ {
 								fmt.Fprintf(pw, "%x%x:%c ", r, c+i, a[i])
 							}
 							fmt.Fprintln(pw)
 						}
 						// vertical placement
-						if r+len(word) <= ht {
+						if r+wlen <= ht {
 							fmt.Fprintf(pw, "%s ", word)
-							for i := 0; i < len(word); i++ {
+							for i := 0; i < wlen; i++ {
 								fmt.Fprintf(pw, "%x%x:%c ", r+i, c, a[i])
 							}
 							fmt.Fprintln(pw)
 						}
 						//upward diagonal placement
-						if r+len(word) <= ht && c-len(word)+1 >= 0 {
+						if r+wlen <= ht && c-wlen+1 >= 0 {
 							fmt.Fprintf(pw, "%s ", word)
-							for i := 0; i < len(word); i++ {
+							for i := 0; i < wlen; i++ {
 								fmt.Fprintf(pw, "%x%x:%c ", r+i, c-i, a[i])
 							}
 							fmt.Fprintln(pw)
 						}
 						// downward diagonal placement
-						if r+len(word) <= ht && c+len(word) <= wd {
+						if r+wlen <= ht && c+wlen <= wd {
 							fmt.Fprintf(pw, "%s ", word)
-							for i := 0; i < len(word); i++ {
+							for i := 0; i < wlen; i++ {
 								fmt.Fprintf(pw, "%x%x:%c ", r+i, c+i, a[i])
 							}
 							fmt.Fprintln(pw)
@@ -116,9 +118,9 @@ func puzzleBoard(sol [][]string, wd, ht int) {
 	for i := 0; i < ht; i++ {
 		for j := 0; j < wd; j++ {
 			if board[i][j] == "" {
-				board[i][j] = "_"
+				board[i][j] = "과"
 			}
-			fmt.Printf("%s ", board[i][j])
+			fmt.Printf("%s", board[i][j])
 		}
 		fmt.Println()
 	}
@@ -139,7 +141,7 @@ func main() {
 
 	d := dlx.NewDancer()
 	solStream, err := d.Dance(context.Background(),
-		wordSearch(strings.Fields(string(buf)), wd, ht))
+		wordSearchDLX(strings.Fields(string(buf)), wd, ht))
 	if err != nil {
 		log.Fatal(err)
 	}
