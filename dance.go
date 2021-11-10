@@ -32,6 +32,14 @@ func (d *Dancer) getOption(p, head int) []string {
 	return option
 }
 
+// When an option is hidden, it leaves all lists except the list of the
+// item that is being covered. Thus, a node is never removed from a list
+// twice.
+
+// We can save time by not removing nodes from secondary items that have been
+// purified. (Such nodes have color<0. Note that color and itm are
+// stored in the same octabyte; hence we pay only one mem to look at
+// them both.)
 func (d *Dancer) cover(c int, deact bool) {
 	cl, nd := d.cl, d.nd
 	if deact {
@@ -57,6 +65,14 @@ func (d *Dancer) cover(c int, deact bool) {
 	}
 }
 
+// I used to think that it was important to uncover an item by
+// processing its options from bottom to top, since covering was done
+// from top to bottom. But while writing this
+// program I realized that, amazingly, no harm is done if the
+// options are processed again in the same order. So I'll go downward again,
+// just to prove the point. Whether we go up or down, the pointers
+// execute an exquisitely choreographed dance that returns them almost
+// magically to their former state.
 func (d *Dancer) uncover(c int, react bool) {
 	cl, nd := d.cl, d.nd
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
@@ -80,6 +96,10 @@ func (d *Dancer) uncover(c int, react bool) {
 	}
 }
 
+// When we choose an option that specifies colors in one or more items,
+// we ``purify'' those items by removing all incompatible options.
+// All options that want the chosen color in a purified item are temporarily
+// given the color code~|-1| so that they won't be purified again.
 func (d *Dancer) purify(p int) {
 	nd := d.nd
 	cc := nd[p].itm
@@ -109,6 +129,8 @@ func (d *Dancer) purify(p int) {
 	}
 }
 
+// Just as |purify| is analogous to |cover|, the inverse process is
+// analogous to |uncover|.
 func (d *Dancer) unpurify(p int) {
 	nd := d.nd
 	cc := nd[p].itm
@@ -134,6 +156,14 @@ func (d *Dancer) unpurify(p int) {
 	}
 }
 
+// Now let's look at tweaking, which is deceptively simple. When this
+// subroutine is called, node n is the topmost for its item.
+// Tweaking is important because the item remains active and on a par
+// with all other active items.
+
+// In the special case the item was chosen for branching with
+// bound=1 and slack>=1, we've already covered the item;
+// hence we shouldn't block its rows again.
 func (d *Dancer) tweak(n, block int) {
 	nd := d.nd
 	nn := n
@@ -159,6 +189,20 @@ func (d *Dancer) tweak(n, block int) {
 	}
 }
 
+// The punch line occurs when we consider untweaking. Consider, for
+// example, an item $c$ whose options from top to bottom are $x$, $y$,~$z$.
+// Then the |up| fields for $(c,x,y,z)$ are initially $(z,c,x,y)$, and the
+// |down| fields are $(x,y,z,c)$. After we've tweaked $x$, they've become
+// $(z,c,c,y)$ and $(y,y,z,c)$; after we've subsequently tweaked $y$, they've
+// become $(z,c,c,c)$ and $(z,y,z,c)$. Notice that $x$ still points to~$y$,
+// and $y$ still points to~$z$. So we can restore the original state
+// if we restore the |up| pointers in $y$ and $z$, as well as the |down|
+// pointer in~$c$. The value of~$x$ has been saved in the |first_tweak|
+// array for the current level; and that's sufficient to solve the puzzle.
+
+// We also have to resuscitate the options by reinstating them in their items.
+// That can be done top-down, as in |uncover|; in essence, a sequence of
+// tweaks is like a partial covering.
 func (d *Dancer) untweak(c, x, unblock int) {
 	nd := d.nd
 	z := nd[c].down
@@ -195,19 +239,16 @@ func (d *Dancer) untweak(c, x, unblock int) {
 // choose an active primary item and to branch on the ways to reduce
 // the possibilities for covering that item.
 // And we explore all possibilities via depth-first search.
-//
 // The neat part of this algorithm is the way the lists are maintained.
 // Depth-first search means last-in-first-out maintenance of data structures;
 // and it turns out that we need no auxiliary tables to undelete elements from
 // lists when backing up. The nodes removed from doubly linked lists remember
 // their former neighbors, because we do no garbage collection.
-//
 // The basic operation is ``covering an item.'' This means removing it
 // from the list of items needing to be covered, and ``hiding'' its
 // options: removing nodes from other lists whenever they belong to an option of
 // a node in this item's list. We cover the chosen item when it has
 // |bound=1|.
-
 func (d *Dancer) Dance(
 	ctx context.Context,
 	rd io.Reader,
@@ -240,6 +281,8 @@ func (d *Dancer) Dance(
 		default:
 		}
 
+		// Set bestItm to the best item for branching,
+		// and let score be its branching degree
 		score := infty
 		for k := cl[root].next; k != root; k = cl[k].next {
 			s := cl[k].slack
@@ -264,10 +307,10 @@ func (d *Dancer) Dance(
 			}
 		}
 
-		if score <= 0 {
+		if score <= 0 { // not enough options left in this item
 			goto backdown
 		}
-		if score == infty {
+		if score == infty { // Visit a solution and goto backdown
 			sol := make([][]string, level)
 			for k := 0; k < level; k++ {
 				pp := choice[k]
@@ -312,7 +355,7 @@ func (d *Dancer) Dance(
 			}
 		}
 
-	advance:
+	advance: // If curNode is off limits, goto backup; also tweak if needed
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
 			if curNode == bestItm {
 				goto backup
@@ -327,6 +370,7 @@ func (d *Dancer) Dance(
 		}
 
 		if curNode > d.lastItm {
+			// Cover or partially cover all other items of curNode's option
 			for pp := curNode + 1; pp != curNode; {
 				cc := nd[pp].itm
 				if cc <= 0 {
@@ -349,6 +393,7 @@ func (d *Dancer) Dance(
 			}
 		}
 
+		// Increase level and goto forward
 		level++
 		if level > maxl {
 			if level >= maxLevel {
@@ -358,7 +403,7 @@ func (d *Dancer) Dance(
 		}
 		goto forward
 
-	backup:
+	backup: // Restore the original state of bestItm
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
 			d.uncover(bestItm, true)
 		} else {
@@ -376,12 +421,14 @@ func (d *Dancer) Dance(
 		score = scor[level]
 
 		if curNode < d.lastItm {
+			// Reactivate bestItm and goto backup
 			bestItm = curNode
 			p, q := cl[bestItm].prev, cl[bestItm].next
-			cl[q].prev, cl[p].next = bestItm, bestItm
+			cl[q].prev, cl[p].next = bestItm, bestItm // reactivate bestItm
 			goto backup
 		}
 
+		// Uncover or partially uncover all other items of curNode's option
 		for pp := curNode - 1; pp != curNode; {
 			cc := nd[pp].itm
 			if cc <= 0 {
