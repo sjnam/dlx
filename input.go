@@ -68,8 +68,6 @@ func (d *Dancer) inputItemNames(line string) error {
 		return fmt.Errorf("no items")
 	}
 
-	d.cl = append(d.cl, item{})
-	d.nd = append(d.nd, node{})
 	for _, itm := range strings.Fields(line) {
 		if itm == "|" {
 			if d.second != maxCols {
@@ -120,8 +118,10 @@ func (d *Dancer) inputItemNames(line string) error {
 		d.nd[d.lastItm].down = d.lastItm
 		d.nd[d.lastItm].up = d.lastItm
 		d.lastItm++
-		d.cl = append(d.cl, item{})
-		d.nd = append(d.nd, node{})
+		if d.lastItm >= len(d.cl)-4 {
+			d.cl = append(d.cl, make([]item, chunkSize)...)
+			d.nd = append(d.nd, make([]node, chunkSize)...)
+		}
 	}
 
 	if d.second == maxCols {
@@ -150,7 +150,6 @@ func (d *Dancer) inputOptions(line string) error {
 		pp = false
 	)
 
-	d.nd = append(d.nd, node{})
 	for _, opt := range strings.Fields(line) {
 		if len(opt) > maxNameLength {
 			return fmt.Errorf("item name too long")
@@ -177,7 +176,9 @@ func (d *Dancer) inputOptions(line string) error {
 			return fmt.Errorf("too many nodes")
 		}
 
-		d.nd = append(d.nd, node{})
+		if d.lastNode >= len(d.nd)-4 {
+			d.nd = append(d.nd, make([]node, chunkSize)...)
+		}
 
 		d.nd[d.lastNode].itm = k
 		if k < d.second {
@@ -231,7 +232,9 @@ func (d *Dancer) inputOptions(line string) error {
 		if d.lastNode == maxNodes {
 			return fmt.Errorf("too many nodes")
 		}
-		d.nd = append(d.nd, node{})
+		if d.lastNode >= len(d.nd)-4 {
+			d.nd = append(d.nd, make([]node, chunkSize)...)
+		}
 		d.options++
 		d.nd[d.lastNode].up = i + 1
 		d.nd[d.lastNode].itm = -d.options
