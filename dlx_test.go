@@ -22,9 +22,11 @@ func solve(matrix string) {
 			fmt.Println(opt)
 		}
 	}
+
+	d.Statistics()
 }
 
-func ExampleDancer_dlx() {
+func ExampleDancer_xc() {
 	xcInput := `
 
 | A simple example

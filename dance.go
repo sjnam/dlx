@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"math/rand"
+	"os"
 )
 
 func (d *Dancer) getOption(p, head int) []string {
@@ -284,13 +285,13 @@ func (d *Dancer) Dance(
 			select {
 			case <-ctx.Done():
 				log.Println("Cancelled!")
-				goto done
+				return
 			case ch <- sol:
 			}
 
 			d.count++
 			if d.count >= maxCount {
-				goto done
+				return
 			}
 			goto backdown
 		}
@@ -367,7 +368,7 @@ func (d *Dancer) Dance(
 
 	backdown:
 		if level == 0 {
-			goto done
+			return
 		}
 		level--
 		curNode = choice[level]
@@ -406,8 +407,6 @@ func (d *Dancer) Dance(
 		curNode = nd[curNode].down
 
 		goto advance
-
-	done:
 	}()
 
 	return ch, nil
@@ -418,6 +417,7 @@ func (d *Dancer) Statistics() {
 	if d.count > 1 {
 		s = "s"
 	}
-	fmt.Printf("Altogether %d solution%s %d updates, %d cleansings, %d nodes.\n",
-		d.count, s, d.updates, d.cleansings, d.nodes)
+	fmt.Fprintf(os.Stderr, "Altogether %d solution%s", d.count, s)
+	fmt.Fprintf(os.Stderr, " %d updates, %d cleansings, %d nodes.\n",
+		d.updates, d.cleansings, d.nodes)
 }
