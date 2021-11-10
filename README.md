@@ -30,7 +30,7 @@ func solve(matrix string) {
 	}
 }
 
-func ExampleDancer_dlx() {
+func ExampleDancer_xc() {
 	xcInput := `
 | A simple example
 A B C D E | F G
