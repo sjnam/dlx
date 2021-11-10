@@ -224,7 +224,6 @@ func (d *Dancer) inputOptions(line string) error {
 			q, r := d.nd[d.lastNode].up, d.nd[d.lastNode].down
 			d.nd[q].down, d.nd[r].up = r, q
 			d.lastNode--
-			d.nd = d.nd[:len(d.nd)-1]
 		}
 	} else {
 		d.nd[i].down = d.lastNode
