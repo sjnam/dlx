@@ -15,7 +15,7 @@ const (
 	maxLine  = 9*maxCols + 3 // a size big enough to hold all item names
 
 	maxNameLength = 128 // max item name length
-	chunkSize     = 64
+	chunkSize     = 256
 )
 
 type node struct {
@@ -50,8 +50,8 @@ type Dancer struct {
 func NewDancer() *Dancer {
 	rand.Seed(time.Now().UnixNano())
 	return &Dancer{
-		nd:     make([]node, 256),
-		cl:     make([]item, 256),
+		nd:     make([]node, chunkSize),
+		cl:     make([]item, chunkSize),
 		second: maxCols,
 	}
 }
