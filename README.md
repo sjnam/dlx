@@ -206,8 +206,8 @@ $ go run main.go 10x10.filomino.dlx
 
 
 ### Word Search
-소설 토지의 목차들을 찾아라.
 ````
+#소설 토지의 목차들을 찾아라.
 $ cd examples/wordsearch
 $ go run main.go land.txt 13 13
 하바다마아발과말종태동기삶
