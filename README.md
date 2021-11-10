@@ -44,9 +44,11 @@ D E G
 }
 
 // Output:
+// (6 options, 5+2 items, 22 entries successfully read)
 // [E F C]
 // [B G]
 // [D A]
+// Altogether 1 solution 23 updates, 0 cleansings, 5 nodes.
 ````
 
 ## Examples
