@@ -37,6 +37,7 @@ func (d *Dancer) cover(c int, deact bool) {
 		l, r := cl[c].prev, cl[c].next
 		cl[l].next, cl[r].prev = r, l
 	}
+	d.updates++
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
 		for nn := rr + 1; nn != rr; {
 			if nd[nn].color >= 0 {
@@ -47,6 +48,7 @@ func (d *Dancer) cover(c int, deact bool) {
 				}
 				nd[uu].down = dd
 				nd[dd].up = uu
+				d.updates++
 				nd[cc].itm--
 			}
 			nn++
@@ -82,6 +84,7 @@ func (d *Dancer) purify(p int) {
 	cc := nd[p].itm
 	x := nd[p].color
 	nd[cc].color = x
+	d.cleansings++
 	for rr := nd[cc].down; rr >= d.lastItm; rr = nd[rr].down {
 		if nd[rr].color != x {
 			for nn := rr + 1; nn != rr; {
@@ -93,11 +96,13 @@ func (d *Dancer) purify(p int) {
 				if nd[nn].color >= 0 {
 					nd[uu].down = dd
 					nd[dd].up = uu
+					d.updates++
 					nd[cc].itm--
 				}
 				nn++
 			}
 		} else if rr != p {
+			d.cleansings++
 			nd[rr].color = -1
 		}
 	}
@@ -143,6 +148,7 @@ func (d *Dancer) tweak(n, block int) {
 			}
 			nd[uu].down = dd
 			nd[dd].up = uu
+			d.updates++
 			nd[cc].itm--
 		}
 		if nn == n {
@@ -198,16 +204,17 @@ func (d *Dancer) Dance(
 		defer close(ch)
 
 		var (
-			bestItm, curNode   int
-			bestL, bestS       int
-			count, level, maxl int
-			cl, nd             = d.cl, d.nd
-			choice             = make([]int, maxLevel)
-			scor               = make([]int, maxLevel)
-			firstTweak         = make([]int, maxLevel)
+			bestItm, curNode int
+			bestL, bestS     int
+			level, maxl      int
+			cl, nd           = d.cl, d.nd
+			choice           = make([]int, maxLevel)
+			scor             = make([]int, maxLevel)
+			firstTweak       = make([]int, maxLevel)
 		)
 
 	forward:
+		d.nodes++
 		select {
 		case <-ctx.Done():
 			return
@@ -259,13 +266,13 @@ func (d *Dancer) Dance(
 			select {
 			case <-ctx.Done():
 				log.Println("Cancelled!")
-				return
+				goto done
 			case ch <- sol:
 			}
 
-			count++
-			if count >= maxCount {
-				return
+			d.count++
+			if d.count >= maxCount {
+				goto done
 			}
 			goto backdown
 		}
@@ -342,7 +349,7 @@ func (d *Dancer) Dance(
 
 	backdown:
 		if level == 0 {
-			return
+			goto done
 		}
 		level--
 		curNode = choice[level]
@@ -381,7 +388,18 @@ func (d *Dancer) Dance(
 		curNode = nd[curNode].down
 
 		goto advance
+
+	done:
 	}()
 
 	return ch, nil
+}
+
+func (d *Dancer) Statistics() {
+	s := ""
+	if d.count > 1 {
+		s = "s"
+	}
+	fmt.Printf("Altogether %d solution%s %d updates, %d cleansings, %d nodes.\n",
+		d.count, s, d.updates, d.cleansings, d.nodes)
 }
