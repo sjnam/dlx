@@ -14,7 +14,7 @@ const (
 	maxNodes = 100000000     // at most this many nonzero elements in the matrix
 	maxLine  = 9*maxCols + 3 // a size big enough to hold all item names
 
-	maxNameLength = 32 // max item name length
+	maxNameLength = 128 // max item name length
 )
 
 type node struct {
