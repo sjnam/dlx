@@ -190,6 +190,23 @@ func (d *Dancer) untweak(c, x, unblock int) {
 }
 
 // Dance generates all exact covers
+// Our strategy for generating all exact covers will be to repeatedly
+// choose an active primary item and to branch on the ways to reduce
+// the possibilities for covering that item.
+// And we explore all possibilities via depth-first search.
+//
+// The neat part of this algorithm is the way the lists are maintained.
+// Depth-first search means last-in-first-out maintenance of data structures;
+// and it turns out that we need no auxiliary tables to undelete elements from
+// lists when backing up. The nodes removed from doubly linked lists remember
+// their former neighbors, because we do no garbage collection.
+//
+// The basic operation is ``covering an item.'' This means removing it
+// from the list of items needing to be covered, and ``hiding'' its
+// options: removing nodes from other lists whenever they belong to an option of
+// a node in this item's list. We cover the chosen item when it has
+// |bound=1|.
+
 func (d *Dancer) Dance(
 	ctx context.Context,
 	rd io.Reader,
@@ -206,7 +223,7 @@ func (d *Dancer) Dance(
 		var (
 			bestItm, curNode int
 			bestL, bestS     int
-			level, maxl      int
+			level, maxl      int // maximum level actually reached
 			cl, nd           = d.cl, d.nd
 			choice           = make([]int, maxLevel)
 			scor             = make([]int, maxLevel)
@@ -217,6 +234,7 @@ func (d *Dancer) Dance(
 		d.nodes++
 		select {
 		case <-ctx.Done():
+			log.Println("Cancelled!")
 			return
 		default:
 		}

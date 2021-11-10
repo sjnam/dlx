@@ -102,11 +102,10 @@ func (d *Dancer) inputItemNames(line string) error {
 		d.cl[d.lastItm].slack = q - r
 
 		// Check for duplicate item name
-		var k int
-		for k = 1; d.cl[k].name != d.cl[d.lastItm].name; k++ {
-		}
-		if k < d.lastItm {
-			return fmt.Errorf("duplicate item name")
+		for k := 1; k < d.lastItm; k++ {
+			if d.cl[k].name == d.cl[d.lastItm].name {
+				return fmt.Errorf("duplicate item name")
+			}
 		}
 
 		// Initialize lastItm to a new item with an empty list
