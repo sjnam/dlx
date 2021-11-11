@@ -147,11 +147,8 @@ func (d *Dancer) inputItemNames(line string) error {
 }
 
 func (d *Dancer) inputOptions(line string) error {
-	var (
-		i  = d.lastNode // remember the spacer at the left of this option
-		pp = false
-	)
-
+	leftSpacer := d.lastNode // remember the spacer at the left of this option
+	nonePrimary := true
 	for _, opt := range strings.Fields(line) {
 		if len(opt) > maxNameLength {
 			return fmt.Errorf("item name too long")
@@ -169,7 +166,7 @@ func (d *Dancer) inputOptions(line string) error {
 		if k == d.lastItm {
 			return fmt.Errorf("unknown item name")
 		}
-		if d.nd[k].color >= i { // aux field
+		if d.nd[k].color >= leftSpacer { // aux field
 			return fmt.Errorf("duplicate item name")
 		}
 
@@ -184,7 +181,7 @@ func (d *Dancer) inputOptions(line string) error {
 
 		d.nd[d.lastNode].itm = k
 		if k < d.second {
-			pp = true
+			nonePrimary = false
 		}
 
 		// Insert node lastNode into the list item k
@@ -217,18 +214,18 @@ func (d *Dancer) inputOptions(line string) error {
 		}
 	}
 
-	if !pp { // Option ignored (no primary items)
-		for d.lastNode > i {
+	if nonePrimary { // Option ignored (no primary items)
+		for d.lastNode > leftSpacer {
 			// Remove lastNode from its item list
 			k := d.nd[d.lastNode].itm
 			d.nd[k].itm--
-			d.nd[k].color = i - 1
+			d.nd[k].color = leftSpacer - 1
 			q, r := d.nd[d.lastNode].up, d.nd[d.lastNode].down
 			d.nd[q].down, d.nd[r].up = r, q
 			d.lastNode--
 		}
 	} else {
-		d.nd[i].down = d.lastNode
+		d.nd[leftSpacer].down = d.lastNode
 		d.lastNode++ // create the next spacer
 		if d.lastNode == maxNodes {
 			return fmt.Errorf("too many nodes")
@@ -237,7 +234,7 @@ func (d *Dancer) inputOptions(line string) error {
 			d.nd = append(d.nd, make([]node, chunkSize)...)
 		}
 		d.options++
-		d.nd[d.lastNode].up = i + 1
+		d.nd[d.lastNode].up = leftSpacer + 1
 		d.nd[d.lastNode].itm = -d.options
 	}
 
