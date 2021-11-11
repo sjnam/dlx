@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const delta int = 4
+
 func (d *Dancer) inputMatrix(rd io.Reader) error {
 	var line string
 
@@ -118,7 +120,7 @@ func (d *Dancer) inputItemNames(line string) error {
 		d.nd[d.lastItm].down = d.lastItm
 		d.nd[d.lastItm].up = d.lastItm
 		d.lastItm++
-		if d.lastItm >= len(d.cl)-4 {
+		if d.lastItm >= len(d.cl)-delta {
 			d.cl = append(d.cl, make([]item, chunkSize)...)
 			d.nd = append(d.nd, make([]node, chunkSize)...)
 		}
@@ -176,7 +178,7 @@ func (d *Dancer) inputOptions(line string) error {
 			return fmt.Errorf("too many nodes")
 		}
 
-		if d.lastNode >= len(d.nd)-4 {
+		if d.lastNode >= len(d.nd)-delta {
 			d.nd = append(d.nd, make([]node, chunkSize)...)
 		}
 
@@ -231,7 +233,7 @@ func (d *Dancer) inputOptions(line string) error {
 		if d.lastNode == maxNodes {
 			return fmt.Errorf("too many nodes")
 		}
-		if d.lastNode >= len(d.nd)-4 {
+		if d.lastNode >= len(d.nd)-delta {
 			d.nd = append(d.nd, make([]node, chunkSize)...)
 		}
 		d.options++

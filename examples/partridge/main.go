@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -13,7 +14,7 @@ import (
 	"github.com/sjnam/dlx"
 )
 
-var color = [9]rune{
+var color = []rune{
 	'\U00002B1C', // white
 	'\U00002B1B', // black
 	'\U0001F7EB', // brown
@@ -69,15 +70,17 @@ func patridgeDLX(n int) io.Reader {
 }
 
 func fillBoard(sol [][]string, board [][]rune) {
+	i := 0
 	for _, opt := range sol {
 		sort.Strings(opt)
-		s, _ := strconv.Atoi(opt[0][1:])
+		s := i % len(color)
 		for _, coord := range opt[1:] {
 			co := strings.Split(coord, ",")
 			r, _ := strconv.Atoi(co[0])
 			c, _ := strconv.Atoi(co[1])
 			board[r][c] = color[s]
 		}
+		i++
 	}
 
 	N := len(board)
@@ -90,10 +93,16 @@ func fillBoard(sol [][]string, board [][]rune) {
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
+	args := os.Args
+	if len(args) != 2 {
+		fmt.Printf("usage: %s n\n", args[0])
+		return
+	}
+	n, _ := strconv.Atoi(os.Args[1])
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
-	n := 8
 	d := dlx.NewDancer()
 	solStream, err := d.Dance(ctx, patridgeDLX(n))
 	if err != nil {
@@ -111,7 +120,7 @@ func main() {
 	i := 0
 	for sol := range solStream {
 		i++
-		if i == 4 {
+		if i == 5 {
 			cancel()
 		}
 		fmt.Printf("\n%d:\n", i)

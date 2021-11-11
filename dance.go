@@ -276,7 +276,12 @@ func (d *Dancer) Dance(
 		d.nodes++
 		select {
 		case <-ctx.Done():
-			log.Println("Cancelled!")
+			switch ctx.Err() {
+			case context.DeadlineExceeded:
+				log.Println("context timeout exceeded")
+			case context.Canceled:
+				log.Println("context cancelled by force")
+			}
 			return
 		default:
 		}
@@ -327,7 +332,12 @@ func (d *Dancer) Dance(
 
 			select {
 			case <-ctx.Done():
-				log.Println("Cancelled!")
+				switch ctx.Err() {
+				case context.DeadlineExceeded:
+					log.Println("context timeout exceeded")
+				case context.Canceled:
+					log.Println("context cancelled by force")
+				}
 				return
 			case ch <- sol:
 			}
