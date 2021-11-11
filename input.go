@@ -215,7 +215,7 @@ func (d *Dancer) inputOptions(line string) error {
 		}
 	}
 
-	if !pp {
+	if !pp { // Option ignored (no primary items)
 		for d.lastNode > i {
 			// Remove lastNode from its item list
 			k := d.nd[d.lastNode].itm
