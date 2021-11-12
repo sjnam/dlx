@@ -14,22 +14,24 @@ func (d *Dancer) getOption(p, head int) []string {
 		option []string
 		cl, nd = d.cl, d.nd
 	)
+
 	if (p < d.lastItm && p == head) || (head >= d.lastItm && p == nd[head].itm) {
 		option = append(option, fmt.Sprintf("null %s", cl[p].name))
-	} else {
-		q := p + 1
-		for q != p {
-			if nd[q].itm <= 0 {
-				q = nd[q].up
-				break
-			}
-			q++
+		return option
+	}
+
+	q := p + 1
+	for q != p {
+		if nd[q].itm <= 0 {
+			q = nd[q].up
+			break
 		}
-		for nd[q].itm > 0 {
-			option = append(option,
-				fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
-			q++
-		}
+		q++
+	}
+	for nd[q].itm > 0 {
+		option = append(option,
+			fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
+		q++
 	}
 	return option
 }
@@ -278,11 +280,13 @@ func (d *Dancer) Dance(
 		d.nodes++
 		select {
 		case <-ctx.Done():
-			switch ctx.Err() {
-			case context.DeadlineExceeded:
-				log.Println("context timeout exceeded")
-			case context.Canceled:
-				log.Println("context cancelled by force")
+			if d.Info {
+				switch ctx.Err() {
+				case context.DeadlineExceeded:
+					log.Println("context timeout exceeded")
+				case context.Canceled:
+					log.Println("context cancelled by force")
+				}
 			}
 			return
 		default:
@@ -334,11 +338,13 @@ func (d *Dancer) Dance(
 
 			select {
 			case <-ctx.Done():
-				switch ctx.Err() {
-				case context.DeadlineExceeded:
-					log.Println("context timeout exceeded")
-				case context.Canceled:
-					log.Println("context cancelled by force")
+				if d.Info {
+					switch ctx.Err() {
+					case context.DeadlineExceeded:
+						log.Println("context timeout exceeded")
+					case context.Canceled:
+						log.Println("context cancelled by force")
+					}
 				}
 				return
 			case ch <- sol:
