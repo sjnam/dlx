@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -24,15 +23,6 @@ var color = []rune{
 	'\U0001F7E6', // blue
 	'\U0001F7E8', // yellow
 	'\U0001F7E5', // red
-}
-
-func spinner(delay time.Duration) {
-	for {
-		for _, r := range `-\|/` {
-			fmt.Printf("\r%c", r)
-			time.Sleep(delay)
-		}
-	}
 }
 
 func patridgeDLX(n int) io.Reader {
@@ -70,17 +60,15 @@ func patridgeDLX(n int) io.Reader {
 }
 
 func fillBoard(sol [][]string, board [][]rune) {
-	i := 0
 	for _, opt := range sol {
 		sort.Strings(opt)
-		s := i % len(color)
+		s, _ := strconv.Atoi(opt[0][1:])
 		for _, coord := range opt[1:] {
 			co := strings.Split(coord, ",")
 			r, _ := strconv.Atoi(co[0])
 			c, _ := strconv.Atoi(co[1])
 			board[r][c] = color[s]
 		}
-		i++
 	}
 
 	N := len(board)
@@ -93,25 +81,16 @@ func fillBoard(sol [][]string, board [][]rune) {
 }
 
 func main() {
-	args := os.Args
-	if len(args) != 2 {
-		fmt.Printf("usage: %s n\n", args[0])
-		return
-	}
-	n, _ := strconv.Atoi(os.Args[1])
-
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(ctx, patridgeDLX(n))
+	solStream, err := d.Dance(ctx, patridgeDLX(8))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	go spinner(100 * time.Millisecond)
-
-	N := n * (n + 1) / 2
+	N := 36
 	board := make([][]rune, N)
 	for i := 0; i < len(board); i++ {
 		board[i] = make([]rune, N)
@@ -120,10 +99,9 @@ func main() {
 	i := 0
 	for sol := range solStream {
 		i++
-		if i == 5 {
+		if i == 1 {
 			cancel()
 		}
-		fmt.Printf("\n%d:\n", i)
 		fillBoard(sol, board)
 	}
 }
