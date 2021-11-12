@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"sort"
 	"strconv"
 
 	"github.com/sjnam/dlx"
@@ -56,7 +55,6 @@ func main() {
 	s := make([]int, 2*n)
 	for sol := range solStream {
 		for _, opt := range sol {
-			sort.Strings(opt)
 			k, _ := strconv.Atoi(opt[0])
 			for j := 1; j <= 2; j++ {
 				p, _ := strconv.Atoi(opt[j][1:])

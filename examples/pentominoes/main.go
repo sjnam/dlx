@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -50,12 +49,10 @@ func main() {
 		i++
 		fmt.Printf("%d:\n", i)
 		for _, opt := range solution {
-			sort.Strings(opt)
-			c := opt[len(opt)-1]
-			for j := 0; j < len(opt)-1; j++ {
-				x, _ := strconv.ParseInt(string(opt[j][0]), 36, 0)
-				y, _ := strconv.ParseInt(string(opt[j][1]), 36, 0)
-				box[x][y] = c
+			for _, v := range opt[1:] {
+				x, _ := strconv.ParseInt(string(v[0]), 36, 0)
+				y, _ := strconv.ParseInt(string(v[1]), 36, 0)
+				box[x][y] = opt[0]
 			}
 		}
 

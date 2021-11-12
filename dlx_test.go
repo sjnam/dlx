@@ -3,7 +3,6 @@ package dlx
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 )
 
@@ -18,7 +17,6 @@ func solve(matrix string) {
 
 	for sol := range solStream {
 		for _, opt := range sol {
-			sort.Strings(opt)
 			fmt.Println(opt)
 		}
 	}

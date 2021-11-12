@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -61,7 +60,6 @@ func patridgeDLX(n int) io.Reader {
 
 func fillBoard(sol [][]string, board [][]rune) {
 	for _, opt := range sol {
-		sort.Strings(opt)
 		s, _ := strconv.Atoi(opt[0][1:])
 		for _, coord := range opt[1:] {
 			co := strings.Split(coord, ",")

@@ -17,16 +17,18 @@ func (d *Dancer) getOption(p, head int) []string {
 	if (p < d.lastItm && p == head) || (head >= d.lastItm && p == nd[head].itm) {
 		option = append(option, fmt.Sprintf("null %s", cl[p].name))
 	} else {
-		for q := p; ; {
+		q := p + 1
+		for q != p {
+			if nd[q].itm <= 0 {
+				q = nd[q].up
+				break
+			}
+			q++
+		}
+		for nd[q].itm > 0 {
 			option = append(option,
 				fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
 			q++
-			if nd[q].itm <= 0 {
-				q = nd[q].up
-			}
-			if q == p {
-				break
-			}
 		}
 	}
 	return option
