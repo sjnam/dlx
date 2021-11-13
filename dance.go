@@ -9,28 +9,43 @@ import (
 	"os"
 )
 
-func (d *Dancer) option(p, head int) Option {
+func (d *Dancer) option(p, head, score int) Option {
+	var opt Option
 	cl, nd := d.cl, d.nd
+
 	if (p < d.lastItm && p == head) || (head >= d.lastItm && p == nd[head].itm) {
-		return Option{fmt.Sprintf("null %s", cl[p].name)}
-	}
-
-	q := p + 1
-	for q != p {
-		if nd[q].itm <= 0 {
-			q = nd[q].up
-			break
+		opt = append(opt, fmt.Sprintf("null %s", cl[p].name))
+	} else {
+		q := p + 1
+		for q != p {
+			if nd[q].itm <= 0 {
+				q = nd[q].up
+				break
+			}
+			q++
 		}
-		q++
+		for nd[q].itm > 0 {
+			opt = append(opt,
+				fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
+			q++
+		}
 	}
 
-	var option Option
-	for nd[q].itm > 0 {
-		option = append(option,
-			fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
-		q++
+	if d.Debug {
+		fmt.Fprintf(os.Stderr, "%s", opt)
+		k := 1
+		for q := head; q != p; k++ {
+			if p >= d.lastItm && q == nd[p].itm {
+				fmt.Fprintln(os.Stderr, "(?)")
+				return opt
+			} else {
+				q = nd[q].down
+			}
+		}
+		fmt.Fprintf(os.Stderr, " (%d of %d)\n", k, score)
 	}
-	return option
+
+	return opt
 }
 
 // When an option is hidden, it leaves all lists except the list of the
@@ -328,7 +343,7 @@ func (d *Dancer) Dance(
 				if head == 0 {
 					head = nd[cc].down
 				}
-				sol[k] = d.option(pp, head)
+				sol[k] = d.option(pp, head, scor[k])
 			}
 
 			select {
@@ -385,9 +400,9 @@ func (d *Dancer) Dance(
 		if d.Debug {
 			fmt.Fprintf(os.Stderr, "L%d: ", level)
 			if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-				fmt.Fprintln(os.Stderr, d.option(curNode, nd[bestItm].down))
+				d.option(curNode, nd[bestItm].down, score)
 			} else {
-				fmt.Fprintln(os.Stderr, d.option(curNode, firstTweak[level]))
+				d.option(curNode, firstTweak[level], score)
 			}
 		}
 
