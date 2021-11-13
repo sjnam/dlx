@@ -10,14 +10,9 @@ import (
 )
 
 func (d *Dancer) getOption(p, head int) []string {
-	var (
-		option []string
-		cl, nd = d.cl, d.nd
-	)
-
+	cl, nd := d.cl, d.nd
 	if (p < d.lastItm && p == head) || (head >= d.lastItm && p == nd[head].itm) {
-		option = append(option, fmt.Sprintf("null %s", cl[p].name))
-		return option
+		return []string{fmt.Sprintf("null %s", cl[p].name)}
 	}
 
 	q := p + 1
@@ -28,6 +23,8 @@ func (d *Dancer) getOption(p, head int) []string {
 		}
 		q++
 	}
+
+	var option []string
 	for nd[q].itm > 0 {
 		option = append(option,
 			fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
@@ -41,9 +38,7 @@ func (d *Dancer) getOption(p, head int) []string {
 // twice.
 
 // We can save time by not removing nodes from secondary items that have been
-// purified. (Such nodes have color<0. Note that color and itm are
-// stored in the same octabyte; hence we pay only one mem to look at
-// them both.)
+// purified.
 func (d *Dancer) cover(c int, deact bool) {
 	cl, nd := d.cl, d.nd
 	if deact {
