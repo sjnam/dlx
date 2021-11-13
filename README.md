@@ -11,30 +11,33 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/sjnam/dlx"
 )
 
 func main() {
 	input := `
-| A simple example
-A B C D E | F G
-C E F
-A D G
-B C F
-A D
-B G
-D E G
+| A simple example of color controls
+A B 2:3|C | X Y
+A B X:0 Y:0
+A C X:1 Y:1
+C X:0
+B X:1
+C Y:1
 `
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	defer cancel()
+
 	d := dlx.NewDancer()
 	d.Info = true
-	solStream, err := d.Dance(context.Background(), strings.NewReader(input))
+	ch, err := d.Dance(ctx, strings.NewReader(input))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	for sol := range solStream {
+	for sol := range ch {
 		for _, opt := range sol {
 			fmt.Println(opt)
 		}
@@ -43,12 +46,12 @@ D E G
 	d.Statistics()
 }
 
-// Output:
-// (6 options, 5+2 items, 22 entries successfully read)
-// [C E F]
-// [B G]
-// [A D]
-// Altogether 1 solution 23 updates, 0 cleansings, 5 nodes.
+// (5 options, 3+2 items, 19 entries successfully read)
+// [B X:1]
+// [A C X:1 Y:1]
+// [C Y:1]
+// [null C]
+// Altogether 1 solution 19 updates, 4 cleansings, 6 nodes.
 ````
 
 ## Examples
