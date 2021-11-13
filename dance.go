@@ -9,10 +9,10 @@ import (
 	"os"
 )
 
-func (d *Dancer) getOption(p, head int) []string {
+func (d *Dancer) option(p, head int) Option {
 	cl, nd := d.cl, d.nd
 	if (p < d.lastItm && p == head) || (head >= d.lastItm && p == nd[head].itm) {
-		return []string{fmt.Sprintf("null %s", cl[p].name)}
+		return Option{fmt.Sprintf("null %s", cl[p].name)}
 	}
 
 	q := p + 1
@@ -24,7 +24,7 @@ func (d *Dancer) getOption(p, head int) []string {
 		q++
 	}
 
-	var option []string
+	var option Option
 	for nd[q].itm > 0 {
 		option = append(option,
 			fmt.Sprintf("%s%s", cl[nd[q].itm].name, nd[q].colorName))
@@ -251,12 +251,12 @@ func (d *Dancer) untweak(c, x, unblock int) {
 func (d *Dancer) Dance(
 	ctx context.Context,
 	rd io.Reader,
-) (<-chan [][]string, error) {
+) (<-chan []Option, error) {
 	if err := d.inputMatrix(rd); err != nil {
 		return nil, err
 	}
 
-	ch := make(chan [][]string)
+	ch := make(chan []Option)
 
 	go func() {
 		defer close(ch)
@@ -275,7 +275,7 @@ func (d *Dancer) Dance(
 		d.nodes++
 		select {
 		case <-ctx.Done():
-			if d.Info {
+			if d.Debug {
 				switch ctx.Err() {
 				case context.DeadlineExceeded:
 					log.Println("context timeout exceeded")
@@ -317,7 +317,7 @@ func (d *Dancer) Dance(
 			goto backdown
 		}
 		if score == infty { // Visit a solution and goto backdown
-			sol := make([][]string, level)
+			sol := make([]Option, level)
 			for k := 0; k < level; k++ {
 				pp := choice[k]
 				cc := nd[pp].itm
@@ -328,12 +328,12 @@ func (d *Dancer) Dance(
 				if head == 0 {
 					head = nd[cc].down
 				}
-				sol[k] = d.getOption(pp, head)
+				sol[k] = d.option(pp, head)
 			}
 
 			select {
 			case <-ctx.Done():
-				if d.Info {
+				if d.Debug {
 					switch ctx.Err() {
 					case context.DeadlineExceeded:
 						log.Println("context timeout exceeded")
@@ -380,6 +380,15 @@ func (d *Dancer) Dance(
 		} else if cl[bestItm].bound != 0 {
 			p, q := cl[bestItm].prev, cl[bestItm].next
 			cl[p].next, cl[q].prev = q, p
+		}
+
+		if d.Debug {
+			fmt.Fprintf(os.Stderr, "L%d: ", level)
+			if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
+				fmt.Fprintln(os.Stderr, d.option(curNode, nd[bestItm].down))
+			} else {
+				fmt.Fprintln(os.Stderr, d.option(curNode, firstTweak[level]))
+			}
 		}
 
 		if curNode > d.lastItm {

@@ -18,6 +18,8 @@ const (
 	chunkSize     = 256
 )
 
+type Option []string
+
 type node struct {
 	up, down  int    // predecessor and successor in item list
 	itm       int    // the item containing this node
@@ -43,7 +45,7 @@ type Dancer struct {
 	count      int    // solutions found so far
 	updates    uint64 // update count
 	cleansings uint64 // cleansing count
-	Info       bool   // info/debug message
+	Debug      bool   // info/debug message
 }
 
 // NewDancer Wake me up before you Go Go

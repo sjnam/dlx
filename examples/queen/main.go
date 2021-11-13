@@ -90,9 +90,6 @@ func main() {
 	}
 	for solution := range solStream {
 		i++
-		if i == 1000 {
-			cancel()
-		}
 		for r := 0; r < n; r++ {
 			for c := 0; c < n; c++ {
 				board[r][c] = "."

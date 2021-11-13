@@ -30,7 +30,7 @@ C Y:1
 	defer cancel()
 
 	d := dlx.NewDancer()
-	d.Info = true
+	d.Debug = true
 	ch, err := d.Dance(ctx, strings.NewReader(input))
 	if err != nil {
 		fmt.Println(err)

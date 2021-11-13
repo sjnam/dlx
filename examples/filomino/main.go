@@ -8,19 +8,9 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/sjnam/dlx"
 )
-
-func spinner(delay time.Duration) {
-	for {
-		for _, r := range `-\|/` {
-			fmt.Printf("\r%c", r)
-			time.Sleep(delay)
-		}
-	}
-}
 
 func digit(b byte) int {
 	r := b
@@ -57,8 +47,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go spinner(100 * time.Millisecond)
-
 	box := make([][]int, nr)
 	for i := range box {
 		box[i] = make([]int, nc)
@@ -79,7 +67,6 @@ func main() {
 		}
 	}
 
-	fmt.Printf("\n")
 	for j := 0; j < nr; j++ {
 		for k := 0; k < nc; k++ {
 			fmt.Printf("%d ", box[j][k])

@@ -103,7 +103,7 @@ func decode(str string) (int, int) {
 
 var hangul []rune = []rune("가나다라마바사아차카타파하")
 
-func puzzleBoard(sol [][]string, wd, ht int) {
+func puzzleBoard(sol []dlx.Option, wd, ht int) {
 	board := make([][]rune, ht)
 	for i := 0; i < ht; i++ {
 		board[i] = make([]rune, wd)

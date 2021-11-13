@@ -58,7 +58,7 @@ func patridgeDLX(n int) io.Reader {
 	return r
 }
 
-func fillBoard(sol [][]string, board [][]rune) {
+func fillBoard(sol []dlx.Option, board [][]rune) {
 	for _, opt := range sol {
 		s, _ := strconv.Atoi(opt[0][1:])
 		for _, coord := range opt[1:] {
@@ -83,12 +83,13 @@ func main() {
 	defer cancel()
 
 	d := dlx.NewDancer()
+	d.Debug = true
 	solStream, err := d.Dance(ctx, patridgeDLX(8))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	N := 36
+	N := 8 * (8 + 1) / 2
 	board := make([][]rune, N)
 	for i := 0; i < len(board); i++ {
 		board[i] = make([]rune, N)

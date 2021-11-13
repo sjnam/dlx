@@ -22,8 +22,7 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 			return fmt.Errorf("input line way too long")
 		}
 		line = strings.TrimSpace(line)
-		if line == "" || line[0] == '|' {
-			// bypass comment or blank line
+		if line == "" || line[0] == '|' { // bypass comment or blank line
 			continue
 		}
 		d.lastItm = 1
@@ -43,8 +42,7 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 			return fmt.Errorf("input line way too long")
 		}
 		line = strings.TrimSpace(line)
-		if line == "" || line[0] == '|' {
-			// bypass comment or blank line
+		if line == "" || line[0] == '|' { // bypass comment or blank line
 			continue
 		}
 
@@ -56,7 +54,7 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 		return err
 	}
 
-	if d.Info {
+	if d.Debug {
 		fmt.Fprintf(os.Stderr,
 			"(%d options, %d+%d items, %d entries successfully read)\n",
 			d.options, d.second-1, d.lastItm-d.second, d.lastNode-d.lastItm)
@@ -116,7 +114,6 @@ func (d *Dancer) inputItemNames(line string) error {
 		d.cl[d.lastItm-1].next = d.lastItm
 		d.cl[d.lastItm].prev = d.lastItm - 1
 
-		// nd[lastItm].itm = 0 (len)
 		d.nd[d.lastItm].down = d.lastItm
 		d.nd[d.lastItm].up = d.lastItm
 		d.lastItm++
@@ -141,7 +138,6 @@ func (d *Dancer) inputItemNames(line string) error {
 	d.cl[d.second-1].next = root
 
 	d.lastNode = d.lastItm // reserve all the header nodes and the first spacer
-	// we have nd[lastNode].itm=0 in the first spacer
 
 	return nil
 }
@@ -215,8 +211,7 @@ func (d *Dancer) inputOptions(line string) error {
 	}
 
 	if nonePrimary { // Option ignored (no primary items)
-		for d.lastNode > leftSpacer {
-			// Remove lastNode from its item list
+		for d.lastNode > leftSpacer { // Remove lastNode from its item list
 			k := d.nd[d.lastNode].itm
 			d.nd[k].itm--
 			d.nd[k].color = leftSpacer - 1

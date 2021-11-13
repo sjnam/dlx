@@ -127,8 +127,9 @@ func main() {
 
 	solution := <-solStream
 	for _, opt := range solution {
-		for i := 1; i < len(opt); i++ {
-			kv := strings.Split(opt[i], ":")
+		opt = opt[1:]
+		for _, nd := range opt {
+			kv := strings.Split(nd, ":")
 			answer[kv[0][0]][kv[0][1]-'0'] = kv[1]
 		}
 	}
