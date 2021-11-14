@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/sjnam/dlx"
 )
@@ -110,16 +111,13 @@ func sudokuDLX(rd io.Reader) io.Reader {
 	return r
 }
 
-func sudokuSolver(
-	ctx context.Context,
-	dataStream <-chan string,
-) <-chan [][]byte {
-	sudokuStream := make(chan [][]byte)
+func sudokuSolver(ctx context.Context, data <-chan string) <-chan [][]byte {
+	ch := make(chan [][]byte)
 
 	go func() {
-		defer close(sudokuStream)
+		defer close(ch)
 
-		for line := range dataStream {
+		for line := range data {
 			r := strings.NewReader(line)
 			var buff bytes.Buffer
 
@@ -168,17 +166,15 @@ func sudokuSolver(
 			select {
 			case <-ctx.Done():
 				break
-			case sudokuStream <- qna:
+			case ch <- qna:
 			}
 		}
 	}()
 
-	return sudokuStream
+	return ch
 }
 
-func fanIn(ctx context.Context,
-	channels ...<-chan [][]byte,
-) <-chan [][]byte {
+func fanIn(ctx context.Context, channels []<-chan [][]byte) <-chan [][]byte {
 	var wg sync.WaitGroup
 	multiplexedStream := make(chan [][]byte)
 
@@ -212,6 +208,11 @@ func main() {
 		log.Fatalf("usage: %s dlx-file\n", args[0])
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	start := time.Now()
+
 	fd, err := os.Open(args[1])
 	if err != nil {
 		log.Fatal(err)
@@ -220,43 +221,41 @@ func main() {
 		_ = fd.Close()
 	}()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	numSolvers := runtime.NumCPU()
-	generator := make([]chan string, numSolvers)
+	var generator []chan string
 	for i := 0; i < numSolvers; i++ {
-		generator[i] = make(chan string)
+		generator = append(generator, make(chan string))
 	}
 
 	go func() {
 		defer func() {
-			for i := 0; i < numSolvers; i++ {
-				close(generator[i])
+			for _, g := range generator {
+				close(g)
 			}
 		}()
 
 		scanner := bufio.NewScanner(fd)
 		i := 0
 		for scanner.Scan() {
-			i++
 			generator[i%numSolvers] <- strings.TrimSpace(scanner.Text())
+			i++
 		}
 		if err := scanner.Err(); err != nil {
 			log.Fatal(err)
 		}
 	}()
 
-	solvers := make([]<-chan [][]byte, numSolvers)
-
-	for i := 0; i < numSolvers; i++ {
-		solvers[i] = sudokuSolver(ctx, generator[i])
+	var solvers []<-chan [][]byte
+	for _, g := range generator {
+		solvers = append(solvers, sudokuSolver(ctx, g))
 	}
 
 	i := 0
-	for s := range fanIn(ctx, solvers...) {
+	for s := range fanIn(ctx, solvers) {
 		i++
 		fmt.Printf("Q[%5d]: %s\n", i, string(s[0]))
 		fmt.Printf("A[%5d]: %s\n", i, string(s[1]))
 	}
+
+	fmt.Printf("Solve took: %v\n", time.Since(start))
 }
