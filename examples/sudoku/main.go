@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
@@ -128,40 +127,16 @@ func sudokuSolver(ctx context.Context, data <-chan string) <-chan [][]byte {
 				log.Fatal(err)
 			}
 
-			qu, _ := ioutil.ReadAll(&buff)
-			board := make([]byte, len(qu))
-			copy(board, qu)
-
 			qna := make([][]byte, 2)
-			qna[0] = qu
+			qna[0] = buff.Bytes()
+			qna[1] = make([]byte, buff.Len())
+			copy(qna[1], qna[0])
 
-			var solution []dlx.Option
-			select {
-			case <-ctx.Done():
-				break
-			case solution = <-solStream:
+			for _, opt := range <-solStream {
+				x := int(opt[0][1] - '0')
+				y := int(opt[0][2] - '0')
+				qna[1][x*9+y] = opt[1][2]
 			}
-
-			for _, opt := range solution {
-				var x, y int
-				var z byte
-				fin := 0
-				for _, v := range opt {
-					if v[0] == 'p' {
-						x = int(v[1] - '0')
-						y = int(v[2] - '0')
-						fin++
-					} else if v[0] == 'r' {
-						z = v[2]
-						fin++
-					}
-					if fin == 2 {
-						break
-					}
-				}
-				board[x*9+y] = z
-			}
-			qna[1] = board
 
 			select {
 			case <-ctx.Done():
