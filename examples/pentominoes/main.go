@@ -9,8 +9,25 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/sjnam/dlx"
 )
+
+var colorMap = map[string]*color.Style256{
+	"B": color.S256(0, 0),
+	"T": color.S256(0, 225),
+	"U": color.S256(0, 57),
+	"V": color.S256(0, 27),
+	"W": color.S256(0, 22),
+	"X": color.S256(0, 198),
+	"Y": color.S256(0, 48),
+	"Z": color.S256(0, 253),
+	"O": color.S256(0, 104),
+	"P": color.S256(0, 172),
+	"Q": color.S256(0, 94),
+	"R": color.S256(0, 14),
+	"S": color.S256(0, 11),
+}
 
 func main() {
 	args := os.Args
@@ -40,7 +57,7 @@ func main() {
 	for i := range box {
 		box[i] = make([]string, nc)
 		for j := range box[i] {
-			box[i][j] = " "
+			box[i][j] = "B"
 		}
 	}
 
@@ -58,7 +75,7 @@ func main() {
 
 		for j := 0; j < nr; j++ {
 			for k := 0; k < nc; k++ {
-				fmt.Printf("%s ", box[j][k])
+				colorMap[box[j][k]].Print("  ")
 			}
 			fmt.Println()
 		}
