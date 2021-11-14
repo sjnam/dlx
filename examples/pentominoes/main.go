@@ -13,20 +13,20 @@ import (
 	"github.com/sjnam/dlx"
 )
 
-var colorMap = map[string]*color.Style256{
-	"B": color.S256(0, 0),
-	"T": color.S256(0, 225),
-	"U": color.S256(0, 57),
-	"V": color.S256(0, 27),
-	"W": color.S256(0, 22),
-	"X": color.S256(0, 198),
-	"Y": color.S256(0, 48),
-	"Z": color.S256(0, 253),
-	"O": color.S256(0, 104),
-	"P": color.S256(0, 172),
-	"Q": color.S256(0, 94),
-	"R": color.S256(0, 14),
-	"S": color.S256(0, 11),
+var colorMap = map[string]color.RGBColor{
+	"B": color.HEX("#000000", true),
+	"T": color.HEX("#edd1d8", true),
+	"U": color.HEX("#801dae", true),
+	"V": color.HEX("#177cb0", true),
+	"W": color.HEX("#0c8918", true),
+	"X": color.HEX("#ff0097", true),
+	"Y": color.HEX("#00bc12", true),
+	"Z": color.HEX("#cccccc", true),
+	"O": color.HEX("#b0a4e3", true),
+	"P": color.HEX("#ffb3a7", true),
+	"Q": color.HEX("#60281e", true),
+	"R": color.HEX("#a1afc9", true),
+	"S": color.HEX("#ffb61e", true),
 }
 
 func main() {
