@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -110,38 +109,30 @@ func sudokuDLX(rd io.Reader) io.Reader {
 	return r
 }
 
-func sudokuSolver(ctx context.Context, data <-chan string) <-chan [][]byte {
+func sudokuSolver(ctx context.Context, stream <-chan string) <-chan [][]byte {
 	ch := make(chan [][]byte)
 
 	go func() {
 		defer close(ch)
 
-		for line := range data {
-			r := strings.NewReader(line)
-			var buff bytes.Buffer
-
-			rd := io.TeeReader(r, &buff)
+		for line := range stream {
 			d := dlx.NewDancer()
-			solStream, err := d.Dance(ctx, sudokuDLX(rd))
+			solStream, err := d.Dance(ctx, sudokuDLX(strings.NewReader(line)))
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			qna := make([][]byte, 2)
-			qna[0] = buff.Bytes()
-			qna[1] = make([]byte, buff.Len())
-			copy(qna[1], qna[0])
-
+			ans := []byte(line)
 			for _, opt := range <-solStream {
 				x := int(opt[0][1] - '0')
 				y := int(opt[0][2] - '0')
-				qna[1][x*9+y] = opt[1][2]
+				ans[x*9+y] = opt[1][2]
 			}
 
 			select {
 			case <-ctx.Done():
 				break
-			case ch <- qna:
+			case ch <- [][]byte{[]byte(line), ans}:
 			}
 		}
 	}()
