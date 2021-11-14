@@ -15,25 +15,20 @@ import (
 	"github.com/sjnam/dlx"
 )
 
-func bx(j, k int) int {
-	return j/3*3 + k/3
-}
-
 func sudokuDLX(rd io.Reader) io.Reader {
-	var pos, row, col, box [9][9]int
-
-	buf := make([]byte, 9)
 	var c, j int
+	var pos, row, col, box [9][9]int
+	buf := make([]byte, 9)
+
 	for {
-		_, err := io.ReadFull(rd, buf)
-		if err == io.EOF {
+		if _, err := io.ReadFull(rd, buf); err == io.EOF {
 			break
 		}
 
 		for k := 0; k < 9; k++ {
 			if buf[k] >= '1' && buf[k] <= '9' {
 				d := int(buf[k] - '1')
-				x := bx(j, k)
+				x := j/3*3 + k/3
 				pos[j][k] = d + 1
 				if row[j][d] != 0 {
 					log.Fatalf("digit %d appears in columns"+
@@ -95,7 +90,7 @@ func sudokuDLX(rd io.Reader) io.Reader {
 		for j := 0; j < 9; j++ {
 			for k := 0; k < 9; k++ {
 				for d := 0; d < 9; d++ {
-					x := bx(j, k)
+					x := j/3*3 + k/3
 					if pos[j][k] == 0 && row[j][d] == 0 &&
 						col[k][d] == 0 && box[x][d] == 0 {
 						fmt.Fprintf(w, "p%d%d r%d%d c%d%d b%d%d\n",
@@ -174,10 +169,10 @@ func main() {
 		log.Fatalf("usage: %s dlx-file\n", args[0])
 	}
 
+	start := time.Now()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	start := time.Now()
 
 	fd, err := os.Open(args[1])
 	if err != nil {
