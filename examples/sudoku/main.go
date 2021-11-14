@@ -114,7 +114,7 @@ func sudokuSolve(line string) <-chan [][]byte {
 	go func() {
 		defer close(sudokuStream)
 
-		r := strings.NewReader(strings.TrimSpace(line))
+		r := strings.NewReader(line)
 		var buff bytes.Buffer
 
 		rd := io.TeeReader(r, &buff)
@@ -197,7 +197,8 @@ func main() {
 	var solutions []<-chan [][]byte
 	scanner := bufio.NewScanner(fd)
 	for scanner.Scan() {
-		solutions = append(solutions, sudokuSolve(scanner.Text()))
+		solutions = append(solutions,
+			sudokuSolve(strings.TrimSpace(scanner.Text())))
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
@@ -206,7 +207,7 @@ func main() {
 	i := 0
 	for s := range fanIn(solutions...) {
 		i++
-		fmt.Printf("Q[%2d]: %s\n", i, string(s[0]))
-		fmt.Printf("A[%2d]: %s\n", i, string(s[1]))
+		fmt.Printf("Q[%5d]: %s\n", i, string(s[0]))
+		fmt.Printf("A[%5d]: %s\n", i, string(s[1]))
 	}
 }
