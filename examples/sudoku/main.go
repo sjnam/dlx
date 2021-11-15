@@ -178,27 +178,25 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer func() {
-		_ = fd.Close()
-	}()
+	defer fd.Close()
 
 	numSolvers := runtime.NumCPU()
-	var generator []chan string
+	var genStream []chan string
 	for i := 0; i < numSolvers; i++ {
-		generator = append(generator, make(chan string))
+		genStream = append(genStream, make(chan string))
 	}
 
 	go func() {
 		defer func() {
-			for _, g := range generator {
-				close(g)
+			for _, gs := range genStream {
+				close(gs)
 			}
 		}()
 
-		scanner := bufio.NewScanner(fd)
 		i := 0
+		scanner := bufio.NewScanner(fd)
 		for scanner.Scan() {
-			generator[i%numSolvers] <- strings.TrimSpace(scanner.Text())
+			genStream[i%numSolvers] <- strings.TrimSpace(scanner.Text())
 			i++
 		}
 		if err := scanner.Err(); err != nil {
@@ -207,16 +205,16 @@ func main() {
 	}()
 
 	var solvers []<-chan [][]byte
-	for _, g := range generator {
-		solvers = append(solvers, sudokuSolver(ctx, g))
+	for _, gs := range genStream {
+		solvers = append(solvers, sudokuSolver(ctx, gs))
 	}
 
 	i := 0
 	for s := range fanIn(ctx, solvers) {
 		i++
-		fmt.Printf("Q[%5d]: %s\n", i, string(s[0]))
-		fmt.Printf("A[%5d]: %s\n", i, string(s[1]))
+		fmt.Printf("Q[%5d]: %s\n", i, s[0])
+		fmt.Printf("A[%5d]: %s\n", i, s[1])
 	}
 
-	fmt.Printf("Solve took: %v\n", time.Since(start))
+	fmt.Printf("Solving took: %v\n", time.Since(start))
 }
