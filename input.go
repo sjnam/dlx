@@ -82,16 +82,14 @@ func (d *Dancer) inputItemNames(line string) error {
 		}
 
 		q, r := 1, 1
-		bn := strings.Split(itm, "|")
-		if len(bn) == 1 {
-			d.cl[d.lastItm].name = itm
-		} else {
+		d.cl[d.lastItm].name = itm
+		if strings.Contains(itm, "|") {
+			bn := strings.Split(itm, "|")
 			d.cl[d.lastItm].name = bn[1]
-			bounds := strings.Split(bn[0], ":")
-			if len(bounds) == 1 {
-				q, _ = strconv.Atoi(bounds[0])
-				r = q
-			} else {
+			q, _ = strconv.Atoi(bn[0])
+			r = q
+			if strings.Contains(bn[0], ":") {
+				bounds := strings.Split(bn[0], ":")
 				r, _ = strconv.Atoi(bounds[0])
 				q, _ = strconv.Atoi(bounds[1])
 			}
@@ -152,8 +150,11 @@ func (d *Dancer) inputOptions(line string) error {
 		if opt[0] == ':' {
 			return fmt.Errorf("empty item name")
 		}
-		name := strings.Split(opt, ":")
-		d.cl[d.lastItm].name = name[0]
+		d.cl[d.lastItm].name = opt
+		icr := strings.Index(opt, ":")
+		if icr >= 0 { // has color code
+			d.cl[d.lastItm].name = string(opt[:icr])
+		}
 
 		// Create a node for the item named in opt
 		k := 0
@@ -199,11 +200,12 @@ func (d *Dancer) inputOptions(line string) error {
 
 		d.nd[d.lastNode].color = 0
 		d.nd[d.lastNode].colorName = ""
-		if len(name) == 2 {
+		if icr >= 0 { // has color code
 			if k >= d.second {
-				c, _ := strconv.ParseInt(name[1], 36, 0)
+				name := string(opt[icr+1:])
+				c, _ := strconv.ParseInt(name, 36, 0)
 				d.nd[d.lastNode].color = int(c)
-				d.nd[d.lastNode].colorName = ":" + name[1]
+				d.nd[d.lastNode].colorName = ":" + name
 			} else {
 				return fmt.Errorf("primary item must be uncolored")
 			}
