@@ -48,9 +48,6 @@ func (d *Dancer) option(p, head, score int) Option {
 	return opt
 }
 
-// When an option is hidden, it leaves all lists except the list of the
-// item that is being covered. Thus, a node is never removed from a list
-// twice.
 func (d *Dancer) hide(rr int) {
 	nd := d.nd
 	for nn := rr + 1; nn != rr; {
@@ -69,8 +66,6 @@ func (d *Dancer) hide(rr int) {
 	}
 }
 
-// We can save time by not removing nodes from secondary items that have been
-// purified.
 func (d *Dancer) cover(c int, deact bool) {
 	cl, nd := d.cl, d.nd
 	if deact {
@@ -83,14 +78,6 @@ func (d *Dancer) cover(c int, deact bool) {
 	}
 }
 
-// I used to think that it was important to uncover an item by
-// processing its options from bottom to top, since covering was done
-// from top to bottom. But while writing this
-// program I realized that, amazingly, no harm is done if the
-// options are processed again in the same order. So I'll go downward again,
-// just to prove the point. Whether we go up or down, the pointers
-// execute an exquisitely choreographed dance that returns them almost
-// magically to their former state.
 func (d *Dancer) unhide(rr int) {
 	nd := d.nd
 	for nn := rr + 1; nn != rr; {
@@ -119,10 +106,6 @@ func (d *Dancer) uncover(c int, react bool) {
 	}
 }
 
-// When we choose an option that specifies colors in one or more items,
-// we ``purify'' those items by removing all incompatible options.
-// All options that want the chosen color in a purified item are temporarily
-// given the color code~|-1| so that they won't be purified again.
 func (d *Dancer) purify(p int) {
 	nd := d.nd
 	cc := nd[p].itm
@@ -139,8 +122,6 @@ func (d *Dancer) purify(p int) {
 	}
 }
 
-// Just as |purify| is analogous to |cover|, the inverse process is
-// analogous to |uncover|.
 func (d *Dancer) unpurify(p int) {
 	nd := d.nd
 	cc := nd[p].itm
@@ -187,20 +168,6 @@ func (d *Dancer) tweak(n, block int) {
 	}
 }
 
-// The punch line occurs when we consider untweaking. Consider, for
-// example, an item $c$ whose options from top to bottom are $x$, $y$,~$z$.
-// Then the |up| fields for $(c,x,y,z)$ are initially $(z,c,x,y)$, and the
-// |down| fields are $(x,y,z,c)$. After we've tweaked $x$, they've become
-// $(z,c,c,y)$ and $(y,y,z,c)$; after we've subsequently tweaked $y$, they've
-// become $(z,c,c,c)$ and $(z,y,z,c)$. Notice that $x$ still points to~$y$,
-// and $y$ still points to~$z$. So we can restore the original state
-// if we restore the |up| pointers in $y$ and $z$, as well as the |down|
-// pointer in~$c$. The value of~$x$ has been saved in the |first_tweak|
-// array for the current level; and that's sufficient to solve the puzzle.
-
-// We also have to resuscitate the options by reinstating them in their items.
-// That can be done top-down, as in |uncover|; in essence, a sequence of
-// tweaks is like a partial covering.
 func (d *Dancer) untweak(c, x, unblock int) {
 	nd := d.nd
 	z := nd[c].down
@@ -466,14 +433,4 @@ func (d *Dancer) Dance(
 	}()
 
 	return ch, nil
-}
-
-func (d *Dancer) Statistics() {
-	s := ""
-	if d.count > 1 {
-		s = "s"
-	}
-	fmt.Fprintf(os.Stderr, "Altogether %d solution%s", d.count, s)
-	fmt.Fprintf(os.Stderr, " %d updates, %d cleansings, %d nodes.\n",
-		d.updates, d.cleansings, d.nodes)
 }
