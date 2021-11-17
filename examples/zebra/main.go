@@ -35,7 +35,7 @@ const xccInput = `
 #4 D2:coffee C2:green
 #4 D3:coffee C3:green
 #4 D4:coffee C4:green
-|The Norwegian's house is hte leftmost.
+|The Norwegian's house is the leftmost.
 #5 N0:Norway
 |The dog's owner is from Spain.
 #6 N0:Spain P0:dog
