@@ -101,8 +101,6 @@ func decode(str string) (int, int) {
 	return x[0], x[1]
 }
 
-var hangul []rune = []rune("가나다라마바사아차카타파하")
-
 func puzzleBoard(sol []dlx.Option, wd, ht int) {
 	board := make([][]rune, ht)
 	for i := 0; i < ht; i++ {
@@ -132,7 +130,7 @@ func puzzleBoard(sol []dlx.Option, wd, ht int) {
 				if ascii {
 					board[i][j] = rune('A' + rand.Intn(26))
 				} else {
-					board[i][j] = hangul[rand.Intn(len(hangul))]
+					board[i][j] = rune('가' + rand.Intn(int('힣'-'가')))
 				}
 			}
 			fmt.Printf("%c", board[i][j])
