@@ -51,6 +51,23 @@ func (d *Dancer) option(p, head, score int) Option {
 // When an option is hidden, it leaves all lists except the list of the
 // item that is being covered. Thus, a node is never removed from a list
 // twice.
+func (d *Dancer) hide(rr int) {
+	nd := d.nd
+	for nn := rr + 1; nn != rr; {
+		if nd[nn].color >= 0 {
+			uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
+			if cc <= 0 {
+				nn = uu
+				continue
+			}
+			nd[uu].down = dd
+			nd[dd].up = uu
+			d.updates++
+			nd[cc].itm--
+		}
+		nn++
+	}
+}
 
 // We can save time by not removing nodes from secondary items that have been
 // purified.
@@ -62,20 +79,7 @@ func (d *Dancer) cover(c int, deact bool) {
 	}
 	d.updates++
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
-		for nn := rr + 1; nn != rr; {
-			if nd[nn].color >= 0 {
-				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-				if cc <= 0 {
-					nn = uu
-					continue
-				}
-				nd[uu].down = dd
-				nd[dd].up = uu
-				d.updates++
-				nd[cc].itm--
-			}
-			nn++
-		}
+		d.hide(rr)
 	}
 }
 
@@ -87,22 +91,27 @@ func (d *Dancer) cover(c int, deact bool) {
 // just to prove the point. Whether we go up or down, the pointers
 // execute an exquisitely choreographed dance that returns them almost
 // magically to their former state.
+func (d *Dancer) unhide(rr int) {
+	nd := d.nd
+	for nn := rr + 1; nn != rr; {
+		if nd[nn].color >= 0 {
+			uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
+			if cc <= 0 {
+				nn = uu
+				continue
+			}
+			nd[dd].up = nn
+			nd[uu].down = nn
+			nd[cc].itm++
+		}
+		nn++
+	}
+}
+
 func (d *Dancer) uncover(c int, react bool) {
 	cl, nd := d.cl, d.nd
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
-		for nn := rr + 1; nn != rr; {
-			if nd[nn].color >= 0 {
-				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-				if cc <= 0 {
-					nn = uu
-					continue
-				}
-				nd[dd].up = nn
-				nd[uu].down = nn
-				nd[cc].itm++
-			}
-			nn++
-		}
+		d.unhide(rr)
 	}
 	if react {
 		l, r := cl[c].prev, cl[c].next
@@ -122,20 +131,7 @@ func (d *Dancer) purify(p int) {
 	d.cleansings++
 	for rr := nd[cc].down; rr >= d.lastItm; rr = nd[rr].down {
 		if nd[rr].color != x {
-			for nn := rr + 1; nn != rr; {
-				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-				if cc <= 0 {
-					nn = uu
-					continue
-				}
-				if nd[nn].color >= 0 {
-					nd[uu].down = dd
-					nd[dd].up = uu
-					d.updates++
-					nd[cc].itm--
-				}
-				nn++
-			}
+			d.hide(rr)
 		} else if rr != p {
 			d.cleansings++
 			nd[rr].color = -1
@@ -153,19 +149,7 @@ func (d *Dancer) unpurify(p int) {
 		if nd[rr].color < 0 {
 			nd[rr].color = x
 		} else if rr != p {
-			for nn := rr - 1; nn != rr; {
-				uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-				if cc <= 0 {
-					nn = dd
-					continue
-				}
-				if nd[nn].color >= 0 {
-					nd[dd].up = nn
-					nd[uu].down = nn
-					nd[cc].itm++
-				}
-				nn--
-			}
+			d.unhide(rr)
 		}
 	}
 }
@@ -226,19 +210,7 @@ func (d *Dancer) untweak(c, x, unblock int) {
 		nd[rr].up = qq
 		k++
 		if unblock != 0 {
-			for nn := rr + 1; nn != rr; {
-				if nd[nn].color >= 0 {
-					uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
-					if cc <= 0 {
-						nn = uu
-						continue
-					}
-					nd[uu].down = nn
-					nd[dd].up = nn
-					nd[cc].itm++
-				}
-				nn++
-			}
+			d.unhide(rr)
 		}
 	}
 	nd[rr].up = qq
