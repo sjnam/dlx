@@ -295,13 +295,13 @@ func (d *Dancer) Dance(
 						log.Println("context cancelled by force")
 					}
 				}
-				return
+				goto done
 			case ch <- sol:
 			}
 
 			d.count++
 			if d.count >= maxCount {
-				return
+				goto done
 			}
 			goto backdown
 		}
@@ -389,7 +389,7 @@ func (d *Dancer) Dance(
 
 	backdown:
 		if level == 0 {
-			return
+			goto done
 		}
 		level--
 		curNode = choice[level]
@@ -430,7 +430,22 @@ func (d *Dancer) Dance(
 		curNode = nd[curNode].down
 
 		goto advance
+
+	done:
+		if d.Debug {
+			d.statistics()
+		}
 	}()
 
 	return ch, nil
+}
+
+func (d *Dancer) statistics() {
+	s := ""
+	if d.count > 1 {
+		s = "s"
+	}
+	fmt.Fprintf(os.Stderr, "Altogether %d solution%s", d.count, s)
+	fmt.Fprintf(os.Stderr, " %d updates, %d cleansings, %d nodes.\n",
+		d.updates, d.cleansings, d.nodes)
 }

@@ -20,8 +20,6 @@ func solve(matrix string) {
 			fmt.Println(opt)
 		}
 	}
-
-	d.Statistics()
 }
 
 func ExampleDancer_xc() {

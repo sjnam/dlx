@@ -1,9 +1,7 @@
 package dlx
 
 import (
-	"fmt"
 	"math/rand"
-	"os"
 	"time"
 )
 
@@ -58,15 +56,4 @@ func NewDancer() *Dancer {
 		cl:     make([]item, chunkSize),
 		second: maxCols,
 	}
-}
-
-// Statistics of the Run
-func (d *Dancer) Statistics() {
-	s := ""
-	if d.count > 1 {
-		s = "s"
-	}
-	fmt.Fprintf(os.Stderr, "Altogether %d solution%s", d.count, s)
-	fmt.Fprintf(os.Stderr, " %d updates, %d cleansings, %d nodes.\n",
-		d.updates, d.cleansings, d.nodes)
 }
