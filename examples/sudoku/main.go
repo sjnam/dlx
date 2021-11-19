@@ -104,7 +104,7 @@ func sudokuDLX(rd io.Reader) io.Reader {
 	return r
 }
 
-func sudokuSolver(ctx context.Context, stream <-chan string) <-chan [][]byte {
+func sudokuSolver(stream <-chan string) <-chan [][]byte {
 	ch := make(chan [][]byte)
 
 	go func() {
@@ -112,7 +112,7 @@ func sudokuSolver(ctx context.Context, stream <-chan string) <-chan [][]byte {
 
 		for line := range stream {
 			d := dlx.NewDancer()
-			solStream, err := d.Dance(ctx, sudokuDLX(strings.NewReader(line)))
+			solStream, err := d.Dance(sudokuDLX(strings.NewReader(line)))
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -124,11 +124,7 @@ func sudokuSolver(ctx context.Context, stream <-chan string) <-chan [][]byte {
 				ans[x*9+y] = opt[1][2]
 			}
 
-			select {
-			case <-ctx.Done():
-				break
-			case ch <- [][]byte{[]byte(line), ans}:
-			}
+			ch <- [][]byte{[]byte(line), ans}
 		}
 	}()
 
@@ -206,7 +202,7 @@ func main() {
 
 	var solvers []<-chan [][]byte
 	for _, gs := range genStream {
-		solvers = append(solvers, sudokuSolver(ctx, gs))
+		solvers = append(solvers, sudokuSolver(gs))
 	}
 
 	i := 0

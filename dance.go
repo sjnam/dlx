@@ -1,7 +1,6 @@
 package dlx
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"log"
@@ -202,10 +201,7 @@ func (d *Dancer) untweak(c, x, unblock int) {
 // options: removing nodes from other lists whenever they belong to an option of
 // a node in this item's list. We cover the chosen item when it has
 // |bound=1|.
-func (d *Dancer) Dance(
-	ctx context.Context,
-	rd io.Reader,
-) (<-chan []Option, error) {
+func (d *Dancer) Dance(rd io.Reader) (<-chan []Option, error) {
 	if err := d.inputMatrix(rd); err != nil {
 		return nil, err
 	}
@@ -227,20 +223,13 @@ func (d *Dancer) Dance(
 
 	forward:
 		d.nodes++
-		select {
-		case <-ctx.Done():
-			if d.Debug {
-				switch ctx.Err() {
-				case context.DeadlineExceeded:
-					log.Println("context timeout exceeded")
-				case context.Canceled:
-					log.Println("context cancelled by force")
-				}
+		if d.ctx != nil {
+			select {
+			case <-d.ctx.Done():
+				return
+			default:
 			}
-			return
-		default:
 		}
-
 		// Set bestItm to the best item for branching,
 		// and let score be its branching degree
 		score := infty
@@ -285,19 +274,7 @@ func (d *Dancer) Dance(
 				sol[k] = d.option(pp, head, scor[k])
 			}
 
-			select {
-			case <-ctx.Done():
-				if d.Debug {
-					switch ctx.Err() {
-					case context.DeadlineExceeded:
-						log.Println("context timeout exceeded")
-					case context.Canceled:
-						log.Println("context cancelled by force")
-					}
-				}
-				goto done
-			case ch <- sol:
-			}
+			ch <- sol
 
 			d.count++
 			if d.count >= maxCount {

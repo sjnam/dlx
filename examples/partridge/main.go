@@ -84,7 +84,8 @@ func main() {
 
 	d := dlx.NewDancer()
 	d.Debug = true
-	solStream, err := d.Dance(ctx, patridgeDLX(8))
+	d = d.WithContext(ctx)
+	solStream, err := d.Dance(patridgeDLX(8))
 	if err != nil {
 		log.Fatal(err)
 	}

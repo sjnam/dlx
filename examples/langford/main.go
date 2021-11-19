@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"log"
@@ -47,7 +46,7 @@ func main() {
 	n, _ := strconv.Atoi(os.Args[1])
 
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(context.Background(), langfordDLX(n))
+	solStream, err := d.Dance(langfordDLX(n))
 	if err != nil {
 		log.Fatal(err)
 	}

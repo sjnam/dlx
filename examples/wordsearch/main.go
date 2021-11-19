@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -156,7 +155,7 @@ func main() {
 	}
 
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(context.Background(),
+	solStream, err := d.Dance(
 		wordSearchDLX(strings.Fields(string(buf)), wd, ht))
 	if err != nil {
 		log.Fatal(err)

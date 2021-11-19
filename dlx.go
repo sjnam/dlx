@@ -1,6 +1,7 @@
 package dlx
 
 import (
+	"context"
 	"math/rand"
 	"time"
 )
@@ -35,6 +36,7 @@ type item struct {
 
 // Dancer dancing links object
 type Dancer struct {
+	ctx        context.Context
 	nd         []node // the master list of nodes
 	lastNode   int    // the first node in nd that's not yet used
 	cl         []item // the master list of items
@@ -56,4 +58,14 @@ func NewDancer() *Dancer {
 		cl:     make([]item, chunkSize),
 		second: maxCols,
 	}
+}
+
+func (d *Dancer) WithContext(ctx context.Context) *Dancer {
+	if ctx == nil {
+		panic("nil context")
+	}
+	d2 := new(Dancer)
+	*d2 = *d
+	d2.ctx = ctx
+	return d2
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -111,7 +110,7 @@ const xccInput = `
 
 func main() {
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(context.Background(), strings.NewReader(xccInput))
+	solStream, err := d.Dance(strings.NewReader(xccInput))
 	if err != nil {
 		fmt.Println(err)
 		return

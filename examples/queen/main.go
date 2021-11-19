@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"log"
@@ -73,11 +72,8 @@ func main() {
 	}
 	n, _ := strconv.Atoi(os.Args[1])
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(ctx, queenDLX(n))
+	solStream, err := d.Dance(queenDLX(n))
 	if err != nil {
 		fmt.Println(err)
 		return

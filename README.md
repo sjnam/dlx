@@ -26,12 +26,9 @@ C X:0
 B X:1
 C Y:1
 `
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-	defer cancel()
-
 	d := dlx.NewDancer()
 	d.Debug = true
-	ch, err := d.Dance(ctx, strings.NewReader(input))
+	ch, err := d.Dance(strings.NewReader(input))
 	if err != nil {
 		fmt.Println(err)
 		return
