@@ -223,12 +223,10 @@ func (d *Dancer) Dance(rd io.Reader) (<-chan []Option, error) {
 
 	forward:
 		d.nodes++
-		if d.ctx != nil {
-			select {
-			case <-d.ctx.Done():
-				return
-			default:
-			}
+		select {
+		case <-d.ctx.Done():
+			return
+		default:
 		}
 		// Set bestItm to the best item for branching,
 		// and let score be its branching degree
@@ -274,7 +272,11 @@ func (d *Dancer) Dance(rd io.Reader) (<-chan []Option, error) {
 				sol[k] = d.option(pp, head, scor[k])
 			}
 
-			ch <- sol
+			select {
+			case <-d.ctx.Done():
+				goto done
+			case ch <- sol:
+			}
 
 			d.count++
 			if d.count >= maxCount {

@@ -57,6 +57,7 @@ func NewDancer() *Dancer {
 		nd:     make([]node, chunkSize),
 		cl:     make([]item, chunkSize),
 		second: maxCols,
+		ctx:    context.Background(),
 	}
 }
 
