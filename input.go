@@ -2,6 +2,8 @@ package dlx
 
 import (
 	"bufio"
+	"crypto/md5"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"math/rand"
@@ -202,13 +204,10 @@ func (d *Dancer) inputOptions(line string) error {
 		d.nd[d.lastNode].colorName = ""
 		if icr >= 0 { // has color code
 			if k >= d.second {
-				name := string(opt[icr+1:])
-				c, _ := strconv.ParseInt(name, 36, 0)
-				if c == 0 {
-					c = ':'
-				}
-				d.nd[d.lastNode].color = int(c)
-				d.nd[d.lastNode].colorName = ":" + name
+				cName := opt[icr+1:]
+				cs := md5.Sum([]byte(cName))
+				d.nd[d.lastNode].color = int(binary.BigEndian.Uint32(cs[:]))
+				d.nd[d.lastNode].colorName = ":" + cName
 			} else {
 				return fmt.Errorf("primary item must be uncolored")
 			}
