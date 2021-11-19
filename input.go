@@ -204,6 +204,9 @@ func (d *Dancer) inputOptions(line string) error {
 			if k >= d.second {
 				name := string(opt[icr+1:])
 				c, _ := strconv.ParseInt(name, 36, 0)
+				if c == 0 {
+					c = ':'
+				}
 				d.nd[d.lastNode].color = int(c)
 				d.nd[d.lastNode].colorName = ":" + name
 			} else {
