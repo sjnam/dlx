@@ -28,13 +28,9 @@ C Y:1
 `
 	d := dlx.NewDancer()
 	d.Debug = true
-	ch, err := d.Dance(strings.NewReader(input))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	res := d.Dance(strings.NewReader(input))
 
-	for sol := range ch {
+	for sol := range res.Solutions {
 		for _, opt := range sol {
 			fmt.Println(opt)
 		}

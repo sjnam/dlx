@@ -155,14 +155,11 @@ func main() {
 	}
 
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(
+	res := d.Dance(
 		wordSearchDLX(strings.Fields(string(buf)), wd, ht))
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	i := 0
-	for sol := range solStream {
+	for sol := range res.Solutions {
 		i++
 		fmt.Printf("%d:\n", i)
 		puzzleBoard(sol, wd, ht)

@@ -21,6 +21,11 @@ const (
 
 type Option []string
 
+type Result struct {
+	Solutions <-chan []Option
+	Heartbeat <-chan string
+}
+
 type node struct {
 	up, down  int    // predecessor and successor in item list
 	itm       int    // the item containing this node
@@ -36,28 +41,29 @@ type item struct {
 
 // Dancer dancing links object
 type Dancer struct {
-	ctx        context.Context
-	nd         []node // the master list of nodes
-	lastNode   int    // the first node in nd that's not yet used
-	cl         []item // the master list of items
-	lastItm    int    // the first item in cl that's not yet used
-	second     int    // boundary between primary and secondary items
-	options    int    // options seen so far
-	nodes      int    // total number of branch nodes initiated
-	count      int    // solutions found so far
-	updates    uint64 // update count
-	cleansings uint64 // cleansing count
-	Debug      bool   // info/debug message
+	ctx           context.Context
+	PulseInterval time.Duration
+	nd            []node // the master list of nodes
+	lastNode      int    // the first node in nd that's not yet used
+	cl            []item // the master list of items
+	lastItm       int    // the first item in cl that's not yet used
+	second        int    // boundary between primary and secondary items
+	options       int    // options seen so far
+	nodes         int    // total number of branch nodes initiated
+	updates       uint64 // update count
+	cleansings    uint64 // cleansing count
+	Debug         bool   // info/debug message
 }
 
 // NewDancer Wake me up before you Go Go
 func NewDancer() *Dancer {
 	rand.Seed(time.Now().UnixNano())
 	return &Dancer{
-		nd:     make([]node, chunkSize),
-		cl:     make([]item, chunkSize),
-		second: maxCols,
-		ctx:    context.Background(),
+		nd:            make([]node, chunkSize),
+		cl:            make([]item, chunkSize),
+		second:        maxCols,
+		ctx:           context.Background(),
+		PulseInterval: time.Hour,
 	}
 }
 

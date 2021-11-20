@@ -41,17 +41,14 @@ func main() {
 	nc, _ := strconv.Atoi(dimen[1])
 
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(fd)
-	if err != nil {
-		log.Fatal(err)
-	}
+	res := d.Dance(fd)
 
 	box := make([][]int, nr)
 	for i := range box {
 		box[i] = make([]int, nc)
 	}
 
-	solution := <-solStream
+	solution := <-res.Solutions
 	for _, opt := range solution {
 		n := 0
 		var coor [][2]int

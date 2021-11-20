@@ -112,13 +112,10 @@ func sudokuSolver(stream <-chan string) <-chan [][]byte {
 
 		for line := range stream {
 			d := dlx.NewDancer()
-			solStream, err := d.Dance(sudokuDLX(strings.NewReader(line)))
-			if err != nil {
-				log.Fatal(err)
-			}
+			res := d.Dance(sudokuDLX(strings.NewReader(line)))
 
 			ans := []byte(line)
-			for _, opt := range <-solStream {
+			for _, opt := range <-res.Solutions {
 				x := int(opt[0][1] - '0')
 				y := int(opt[0][2] - '0')
 				ans[x*9+y] = opt[1][2]

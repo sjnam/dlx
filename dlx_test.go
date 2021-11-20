@@ -10,13 +10,9 @@ func solve(matrix string) {
 	d := NewDancer()
 	d.Debug = true
 	d.WithContext(context.Background())
-	solStream, err := d.Dance(strings.NewReader(matrix))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	res := d.Dance(strings.NewReader(matrix))
 
-	for sol := range solStream {
+	for sol := range res.Solutions {
 		for _, opt := range sol {
 			fmt.Println(opt)
 		}

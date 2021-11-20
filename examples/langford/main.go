@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strconv"
 
@@ -46,13 +45,10 @@ func main() {
 	n, _ := strconv.Atoi(os.Args[1])
 
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(langfordDLX(n))
-	if err != nil {
-		log.Fatal(err)
-	}
+	res := d.Dance(langfordDLX(n))
 
 	s := make([]int, 2*n)
-	for sol := range solStream {
+	for sol := range res.Solutions {
 		for _, opt := range sol {
 			k, _ := strconv.Atoi(opt[0])
 			for j := 1; j <= 2; j++ {

@@ -110,11 +110,7 @@ const xccInput = `
 
 func main() {
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(strings.NewReader(xccInput))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	res := d.Dance(strings.NewReader(xccInput))
 
 	answer := map[byte][]string{
 		'N': make([]string, 5),
@@ -124,7 +120,7 @@ func main() {
 		'C': make([]string, 5),
 	}
 
-	solution := <-solStream
+	solution := <-res.Solutions
 	for _, opt := range solution {
 		opt = opt[1:]
 		for _, nd := range opt {

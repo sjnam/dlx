@@ -73,18 +73,14 @@ func main() {
 	n, _ := strconv.Atoi(os.Args[1])
 
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(queenDLX(n))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	res := d.Dance(queenDLX(n))
 
 	i := 0
 	board := make([][]string, n)
 	for r := 0; r < n; r++ {
 		board[r] = make([]string, n)
 	}
-	for solution := range solStream {
+	for solution := range res.Solutions {
 		i++
 		for r := 0; r < n; r++ {
 			for c := 0; c < n; c++ {

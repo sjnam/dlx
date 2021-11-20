@@ -47,10 +47,7 @@ func main() {
 	nc, _ := strconv.Atoi(dimen[1])
 
 	d := dlx.NewDancer()
-	solStream, err := d.Dance(fd)
-	if err != nil {
-		log.Fatal(err)
-	}
+	res := d.Dance(fd)
 
 	box := make([][]string, nr)
 	for i := range box {
@@ -61,7 +58,7 @@ func main() {
 	}
 
 	i := 0
-	for solution := range solStream {
+	for solution := range res.Solutions {
 		i++
 		fmt.Printf("%d:\n", i)
 		for _, opt := range solution {

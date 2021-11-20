@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"time"
 )
 
 func (d *Dancer) option(p, head, score int) Option {
@@ -201,15 +202,17 @@ func (d *Dancer) untweak(c, x, unblock int) {
 // options: removing nodes from other lists whenever they belong to an option of
 // a node in this item's list. We cover the chosen item when it has
 // |bound=1|.
-func (d *Dancer) Dance(rd io.Reader) (<-chan []Option, error) {
+func (d *Dancer) Dance(rd io.Reader) Result {
 	if err := d.inputMatrix(rd); err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 
-	ch := make(chan []Option)
+	heartbeat := make(chan string)
+	solStream := make(chan []Option)
 
 	go func() {
-		defer close(ch)
+		defer close(heartbeat)
+		defer close(solStream)
 
 		var (
 			bestItm, curNode int
@@ -219,13 +222,24 @@ func (d *Dancer) Dance(rd io.Reader) (<-chan []Option, error) {
 			choice           = make([]int, maxLevel)
 			scor             = make([]int, maxLevel)
 			firstTweak       = make([]int, maxLevel)
+			count            int
 		)
+
+		pulse := time.Tick(d.PulseInterval)
+		sendPulse := func() {
+			select {
+			case heartbeat <- currentState(level, maxl, count):
+			default:
+			}
+		}
 
 	forward:
 		d.nodes++
 		select {
 		case <-d.ctx.Done():
 			return
+		case <-pulse:
+			sendPulse()
 		default:
 		}
 		// Set bestItm to the best item for branching,
@@ -275,11 +289,13 @@ func (d *Dancer) Dance(rd io.Reader) (<-chan []Option, error) {
 			select {
 			case <-d.ctx.Done():
 				goto done
-			case ch <- sol:
+			case <-pulse:
+				sendPulse()
+			case solStream <- sol:
 			}
 
-			d.count++
-			if d.count >= maxCount {
+			count++
+			if count >= maxCount {
 				goto done
 			}
 			goto backdown
@@ -412,19 +428,23 @@ func (d *Dancer) Dance(rd io.Reader) (<-chan []Option, error) {
 
 	done:
 		if d.Debug {
-			d.statistics()
+			s := ""
+			if count > 1 {
+				s = "s"
+			}
+			fmt.Fprintf(os.Stderr, "Altogether %d solution%s", count, s)
+			fmt.Fprintf(os.Stderr, " %d updates, %d cleansings, %d nodes.\n",
+				d.updates, d.cleansings, d.nodes)
 		}
 	}()
 
-	return ch, nil
+	return Result{
+		Solutions: solStream,
+		Heartbeat: heartbeat,
+	}
 }
 
-func (d *Dancer) statistics() {
-	s := ""
-	if d.count > 1 {
-		s = "s"
-	}
-	fmt.Fprintf(os.Stderr, "Altogether %d solution%s", d.count, s)
-	fmt.Fprintf(os.Stderr, " %d updates, %d cleansings, %d nodes.\n",
-		d.updates, d.cleansings, d.nodes)
+func currentState(level, maxl, count int) string {
+	return fmt.Sprintf("Current state (level %d): "+
+		"%d solutions and  max level %d so far.", level, count, maxl)
 }

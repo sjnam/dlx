@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -83,12 +82,21 @@ func main() {
 	defer cancel()
 
 	d := dlx.NewDancer()
-	d.Debug = true
+	d.PulseInterval = time.Minute
 	d = d.WithContext(ctx)
-	solStream, err := d.Dance(patridgeDLX(8))
-	if err != nil {
-		log.Fatal(err)
-	}
+	res := d.Dance(patridgeDLX(8))
+
+	go func() {
+		for {
+			select {
+			case st, ok := <-res.Heartbeat:
+				if !ok {
+					return
+				}
+				fmt.Println(st)
+			}
+		}
+	}()
 
 	N := 8 * (8 + 1) / 2
 	board := make([][]rune, N)
@@ -97,11 +105,9 @@ func main() {
 	}
 
 	i := 0
-	for sol := range solStream {
+	for sol := range res.Solutions {
 		i++
-		if i == 1 {
-			cancel()
-		}
+		fmt.Printf("%d:\n", i)
 		fillBoard(sol, board)
 	}
 }
