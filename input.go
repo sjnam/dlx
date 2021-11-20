@@ -13,7 +13,7 @@ import (
 
 const delta int = 4
 
-func (d *Dancer) inputMatrix(rd io.Reader) error {
+func inputMatrix(d *Dancer, rd io.Reader) error {
 	var line string
 
 	scanner := bufio.NewScanner(rd)
@@ -33,7 +33,7 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 		return err
 	}
 
-	if err := d.inputItemNames(line); err != nil {
+	if err := inputItemNames(d, line); err != nil {
 		return err
 	}
 
@@ -47,7 +47,7 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 			continue
 		}
 
-		if err := d.inputOptions(line); err != nil {
+		if err := inputOptions(d, line); err != nil {
 			return err
 		}
 	}
@@ -64,7 +64,7 @@ func (d *Dancer) inputMatrix(rd io.Reader) error {
 	return nil
 }
 
-func (d *Dancer) inputItemNames(line string) error {
+func inputItemNames(d *Dancer, line string) error {
 	if d.lastItm == 0 {
 		return fmt.Errorf("no items")
 	}
@@ -141,7 +141,7 @@ func (d *Dancer) inputItemNames(line string) error {
 	return nil
 }
 
-func (d *Dancer) inputOptions(line string) error {
+func inputOptions(d *Dancer, line string) error {
 	leftSpacer := d.lastNode // remember the spacer at the left of this option
 	nonePrimary := true
 	for _, opt := range strings.Fields(line) {

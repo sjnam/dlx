@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (d *Dancer) option(p, head, score int) Option {
+func option(d *Dancer, p, head, score int) Option {
 	var opt Option
 	cl, nd := d.cl, d.nd
 
@@ -48,7 +48,7 @@ func (d *Dancer) option(p, head, score int) Option {
 	return opt
 }
 
-func (d *Dancer) hide(rr int) {
+func hide(d *Dancer, rr int) {
 	nd := d.nd
 	for nn := rr + 1; nn != rr; {
 		if nd[nn].color >= 0 {
@@ -66,7 +66,7 @@ func (d *Dancer) hide(rr int) {
 	}
 }
 
-func (d *Dancer) cover(c int, deact bool) {
+func cover(d *Dancer, c int, deact bool) {
 	cl, nd := d.cl, d.nd
 	if deact {
 		l, r := cl[c].prev, cl[c].next
@@ -74,11 +74,11 @@ func (d *Dancer) cover(c int, deact bool) {
 	}
 	d.updates++
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
-		d.hide(rr)
+		hide(d, rr)
 	}
 }
 
-func (d *Dancer) unhide(rr int) {
+func unhide(d *Dancer, rr int) {
 	nd := d.nd
 	for nn := rr + 1; nn != rr; {
 		if nd[nn].color >= 0 {
@@ -95,10 +95,10 @@ func (d *Dancer) unhide(rr int) {
 	}
 }
 
-func (d *Dancer) uncover(c int, react bool) {
+func uncover(d *Dancer, c int, react bool) {
 	cl, nd := d.cl, d.nd
 	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
-		d.unhide(rr)
+		unhide(d, rr)
 	}
 	if react {
 		l, r := cl[c].prev, cl[c].next
@@ -106,7 +106,7 @@ func (d *Dancer) uncover(c int, react bool) {
 	}
 }
 
-func (d *Dancer) purify(p int) {
+func purify(d *Dancer, p int) {
 	nd := d.nd
 	cc := nd[p].itm
 	x := nd[p].color
@@ -114,7 +114,7 @@ func (d *Dancer) purify(p int) {
 	d.cleansings++
 	for rr := nd[cc].down; rr >= d.lastItm; rr = nd[rr].down {
 		if nd[rr].color != x {
-			d.hide(rr)
+			hide(d, rr)
 		} else if rr != p {
 			d.cleansings++
 			nd[rr].color = -1
@@ -122,7 +122,7 @@ func (d *Dancer) purify(p int) {
 	}
 }
 
-func (d *Dancer) unpurify(p int) {
+func unpurify(d *Dancer, p int) {
 	nd := d.nd
 	cc := nd[p].itm
 	x := nd[p].color
@@ -130,20 +130,12 @@ func (d *Dancer) unpurify(p int) {
 		if nd[rr].color < 0 {
 			nd[rr].color = x
 		} else if rr != p {
-			d.unhide(rr)
+			unhide(d, rr)
 		}
 	}
 }
 
-// Now let's look at tweaking, which is deceptively simple. When this
-// subroutine is called, node n is the topmost for its item.
-// Tweaking is important because the item remains active and on a par
-// with all other active items.
-
-// In the special case the item was chosen for branching with
-// bound=1 and slack>=1, we've already covered the item;
-// hence we shouldn't block its rows again.
-func (d *Dancer) tweak(n, block int) {
+func tweak(d *Dancer, n, block int) {
 	nd := d.nd
 	nn := n
 	if block != 0 {
@@ -168,7 +160,7 @@ func (d *Dancer) tweak(n, block int) {
 	}
 }
 
-func (d *Dancer) untweak(c, x, unblock int) {
+func untweak(d *Dancer, c, x, unblock int) {
 	nd := d.nd
 	z := nd[c].down
 	nd[c].down = x
@@ -177,33 +169,19 @@ func (d *Dancer) untweak(c, x, unblock int) {
 		nd[rr].up = qq
 		k++
 		if unblock != 0 {
-			d.unhide(rr)
+			unhide(d, rr)
 		}
 	}
 	nd[rr].up = qq
 	nd[c].itm += k
 	if unblock == 0 {
-		d.uncover(c, false)
+		uncover(d, c, false)
 	}
 }
 
 // Dance generates all exact covers
-// Our strategy for generating all exact covers will be to repeatedly
-// choose an active primary item and to branch on the ways to reduce
-// the possibilities for covering that item.
-// And we explore all possibilities via depth-first search.
-// The neat part of this algorithm is the way the lists are maintained.
-// Depth-first search means last-in-first-out maintenance of data structures;
-// and it turns out that we need no auxiliary tables to undelete elements from
-// lists when backing up. The nodes removed from doubly linked lists remember
-// their former neighbors, because we do no garbage collection.
-// The basic operation is ``covering an item.'' This means removing it
-// from the list of items needing to be covered, and ``hiding'' its
-// options: removing nodes from other lists whenever they belong to an option of
-// a node in this item's list. We cover the chosen item when it has
-// |bound=1|.
 func (d *Dancer) Dance(rd io.Reader) Result {
-	if err := d.inputMatrix(rd); err != nil {
+	if err := inputMatrix(d, rd); err != nil {
 		log.Fatal(err)
 	}
 
@@ -283,7 +261,7 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 				if head == 0 {
 					head = nd[cc].down
 				}
-				sol[k] = d.option(pp, head, scor[k])
+				sol[k] = option(d, pp, head, scor[k])
 			}
 
 			select {
@@ -309,11 +287,11 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 		cl[bestItm].bound--
 
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			d.cover(bestItm, true)
+			cover(d, bestItm, true)
 		} else {
 			firstTweak[level] = curNode
 			if cl[bestItm].bound == 0 {
-				d.cover(bestItm, true)
+				cover(d, bestItm, true)
 			}
 		}
 
@@ -325,7 +303,7 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 		} else if nd[bestItm].itm <= cl[bestItm].bound-cl[bestItm].slack {
 			goto backup
 		} else if curNode != bestItm {
-			d.tweak(curNode, cl[bestItm].bound)
+			tweak(d, curNode, cl[bestItm].bound)
 		} else if cl[bestItm].bound != 0 {
 			p, q := cl[bestItm].prev, cl[bestItm].next
 			cl[p].next, cl[q].prev = q, p
@@ -334,9 +312,9 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 		if d.Debug {
 			fmt.Fprintf(os.Stderr, "L%d: ", level)
 			if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-				d.option(curNode, nd[bestItm].down, score)
+				option(d, curNode, nd[bestItm].down, score)
 			} else {
-				d.option(curNode, firstTweak[level], score)
+				option(d, curNode, firstTweak[level], score)
 			}
 		}
 
@@ -350,13 +328,13 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 					if cc < d.second {
 						cl[cc].bound--
 						if cl[cc].bound == 0 {
-							d.cover(cc, true)
+							cover(d, cc, true)
 						}
 					} else {
 						if nd[pp].color == 0 {
-							d.cover(cc, true)
+							cover(d, cc, true)
 						} else if nd[pp].color > 0 {
-							d.purify(pp)
+							purify(d, pp)
 						}
 					}
 					pp++
@@ -376,9 +354,9 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 
 	backup: // Restore the original state of bestItm
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			d.uncover(bestItm, true)
+			uncover(d, bestItm, true)
 		} else {
-			d.untweak(bestItm, firstTweak[level], cl[bestItm].bound)
+			untweak(d, bestItm, firstTweak[level], cl[bestItm].bound)
 		}
 		cl[bestItm].bound++
 
@@ -407,14 +385,14 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 			} else {
 				if cc < d.second {
 					if cl[cc].bound == 0 {
-						d.uncover(cc, true)
+						uncover(d, cc, true)
 					}
 					cl[cc].bound++
 				} else {
 					if nd[pp].color == 0 {
-						d.uncover(cc, true)
+						uncover(d, cc, true)
 					} else if nd[pp].color > 0 {
-						d.unpurify(pp)
+						unpurify(d, pp)
 					}
 				}
 				pp--

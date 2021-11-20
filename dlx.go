@@ -42,7 +42,6 @@ type item struct {
 // Dancer dancing links object
 type Dancer struct {
 	ctx           context.Context
-	PulseInterval time.Duration
 	nd            []node // the master list of nodes
 	lastNode      int    // the first node in nd that's not yet used
 	cl            []item // the master list of items
@@ -53,6 +52,7 @@ type Dancer struct {
 	updates       uint64 // update count
 	cleansings    uint64 // cleansing count
 	Debug         bool   // info/debug message
+	PulseInterval time.Duration
 }
 
 // NewDancer Wake me up before you Go Go
