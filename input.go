@@ -154,7 +154,7 @@ func inputOptions(d *Dancer, line string) error {
 		d.cl[d.lastItm].name = opt
 		icr := strings.Index(opt, ":")
 		if icr >= 0 { // has color code
-			d.cl[d.lastItm].name = string(opt[:icr])
+			d.cl[d.lastItm].name = opt[:icr]
 		}
 
 		// Create a node for the item named in opt
