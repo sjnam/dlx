@@ -81,10 +81,10 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
-	d := dlx.NewMCC()
-	d.PulseInterval = 10 * time.Second
-	d = d.WithContext(ctx)
-	res := d.Dance(patridgeDLX(8))
+	mcc := dlx.NewMCC()
+	mcc.PulseInterval = 10 * time.Second
+	mcc = mcc.WithContext(ctx)
+	res := mcc.Dance(patridgeDLX(8))
 
 	go func() {
 		for {
