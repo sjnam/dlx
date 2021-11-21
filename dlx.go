@@ -2,7 +2,6 @@ package dlx
 
 import (
 	"context"
-	"math/rand"
 	"time"
 )
 
@@ -48,7 +47,6 @@ type Dancer struct {
 	lastItm       int    // the first item in cl that's not yet used
 	second        int    // boundary between primary and secondary items
 	options       int    // options seen so far
-	nodes         int    // total number of branch nodes initiated
 	updates       uint64 // update count
 	cleansings    uint64 // cleansing count
 	Debug         bool   // info/debug message
@@ -57,7 +55,6 @@ type Dancer struct {
 
 // NewDancer Wake me up before you Go Go
 func NewDancer() *Dancer {
-	rand.Seed(time.Now().UnixNano())
 	return &Dancer{
 		nd:            make([]node, chunkSize),
 		cl:            make([]item, chunkSize),

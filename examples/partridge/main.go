@@ -82,7 +82,7 @@ func main() {
 	defer cancel()
 
 	d := dlx.NewDancer()
-	d.PulseInterval = time.Minute
+	d.PulseInterval = 10 * time.Second
 	d = d.WithContext(ctx)
 	res := d.Dance(patridgeDLX(8))
 

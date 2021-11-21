@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"hash/crc32"
 	"io"
-	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -182,22 +181,13 @@ func inputOptions(d *Dancer, line string) error {
 			nonePrimary = false
 		}
 
-		// Insert node lastNode into the list item k
-		t := d.nd[k].itm + 1
-		// we want to put the node into a random position of the list
-		// we store the position of the new node into nd[k].color,
-		// so that the test for duplicate items above will be correct.
-		d.nd[k].itm = t            // len field; store the new length of the list
+		d.nd[k].itm++
 		d.nd[k].color = d.lastNode // aux field
-		r := k
-		for t = rand.Intn(t); t > 0; t-- {
-			r = d.nd[r].down
-		}
-		q := d.nd[r].up
-		d.nd[q].down = d.lastNode
-		d.nd[r].up = d.lastNode
-		d.nd[d.lastNode].up = q
-		d.nd[d.lastNode].down = r
+		r := d.nd[k].up
+		d.nd[r].down = d.lastNode
+		d.nd[k].up = d.lastNode
+		d.nd[d.lastNode].up = r
+		d.nd[d.lastNode].down = k
 
 		d.nd[d.lastNode].color = 0
 		d.nd[d.lastNode].colorName = ""

@@ -3,8 +3,6 @@ package dlx
 import (
 	"fmt"
 	"io"
-	"log"
-	"math/rand"
 	"os"
 	"time"
 )
@@ -182,7 +180,7 @@ func untweak(d *Dancer, c, x, unblock int) {
 // Dance generates all exact covers
 func (d *Dancer) Dance(rd io.Reader) Result {
 	if err := inputMatrix(d, rd); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	heartbeat := make(chan string)
@@ -197,22 +195,22 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 			bestL, bestS     int
 			level, maxl      int // maximum level actually reached
 			cl, nd           = d.cl, d.nd
-			choice           = make([]int, maxLevel)
-			scor             = make([]int, maxLevel)
-			firstTweak       = make([]int, maxLevel)
-			count            int
+			choice, scor     [maxLevel]int
+			firstTweak       [maxLevel]int
+			count, nodes     int
 		)
 
 		pulse := time.Tick(d.PulseInterval)
 		sendPulse := func() {
 			select {
-			case heartbeat <- currentState(level, maxl, count):
+			case heartbeat <- fmt.Sprintf("L(%d/%d): %d sols so far",
+				level, maxl, count):
 			default:
 			}
 		}
 
 	forward:
-		d.nodes++
+		nodes++
 		select {
 		case <-d.ctx.Done():
 			return
@@ -229,19 +227,12 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 				s = cl[k].bound
 			}
 			t := nd[k].itm + s - cl[k].bound + 1
-			p := 0
 			if t <= score {
 				if t < score || s < bestS || (s == bestS && nd[k].itm > bestL) {
 					score = t
 					bestItm = k
 					bestS = s
 					bestL = nd[k].itm
-					p = 1
-				} else if s == bestS && nd[k].itm == bestL {
-					p++
-					if rand.Intn(p) == 0 {
-						bestItm = k
-					}
 				}
 			}
 		}
@@ -346,7 +337,7 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 		level++
 		if level > maxl {
 			if level >= maxLevel {
-				log.Fatalf("too many levels")
+				panic("too many levels")
 			}
 			maxl = level
 		}
@@ -412,7 +403,7 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 			}
 			fmt.Fprintf(os.Stderr, "Altogether %d solution%s", count, s)
 			fmt.Fprintf(os.Stderr, " %d updates, %d cleansings, %d nodes.\n",
-				d.updates, d.cleansings, d.nodes)
+				d.updates, d.cleansings, nodes)
 		}
 	}()
 
@@ -420,9 +411,4 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 		Solutions: solStream,
 		Heartbeat: heartbeat,
 	}
-}
-
-func currentState(level, maxl, count int) string {
-	return fmt.Sprintf("Current state (level %d): "+
-		"%d solutions and  max level %d so far.", level, count, maxl)
 }
