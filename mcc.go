@@ -2,6 +2,7 @@ package dlx
 
 import (
 	"context"
+	"io"
 	"time"
 )
 
@@ -25,6 +26,10 @@ type Result struct {
 	Heartbeat <-chan string
 }
 
+type Dancer interface {
+	Dance(reader io.Reader) Result
+}
+
 type node struct {
 	up, down  int    // predecessor and successor in item list
 	itm       int    // the item containing this node
@@ -38,8 +43,8 @@ type item struct {
 	bound, slack int    // residual capacity of ths item
 }
 
-// Dancer dancing links object
-type Dancer struct {
+// MCC dancing links object
+type MCC struct {
 	ctx           context.Context
 	nd            []node // the master list of nodes
 	lastNode      int    // the first node in nd that's not yet used
@@ -53,9 +58,9 @@ type Dancer struct {
 	PulseInterval time.Duration
 }
 
-// NewDancer Wake me up before you Go Go
-func NewDancer() *Dancer {
-	return &Dancer{
+// NewMCC Wake me up before you Go Go
+func NewMCC() *MCC {
+	return &MCC{
 		nd:            make([]node, chunkSize),
 		cl:            make([]item, chunkSize),
 		second:        maxCols,
@@ -64,12 +69,12 @@ func NewDancer() *Dancer {
 	}
 }
 
-func (d *Dancer) WithContext(ctx context.Context) *Dancer {
+func (m *MCC) WithContext(ctx context.Context) *MCC {
 	if ctx == nil {
 		panic("nil context")
 	}
-	d2 := new(Dancer)
-	*d2 = *d
+	d2 := new(MCC)
+	*d2 = *m
 	d2.ctx = ctx
 	return d2
 }

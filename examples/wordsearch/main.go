@@ -154,7 +154,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	d := dlx.NewDancer()
+	d := dlx.NewMCC()
 	res := d.Dance(
 		wordSearchDLX(strings.Fields(string(buf)), wd, ht))
 

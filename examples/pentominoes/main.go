@@ -46,7 +46,7 @@ func main() {
 	nr, _ := strconv.Atoi(dimen[0])
 	nc, _ := strconv.Atoi(dimen[1])
 
-	d := dlx.NewDancer()
+	d := dlx.NewMCC()
 	res := d.Dance(fd)
 
 	box := make([][]string, nr)

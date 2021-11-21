@@ -26,17 +26,15 @@ C X:0
 B X:1
 C Y:1
 `
-	d := dlx.NewDancer()
-	d.Debug = true
-	res := d.Dance(strings.NewReader(input))
+	mcc := dlx.NewMCC()
+	mcc.Debug = true
+	res := mcc.Dance(strings.NewReader(input))
 
 	for sol := range res.Solutions {
 		for _, opt := range sol {
 			fmt.Println(opt)
 		}
 	}
-
-	d.Statistics()
 }
 
 // (5 options, 3+2 items, 19 entries successfully read)

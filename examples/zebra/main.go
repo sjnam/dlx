@@ -109,7 +109,7 @@ const xccInput = `
 `
 
 func main() {
-	d := dlx.NewDancer()
+	d := dlx.NewMCC()
 	res := d.Dance(strings.NewReader(xccInput))
 
 	answer := map[byte][]string{

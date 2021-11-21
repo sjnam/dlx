@@ -111,7 +111,7 @@ func sudokuSolver(stream <-chan string) <-chan [][]byte {
 		defer close(ch)
 
 		for line := range stream {
-			d := dlx.NewDancer()
+			d := dlx.NewMCC()
 			res := d.Dance(sudokuDLX(strings.NewReader(line)))
 
 			ans := []byte(line)

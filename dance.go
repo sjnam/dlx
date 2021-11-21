@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
-func option(d *Dancer, p, head, score int) Option {
+func option(m *MCC, p, head, score int) Option {
 	var opt Option
-	cl, nd := d.cl, d.nd
+	cl, nd := m.cl, m.nd
 
-	if (p < d.lastItm && p == head) || (head >= d.lastItm && p == nd[head].itm) {
+	if (p < m.lastItm && p == head) || (head >= m.lastItm && p == nd[head].itm) {
 		opt = append(opt, fmt.Sprintf("null %s", cl[p].name))
 	} else {
 		q := p + 1
@@ -29,11 +29,11 @@ func option(d *Dancer, p, head, score int) Option {
 		}
 	}
 
-	if d.Debug {
+	if m.Debug {
 		fmt.Fprintf(os.Stderr, "%s", opt)
 		k := 1
 		for q := head; q != p; k++ {
-			if p >= d.lastItm && q == nd[p].itm {
+			if p >= m.lastItm && q == nd[p].itm {
 				fmt.Fprintln(os.Stderr, "(?)")
 				return opt
 			} else {
@@ -46,8 +46,8 @@ func option(d *Dancer, p, head, score int) Option {
 	return opt
 }
 
-func hide(d *Dancer, rr int) {
-	nd := d.nd
+func hide(m *MCC, rr int) {
+	nd := m.nd
 	for nn := rr + 1; nn != rr; {
 		if nd[nn].color >= 0 {
 			uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
@@ -57,27 +57,27 @@ func hide(d *Dancer, rr int) {
 			}
 			nd[uu].down = dd
 			nd[dd].up = uu
-			d.updates++
+			m.updates++
 			nd[cc].itm--
 		}
 		nn++
 	}
 }
 
-func cover(d *Dancer, c int, deact bool) {
-	cl, nd := d.cl, d.nd
+func cover(m *MCC, c int, deact bool) {
+	cl, nd := m.cl, m.nd
 	if deact {
 		l, r := cl[c].prev, cl[c].next
 		cl[l].next, cl[r].prev = r, l
 	}
-	d.updates++
-	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
-		hide(d, rr)
+	m.updates++
+	for rr := nd[c].down; rr >= m.lastItm; rr = nd[rr].down {
+		hide(m, rr)
 	}
 }
 
-func unhide(d *Dancer, rr int) {
-	nd := d.nd
+func unhide(m *MCC, rr int) {
+	nd := m.nd
 	for nn := rr + 1; nn != rr; {
 		if nd[nn].color >= 0 {
 			uu, dd, cc := nd[nn].up, nd[nn].down, nd[nn].itm
@@ -93,10 +93,10 @@ func unhide(d *Dancer, rr int) {
 	}
 }
 
-func uncover(d *Dancer, c int, react bool) {
-	cl, nd := d.cl, d.nd
-	for rr := nd[c].down; rr >= d.lastItm; rr = nd[rr].down {
-		unhide(d, rr)
+func uncover(m *MCC, c int, react bool) {
+	cl, nd := m.cl, m.nd
+	for rr := nd[c].down; rr >= m.lastItm; rr = nd[rr].down {
+		unhide(m, rr)
 	}
 	if react {
 		l, r := cl[c].prev, cl[c].next
@@ -104,37 +104,37 @@ func uncover(d *Dancer, c int, react bool) {
 	}
 }
 
-func purify(d *Dancer, p int) {
-	nd := d.nd
+func purify(m *MCC, p int) {
+	nd := m.nd
 	cc := nd[p].itm
 	x := nd[p].color
 	nd[cc].color = x
-	d.cleansings++
-	for rr := nd[cc].down; rr >= d.lastItm; rr = nd[rr].down {
+	m.cleansings++
+	for rr := nd[cc].down; rr >= m.lastItm; rr = nd[rr].down {
 		if nd[rr].color != x {
-			hide(d, rr)
+			hide(m, rr)
 		} else if rr != p {
-			d.cleansings++
+			m.cleansings++
 			nd[rr].color = -1
 		}
 	}
 }
 
-func unpurify(d *Dancer, p int) {
-	nd := d.nd
+func unpurify(m *MCC, p int) {
+	nd := m.nd
 	cc := nd[p].itm
 	x := nd[p].color
-	for rr := nd[cc].up; rr >= d.lastItm; rr = nd[rr].up {
+	for rr := nd[cc].up; rr >= m.lastItm; rr = nd[rr].up {
 		if nd[rr].color < 0 {
 			nd[rr].color = x
 		} else if rr != p {
-			unhide(d, rr)
+			unhide(m, rr)
 		}
 	}
 }
 
-func tweak(d *Dancer, n, block int) {
-	nd := d.nd
+func tweak(m *MCC, n, block int) {
+	nd := m.nd
 	nn := n
 	if block != 0 {
 		nn = n + 1
@@ -148,7 +148,7 @@ func tweak(d *Dancer, n, block int) {
 			}
 			nd[uu].down = dd
 			nd[dd].up = uu
-			d.updates++
+			m.updates++
 			nd[cc].itm--
 		}
 		if nn == n {
@@ -158,8 +158,8 @@ func tweak(d *Dancer, n, block int) {
 	}
 }
 
-func untweak(d *Dancer, c, x, unblock int) {
-	nd := d.nd
+func untweak(m *MCC, c, x, unblock int) {
+	nd := m.nd
 	z := nd[c].down
 	nd[c].down = x
 	rr, qq, k := x, c, 0
@@ -167,19 +167,19 @@ func untweak(d *Dancer, c, x, unblock int) {
 		nd[rr].up = qq
 		k++
 		if unblock != 0 {
-			unhide(d, rr)
+			unhide(m, rr)
 		}
 	}
 	nd[rr].up = qq
 	nd[c].itm += k
 	if unblock == 0 {
-		uncover(d, c, false)
+		uncover(m, c, false)
 	}
 }
 
 // Dance generates all exact covers
-func (d *Dancer) Dance(rd io.Reader) Result {
-	if err := inputMatrix(d, rd); err != nil {
+func (m *MCC) Dance(rd io.Reader) Result {
+	if err := inputMatrix(m, rd); err != nil {
 		panic(err)
 	}
 
@@ -194,13 +194,13 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 			bestItm, curNode int
 			bestL, bestS     int
 			level, maxl      int // maximum level actually reached
-			cl, nd           = d.cl, d.nd
+			cl, nd           = m.cl, m.nd
 			choice, scor     [maxLevel]int
 			firstTweak       [maxLevel]int
 			count, nodes     int
 		)
 
-		pulse := time.Tick(d.PulseInterval)
+		pulse := time.Tick(m.PulseInterval)
 		sendPulse := func() {
 			select {
 			case heartbeat <- fmt.Sprintf("L(%d/%d): %d sols so far",
@@ -212,7 +212,7 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 	forward:
 		nodes++
 		select {
-		case <-d.ctx.Done():
+		case <-m.ctx.Done():
 			return
 		case <-pulse:
 			sendPulse()
@@ -245,18 +245,18 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 			for k := 0; k < level; k++ {
 				pp := choice[k]
 				cc := nd[pp].itm
-				if pp < d.lastItm {
+				if pp < m.lastItm {
 					cc = pp
 				}
 				head := firstTweak[k]
 				if head == 0 {
 					head = nd[cc].down
 				}
-				sol[k] = option(d, pp, head, scor[k])
+				sol[k] = option(m, pp, head, scor[k])
 			}
 
 			select {
-			case <-d.ctx.Done():
+			case <-m.ctx.Done():
 				goto done
 			case <-pulse:
 				sendPulse()
@@ -278,11 +278,11 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 		cl[bestItm].bound--
 
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			cover(d, bestItm, true)
+			cover(m, bestItm, true)
 		} else {
 			firstTweak[level] = curNode
 			if cl[bestItm].bound == 0 {
-				cover(d, bestItm, true)
+				cover(m, bestItm, true)
 			}
 		}
 
@@ -294,38 +294,38 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 		} else if nd[bestItm].itm <= cl[bestItm].bound-cl[bestItm].slack {
 			goto backup
 		} else if curNode != bestItm {
-			tweak(d, curNode, cl[bestItm].bound)
+			tweak(m, curNode, cl[bestItm].bound)
 		} else if cl[bestItm].bound != 0 {
 			p, q := cl[bestItm].prev, cl[bestItm].next
 			cl[p].next, cl[q].prev = q, p
 		}
 
-		if d.Debug {
+		if m.Debug {
 			fmt.Fprintf(os.Stderr, "L%d: ", level)
 			if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-				option(d, curNode, nd[bestItm].down, score)
+				option(m, curNode, nd[bestItm].down, score)
 			} else {
-				option(d, curNode, firstTweak[level], score)
+				option(m, curNode, firstTweak[level], score)
 			}
 		}
 
-		if curNode > d.lastItm {
+		if curNode > m.lastItm {
 			// Cover or partially cover all other items of curNode's option
 			for pp := curNode + 1; pp != curNode; {
 				cc := nd[pp].itm
 				if cc <= 0 {
 					pp = nd[pp].up
 				} else {
-					if cc < d.second {
+					if cc < m.second {
 						cl[cc].bound--
 						if cl[cc].bound == 0 {
-							cover(d, cc, true)
+							cover(m, cc, true)
 						}
 					} else {
 						if nd[pp].color == 0 {
-							cover(d, cc, true)
+							cover(m, cc, true)
 						} else if nd[pp].color > 0 {
-							purify(d, pp)
+							purify(m, pp)
 						}
 					}
 					pp++
@@ -345,9 +345,9 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 
 	backup: // Restore the original state of bestItm
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			uncover(d, bestItm, true)
+			uncover(m, bestItm, true)
 		} else {
-			untweak(d, bestItm, firstTweak[level], cl[bestItm].bound)
+			untweak(m, bestItm, firstTweak[level], cl[bestItm].bound)
 		}
 		cl[bestItm].bound++
 
@@ -360,7 +360,7 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 		bestItm = nd[curNode].itm
 		score = scor[level]
 
-		if curNode < d.lastItm {
+		if curNode < m.lastItm {
 			// Reactivate bestItm and goto backup
 			bestItm = curNode
 			p, q := cl[bestItm].prev, cl[bestItm].next
@@ -374,16 +374,16 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 			if cc <= 0 {
 				pp = nd[pp].down
 			} else {
-				if cc < d.second {
+				if cc < m.second {
 					if cl[cc].bound == 0 {
-						uncover(d, cc, true)
+						uncover(m, cc, true)
 					}
 					cl[cc].bound++
 				} else {
 					if nd[pp].color == 0 {
-						uncover(d, cc, true)
+						uncover(m, cc, true)
 					} else if nd[pp].color > 0 {
-						unpurify(d, pp)
+						unpurify(m, pp)
 					}
 				}
 				pp--
@@ -396,14 +396,14 @@ func (d *Dancer) Dance(rd io.Reader) Result {
 		goto advance
 
 	done:
-		if d.Debug {
+		if m.Debug {
 			s := ""
 			if count > 1 {
 				s = "s"
 			}
 			fmt.Fprintf(os.Stderr, "Altogether %d solution%s", count, s)
 			fmt.Fprintf(os.Stderr, " %d updates, %d cleansings, %d nodes.\n",
-				d.updates, d.cleansings, nodes)
+				m.updates, m.cleansings, nodes)
 		}
 	}()
 
