@@ -3,6 +3,7 @@ package dlx
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"time"
 )
@@ -193,7 +194,7 @@ func (m *MCC) Dance(rd io.Reader) Result {
 		var (
 			bestItm, curNode int
 			bestL, bestS     int
-			level, maxl      int // maximum level actually reached
+			level, maxl, p   int // maximum level actually reached
 			cl, nd           = m.cl, m.nd
 			choice, scor     [maxLevel]int
 			firstTweak       [maxLevel]int
@@ -233,6 +234,12 @@ func (m *MCC) Dance(rd io.Reader) Result {
 					bestItm = k
 					bestS = s
 					bestL = nd[k].itm
+					p = 1
+				} else if s == bestS && nd[k].itm == bestL {
+					p++
+					if rand.Intn(p) == 0 {
+						bestItm = k
+					}
 				}
 			}
 		}
