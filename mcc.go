@@ -3,7 +3,6 @@ package dlx
 import (
 	"context"
 	"io"
-	"math/rand"
 	"time"
 )
 
@@ -61,7 +60,6 @@ type MCC struct {
 
 // NewMCC Wake me up before you Go Go
 func NewMCC() *MCC {
-	rand.Seed(time.Now().UnixNano())
 	return &MCC{
 		nd:            make([]node, chunkSize),
 		cl:            make([]item, chunkSize),

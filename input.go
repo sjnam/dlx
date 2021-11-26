@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"hash/crc32"
 	"io"
-	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -182,18 +181,13 @@ func inputOptions(m *MCC, line string) error {
 			nonePrimary = false
 		}
 
-		t := m.nd[k].itm + 1
-		m.nd[k].itm = t
+		m.nd[k].itm++
 		m.nd[k].color = m.lastNode // aux field
-		r := k
-		for t = rand.Intn(t); t > 0; r = m.nd[r].down {
-			t--
-		}
-		q := m.nd[r].up
-		m.nd[q].down = m.lastNode
-		m.nd[r].up = m.lastNode
-		m.nd[m.lastNode].up = q
-		m.nd[m.lastNode].down = r
+		r := m.nd[k].up
+		m.nd[r].down = m.lastNode
+		m.nd[k].up = m.lastNode
+		m.nd[m.lastNode].up = r
+		m.nd[m.lastNode].down = k
 
 		m.nd[m.lastNode].color = 0
 		m.nd[m.lastNode].colorName = ""
