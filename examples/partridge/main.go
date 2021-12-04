@@ -82,10 +82,11 @@ func main() {
 	defer cancel()
 
 	mcc := dlx.NewMCC()
-	mcc.PulseInterval = 10 * time.Second
+	mcc.PulseInterval = 30 * time.Second
 	mcc = mcc.WithContext(ctx)
 	res := mcc.Dance(patridgeDLX(8))
 
+	start := time.Now()
 	go func() {
 		for {
 			select {
@@ -93,7 +94,7 @@ func main() {
 				if !ok {
 					return
 				}
-				fmt.Println(st)
+				fmt.Printf("%s (%v)\n", st, time.Since(start))
 			}
 		}
 	}()
