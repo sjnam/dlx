@@ -200,7 +200,7 @@ func (m *MCC) Dance(rd io.Reader) Result {
 			count, nodes     int
 		)
 
-		pulse := time.Tick(m.PulseInterval)
+		pulse := time.NewTicker(m.PulseInterval)
 		sendPulse := func() {
 			select {
 			case heartbeat <- fmt.Sprintf("L(%d/%d): %d sols so far",
@@ -214,7 +214,7 @@ func (m *MCC) Dance(rd io.Reader) Result {
 		select {
 		case <-m.ctx.Done():
 			return
-		case <-pulse:
+		case <-pulse.C:
 			sendPulse()
 		default:
 		}
@@ -258,7 +258,7 @@ func (m *MCC) Dance(rd io.Reader) Result {
 			select {
 			case <-m.ctx.Done():
 				goto done
-			case <-pulse:
+			case <-pulse.C:
 				sendPulse()
 			case solStream <- sol:
 			}
