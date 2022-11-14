@@ -57,28 +57,28 @@ func sudokuDLX(rd io.Reader) io.Reader {
 			_ = w.Close()
 		}()
 
-		for j := 0; j < 9; j++ {
+		for j = 0; j < 9; j++ {
 			for k := 0; k < 9; k++ {
 				if pos[j][k] == 0 {
 					fmt.Fprintf(w, "p%d%d ", j, k)
 				}
 			}
 		}
-		for j := 0; j < 9; j++ {
+		for j = 0; j < 9; j++ {
 			for k := 0; k < 9; k++ {
 				if row[j][k] == 0 {
 					fmt.Fprintf(w, "r%d%d ", j, k+1)
 				}
 			}
 		}
-		for j := 0; j < 9; j++ {
+		for j = 0; j < 9; j++ {
 			for k := 0; k < 9; k++ {
 				if col[j][k] == 0 {
 					fmt.Fprintf(w, "c%d%d ", j, k+1)
 				}
 			}
 		}
-		for j := 0; j < 9; j++ {
+		for j = 0; j < 9; j++ {
 			for k := 0; k < 9; k++ {
 				if box[j][k] == 0 {
 					fmt.Fprintf(w, "b%d%d ", j, k+1)
@@ -87,7 +87,7 @@ func sudokuDLX(rd io.Reader) io.Reader {
 		}
 		fmt.Fprintln(w)
 
-		for j := 0; j < 9; j++ {
+		for j = 0; j < 9; j++ {
 			for k := 0; k < 9; k++ {
 				for d := 0; d < 9; d++ {
 					x := j/3*3 + k/3
@@ -192,7 +192,7 @@ func main() {
 			genStream[i%numSolvers] <- strings.TrimSpace(scanner.Text())
 			i++
 		}
-		if err := scanner.Err(); err != nil {
+		if err = scanner.Err(); err != nil {
 			log.Fatal(err)
 		}
 	}()

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
@@ -63,7 +62,7 @@ func wordSearchDLX(words []string, wd, ht int) io.Reader {
 							}
 							fmt.Fprintln(pw)
 						}
-						//upward diagonal placement
+						// upward diagonal placement
 						if r+wlen <= ht && c-wlen+1 >= 0 {
 							fmt.Fprintf(pw, "%s ", word)
 							for i := 0; i < wlen; i++ {
@@ -149,7 +148,7 @@ func main() {
 
 	wd, _ := strconv.Atoi(args[2])
 	ht, _ := strconv.Atoi(args[3])
-	buf, err := ioutil.ReadFile(args[1])
+	buf, err := os.ReadFile(args[1])
 	if err != nil {
 		log.Fatal(err)
 	}
