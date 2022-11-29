@@ -173,7 +173,7 @@ func main() {
 	}
 	defer fd.Close()
 
-	numSolvers := runtime.NumCPU()
+	numSolvers := runtime.NumCPU() * 128
 	var genStream []chan string
 	for i := 0; i < numSolvers; i++ {
 		genStream = append(genStream, make(chan string))
