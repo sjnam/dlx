@@ -174,9 +174,13 @@ func main() {
 	defer fd.Close()
 
 	numSolvers := runtime.NumCPU() * 128
+
+	var solvers []<-chan [][]byte
 	var genStream []chan string
 	for i := 0; i < numSolvers; i++ {
-		genStream = append(genStream, make(chan string))
+		ch := make(chan string)
+		genStream = append(genStream, ch)
+		solvers = append(solvers, sudokuSolver(ch))
 	}
 
 	go func() {
@@ -196,11 +200,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-
-	var solvers []<-chan [][]byte
-	for _, gs := range genStream {
-		solvers = append(solvers, sudokuSolver(gs))
-	}
 
 	i := 0
 	for s := range fanIn(ctx, solvers) {
