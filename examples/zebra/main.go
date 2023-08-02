@@ -109,8 +109,8 @@ const xccInput = `
 `
 
 func main() {
-	mcc := dlx.NewMCC()
-	res := mcc.Dance(strings.NewReader(xccInput))
+	xcc := dlx.NewMCC()
+	res := xcc.Dance(strings.NewReader(xccInput))
 
 	answer := map[byte][]string{
 		'N': make([]string, 5),

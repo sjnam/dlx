@@ -9,7 +9,7 @@ import (
 func solve(matrix string) {
 	d := NewMCC()
 	d.Debug = true
-	d.WithContext(context.Background())
+	d = d.WithContext(context.TODO())
 	res := d.Dance(strings.NewReader(matrix))
 
 	for sol := range res.Solutions {

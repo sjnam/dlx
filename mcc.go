@@ -64,7 +64,7 @@ func NewMCC() *MCC {
 		nd:            make([]node, chunkSize),
 		cl:            make([]item, chunkSize),
 		second:        maxCols,
-		ctx:           context.Background(),
+		ctx:           context.TODO(),
 		PulseInterval: time.Hour,
 	}
 }

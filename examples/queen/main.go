@@ -72,8 +72,8 @@ func main() {
 	}
 	n, _ := strconv.Atoi(os.Args[1])
 
-	mcc := dlx.NewMCC()
-	res := mcc.Dance(queenDLX(n))
+	xc := dlx.NewMCC()
+	res := xc.Dance(queenDLX(n))
 
 	i := 0
 	board := make([][]string, n)

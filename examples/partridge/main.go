@@ -78,7 +78,7 @@ func fillBoard(sol []dlx.Option, board [][]rune) {
 }
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	ctx, cancel := context.WithTimeout(context.TODO(), 30*time.Minute)
 	defer cancel()
 
 	mcc := dlx.NewMCC()

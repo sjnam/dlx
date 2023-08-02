@@ -153,8 +153,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mcc := dlx.NewMCC()
-	res := mcc.Dance(
+	xcc := dlx.NewMCC()
+	res := xcc.Dance(
 		wordSearchDLX(strings.Fields(string(buf)), wd, ht))
 
 	i := 0

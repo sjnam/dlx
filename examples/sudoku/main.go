@@ -111,8 +111,8 @@ func sudokuSolver(stream <-chan string) <-chan [][]byte {
 		defer close(ch)
 
 		for line := range stream {
-			mcc := dlx.NewMCC()
-			res := mcc.Dance(sudokuDLX(strings.NewReader(line)))
+			xc := dlx.NewMCC()
+			res := xc.Dance(sudokuDLX(strings.NewReader(line)))
 
 			ans := []byte(line)
 			for _, opt := range <-res.Solutions {
@@ -164,7 +164,7 @@ func main() {
 
 	start := time.Now()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
 	fd, err := os.Open(args[1])

@@ -40,8 +40,8 @@ func main() {
 	nr, _ := strconv.Atoi(dimen[0])
 	nc, _ := strconv.Atoi(dimen[1])
 
-	mcc := dlx.NewMCC()
-	res := mcc.Dance(fd)
+	xc := dlx.NewMCC()
+	res := xc.Dance(fd)
 
 	box := make([][]int, nr)
 	for i := range box {
