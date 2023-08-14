@@ -2,14 +2,11 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"runtime"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/sjnam/dlx"
@@ -105,55 +102,57 @@ func sudokuDLX(rd io.Reader) io.Reader {
 }
 
 func sudokuSolver(stream <-chan string) <-chan [][]byte {
-	ch := make(chan [][]byte)
-
+	outChCh := make(chan chan [][]byte, 128)
 	go func() {
-		defer close(ch)
+		defer close(outChCh)
 
 		for line := range stream {
-			xc := dlx.NewMCC()
-			res := xc.Dance(sudokuDLX(strings.NewReader(line)))
+			outCh := make(chan [][]byte)
+			outChCh <- outCh
 
-			ans := []byte(line)
-			for _, opt := range <-res.Solutions {
-				x := int(opt[0][1] - '0')
-				y := int(opt[0][2] - '0')
-				ans[x*9+y] = opt[1][2]
-			}
+			go func(line string) {
+				xc := dlx.NewMCC()
+				res := xc.Dance(sudokuDLX(strings.NewReader(line)))
 
-			ch <- [][]byte{[]byte(line), ans}
+				ans := []byte(line)
+				for _, opt := range <-res.Solutions {
+					x := int(opt[0][1] - '0')
+					y := int(opt[0][2] - '0')
+					ans[x*9+y] = opt[1][2]
+				}
+
+				outCh <- [][]byte{[]byte(line), ans}
+			}(line)
 		}
 	}()
 
-	return ch
+	outCh := make(chan [][]byte)
+	go func() {
+		defer close(outCh)
+
+		for ch := range outChCh {
+			outCh <- <-ch
+		}
+	}()
+
+	return outCh
 }
 
-func fanIn(ctx context.Context, channels []<-chan [][]byte) <-chan [][]byte {
-	var wg sync.WaitGroup
-	multiplexedStream := make(chan [][]byte)
-
-	multiplex := func(c <-chan [][]byte) {
-		defer wg.Done()
-		for s := range c {
-			select {
-			case <-ctx.Done():
-				return
-			case multiplexedStream <- s:
-			}
-		}
-	}
-
-	wg.Add(len(channels))
-	for _, c := range channels {
-		go multiplex(c)
-	}
-
+func readLines(fd io.Reader) <-chan string {
+	outCh := make(chan string)
 	go func() {
-		wg.Wait()
-		close(multiplexedStream)
+		defer close(outCh)
+
+		scanner := bufio.NewScanner(fd)
+		for scanner.Scan() {
+			outCh <- strings.TrimSpace(scanner.Text())
+		}
+		if err := scanner.Err(); err != nil {
+			log.Fatal(err)
+		}
 	}()
 
-	return multiplexedStream
+	return outCh
 }
 
 func main() {
@@ -164,45 +163,14 @@ func main() {
 
 	start := time.Now()
 
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
-
 	fd, err := os.Open(args[1])
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer fd.Close()
 
-	numSolvers := runtime.NumCPU() * 128
-
-	var solvers []<-chan [][]byte
-	var genStream []chan string
-	for i := 0; i < numSolvers; i++ {
-		ch := make(chan string)
-		genStream = append(genStream, ch)
-		solvers = append(solvers, sudokuSolver(ch))
-	}
-
-	go func() {
-		defer func() {
-			for _, gs := range genStream {
-				close(gs)
-			}
-		}()
-
-		i := 0
-		scanner := bufio.NewScanner(fd)
-		for scanner.Scan() {
-			genStream[i%numSolvers] <- strings.TrimSpace(scanner.Text())
-			i++
-		}
-		if err = scanner.Err(); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
 	i := 0
-	for s := range fanIn(ctx, solvers) {
+	for s := range sudokuSolver(readLines(fd)) {
 		i++
 		fmt.Printf("Q[%5d]: %s\n", i, s[0])
 		fmt.Printf("A[%5d]: %s\n", i, s[1])
