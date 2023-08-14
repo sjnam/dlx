@@ -110,17 +110,15 @@ func sudokuSolver(stream <-chan string) <-chan [][]byte {
 			outCh := make(chan [][]byte)
 			outChCh <- outCh
 
+			xc := dlx.NewMCC()
 			go func(line string) {
-				xc := dlx.NewMCC()
 				res := xc.Dance(sudokuDLX(strings.NewReader(line)))
-
 				ans := []byte(line)
 				for _, opt := range <-res.Solutions {
 					x := int(opt[0][1] - '0')
 					y := int(opt[0][2] - '0')
 					ans[x*9+y] = opt[1][2]
 				}
-
 				outCh <- [][]byte{[]byte(line), ans}
 			}(line)
 		}
@@ -138,27 +136,27 @@ func sudokuSolver(stream <-chan string) <-chan [][]byte {
 	return outCh
 }
 
-func readLines(fd io.Reader) <-chan string {
-	outCh := make(chan string)
+func inputLines(fd io.Reader) <-chan string {
+	ch := make(chan string)
 	go func() {
-		defer close(outCh)
+		defer close(ch)
 
 		scanner := bufio.NewScanner(fd)
 		for scanner.Scan() {
-			outCh <- strings.TrimSpace(scanner.Text())
+			ch <- strings.TrimSpace(scanner.Text())
 		}
 		if err := scanner.Err(); err != nil {
 			log.Fatal(err)
 		}
 	}()
 
-	return outCh
+	return ch
 }
 
 func main() {
 	args := os.Args
 	if len(args) != 2 {
-		log.Fatalf("usage: %s dlx-file\n", args[0])
+		log.Fatalf("usage: %s file\n", args[0])
 	}
 
 	start := time.Now()
@@ -170,7 +168,7 @@ func main() {
 	defer fd.Close()
 
 	i := 0
-	for s := range sudokuSolver(readLines(fd)) {
+	for s := range sudokuSolver(inputLines(fd)) {
 		i++
 		fmt.Printf("Q[%5d]: %s\n", i, s[0])
 		fmt.Printf("A[%5d]: %s\n", i, s[1])
