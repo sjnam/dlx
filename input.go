@@ -12,7 +12,7 @@ import (
 
 const delta int = 4
 
-func inputMatrix(m *MCC, rd io.Reader) error {
+func (m *MCC) inputMatrix(rd io.Reader) error {
 	var line string
 
 	scanner := bufio.NewScanner(rd)
@@ -32,7 +32,7 @@ func inputMatrix(m *MCC, rd io.Reader) error {
 		return err
 	}
 
-	if err := inputItemNames(m, line); err != nil {
+	if err := m.inputItemNames(line); err != nil {
 		return err
 	}
 
@@ -63,7 +63,7 @@ func inputMatrix(m *MCC, rd io.Reader) error {
 	return nil
 }
 
-func inputItemNames(m *MCC, line string) error {
+func (m *MCC) inputItemNames(line string) error {
 	if m.lastItm == 0 {
 		return fmt.Errorf("no items")
 	}

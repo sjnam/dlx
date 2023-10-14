@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func option(m *MCC, p, head, score int) Option {
+func (m *MCC) option(p, head, score int) Option {
 	var opt Option
 	cl, nd := m.cl, m.nd
 
@@ -46,7 +46,7 @@ func option(m *MCC, p, head, score int) Option {
 	return opt
 }
 
-func hide(m *MCC, rr int) {
+func (m *MCC) hide(rr int) {
 	nd := m.nd
 	for nn := rr + 1; nn != rr; {
 		if nd[nn].color >= 0 {
@@ -64,7 +64,7 @@ func hide(m *MCC, rr int) {
 	}
 }
 
-func cover(m *MCC, c int, deact bool) {
+func (m *MCC) cover(c int, deact bool) {
 	cl, nd := m.cl, m.nd
 	if deact {
 		l, r := cl[c].prev, cl[c].next
@@ -72,11 +72,11 @@ func cover(m *MCC, c int, deact bool) {
 	}
 	m.updates++
 	for rr := nd[c].down; rr >= m.lastItm; rr = nd[rr].down {
-		hide(m, rr)
+		m.hide(rr)
 	}
 }
 
-func unhide(m *MCC, rr int) {
+func (m *MCC) unhide(rr int) {
 	nd := m.nd
 	for nn := rr + 1; nn != rr; {
 		if nd[nn].color >= 0 {
@@ -93,10 +93,10 @@ func unhide(m *MCC, rr int) {
 	}
 }
 
-func uncover(m *MCC, c int, react bool) {
+func (m *MCC) uncover(c int, react bool) {
 	cl, nd := m.cl, m.nd
 	for rr := nd[c].down; rr >= m.lastItm; rr = nd[rr].down {
-		unhide(m, rr)
+		m.unhide(rr)
 	}
 	if react {
 		l, r := cl[c].prev, cl[c].next
@@ -104,7 +104,7 @@ func uncover(m *MCC, c int, react bool) {
 	}
 }
 
-func purify(m *MCC, p int) {
+func (m *MCC) purify(p int) {
 	nd := m.nd
 	cc := nd[p].itm
 	x := nd[p].color
@@ -112,7 +112,7 @@ func purify(m *MCC, p int) {
 	m.cleansings++
 	for rr := nd[cc].down; rr >= m.lastItm; rr = nd[rr].down {
 		if nd[rr].color != x {
-			hide(m, rr)
+			m.hide(rr)
 		} else if rr != p {
 			m.cleansings++
 			nd[rr].color = -1
@@ -120,7 +120,7 @@ func purify(m *MCC, p int) {
 	}
 }
 
-func unpurify(m *MCC, p int) {
+func (m *MCC) unpurify(p int) {
 	nd := m.nd
 	cc := nd[p].itm
 	x := nd[p].color
@@ -128,12 +128,12 @@ func unpurify(m *MCC, p int) {
 		if nd[rr].color < 0 {
 			nd[rr].color = x
 		} else if rr != p {
-			unhide(m, rr)
+			m.unhide(rr)
 		}
 	}
 }
 
-func tweak(m *MCC, n, block int) {
+func (m *MCC) tweak(n, block int) {
 	nd := m.nd
 	nn := n
 	if block != 0 {
@@ -158,7 +158,7 @@ func tweak(m *MCC, n, block int) {
 	}
 }
 
-func untweak(m *MCC, c, x, unblock int) {
+func (m *MCC) untweak(c, x, unblock int) {
 	nd := m.nd
 	z := nd[c].down
 	nd[c].down = x
@@ -167,19 +167,19 @@ func untweak(m *MCC, c, x, unblock int) {
 		nd[rr].up = qq
 		k++
 		if unblock != 0 {
-			unhide(m, rr)
+			m.unhide(rr)
 		}
 	}
 	nd[rr].up = qq
 	nd[c].itm += k
 	if unblock == 0 {
-		uncover(m, c, false)
+		m.uncover(c, false)
 	}
 }
 
 // Dance generates all exact covers
 func (m *MCC) Dance(rd io.Reader) Result {
-	if err := inputMatrix(m, rd); err != nil {
+	if err := m.inputMatrix(rd); err != nil {
 		panic(err)
 	}
 
@@ -252,7 +252,7 @@ func (m *MCC) Dance(rd io.Reader) Result {
 				if head == 0 {
 					head = nd[cc].down
 				}
-				sol[k] = option(m, pp, head, scor[k])
+				sol[k] = m.option(pp, head, scor[k])
 			}
 
 			select {
@@ -278,11 +278,11 @@ func (m *MCC) Dance(rd io.Reader) Result {
 		cl[bestItm].bound--
 
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			cover(m, bestItm, true)
+			m.cover(bestItm, true)
 		} else {
 			firstTweak[level] = curNode
 			if cl[bestItm].bound == 0 {
-				cover(m, bestItm, true)
+				m.cover(bestItm, true)
 			}
 		}
 
@@ -294,7 +294,7 @@ func (m *MCC) Dance(rd io.Reader) Result {
 		} else if nd[bestItm].itm <= cl[bestItm].bound-cl[bestItm].slack {
 			goto backup
 		} else if curNode != bestItm {
-			tweak(m, curNode, cl[bestItm].bound)
+			m.tweak(curNode, cl[bestItm].bound)
 		} else if cl[bestItm].bound != 0 {
 			p, q := cl[bestItm].prev, cl[bestItm].next
 			cl[p].next, cl[q].prev = q, p
@@ -303,9 +303,9 @@ func (m *MCC) Dance(rd io.Reader) Result {
 		if m.Debug {
 			fmt.Fprintf(os.Stderr, "L%d: ", level)
 			if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-				option(m, curNode, nd[bestItm].down, score)
+				m.option(curNode, nd[bestItm].down, score)
 			} else {
-				option(m, curNode, firstTweak[level], score)
+				m.option(curNode, firstTweak[level], score)
 			}
 		}
 
@@ -319,13 +319,13 @@ func (m *MCC) Dance(rd io.Reader) Result {
 					if cc < m.second {
 						cl[cc].bound--
 						if cl[cc].bound == 0 {
-							cover(m, cc, true)
+							m.cover(cc, true)
 						}
 					} else {
 						if nd[pp].color == 0 {
-							cover(m, cc, true)
+							m.cover(cc, true)
 						} else if nd[pp].color > 0 {
-							purify(m, pp)
+							m.purify(pp)
 						}
 					}
 					pp++
@@ -345,9 +345,9 @@ func (m *MCC) Dance(rd io.Reader) Result {
 
 	backup: // Restore the original state of bestItm
 		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			uncover(m, bestItm, true)
+			m.uncover(bestItm, true)
 		} else {
-			untweak(m, bestItm, firstTweak[level], cl[bestItm].bound)
+			m.untweak(bestItm, firstTweak[level], cl[bestItm].bound)
 		}
 		cl[bestItm].bound++
 
@@ -376,14 +376,14 @@ func (m *MCC) Dance(rd io.Reader) Result {
 			} else {
 				if cc < m.second {
 					if cl[cc].bound == 0 {
-						uncover(m, cc, true)
+						m.uncover(cc, true)
 					}
 					cl[cc].bound++
 				} else {
 					if nd[pp].color == 0 {
-						uncover(m, cc, true)
+						m.uncover(cc, true)
 					} else if nd[pp].color > 0 {
-						unpurify(m, pp)
+						m.unpurify(pp)
 					}
 				}
 				pp--
