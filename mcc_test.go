@@ -7,7 +7,7 @@ import (
 )
 
 func solve(matrix string) {
-	d := NewMCC()
+	d := NewDancer()
 	d.Debug = true
 	d = d.WithContext(context.TODO())
 	res := d.Dance(strings.NewReader(matrix))

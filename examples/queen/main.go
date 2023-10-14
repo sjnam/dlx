@@ -72,7 +72,7 @@ func main() {
 	}
 	n, _ := strconv.Atoi(os.Args[1])
 
-	xc := dlx.NewMCC()
+	xc := dlx.NewDancer()
 	res := xc.Dance(queenDLX(n))
 
 	i := 0

@@ -2,7 +2,6 @@ package dlx
 
 import (
 	"context"
-	"io"
 	"time"
 )
 
@@ -24,10 +23,6 @@ type Option []string
 type Result struct {
 	Solutions <-chan []Option
 	Heartbeat <-chan string
-}
-
-type Dancer interface {
-	Dance(reader io.Reader) Result
 }
 
 type node struct {
@@ -59,7 +54,7 @@ type MCC struct {
 }
 
 // NewMCC Wake me up before you Go Go
-func NewMCC() *MCC {
+func NewDancer() *MCC {
 	return &MCC{
 		nd:            make([]node, chunkSize),
 		cl:            make([]item, chunkSize),

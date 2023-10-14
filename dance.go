@@ -178,7 +178,7 @@ func (m *MCC) untweak(c, x, unblock int) {
 }
 
 // Dance generates all exact covers
-func (m *MCC) Dance(rd io.Reader) Result {
+func (m *MCC) Dance(rd io.Reader) *Result {
 	if err := m.inputMatrix(rd); err != nil {
 		panic(err)
 	}
@@ -407,7 +407,7 @@ func (m *MCC) Dance(rd io.Reader) Result {
 		}
 	}()
 
-	return Result{
+	return &Result{
 		Solutions: solStream,
 		Heartbeat: heartbeat,
 	}

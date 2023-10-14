@@ -44,7 +44,7 @@ func main() {
 	}
 	n, _ := strconv.Atoi(os.Args[1])
 
-	xc := dlx.NewMCC()
+	xc := dlx.NewDancer()
 	res := xc.Dance(langfordDLX(n))
 
 	s := make([]int, 2*n)

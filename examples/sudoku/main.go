@@ -110,7 +110,7 @@ func sudokuSolver(stream <-chan string) <-chan [][]byte {
 			outCh := make(chan [][]byte)
 			outChCh <- outCh
 
-			xc := dlx.NewMCC()
+			xc := dlx.NewDancer()
 			go func(line string) {
 				res := xc.Dance(sudokuDLX(strings.NewReader(line)))
 				ans := []byte(line)
