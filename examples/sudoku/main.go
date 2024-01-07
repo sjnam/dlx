@@ -105,15 +105,12 @@ func sudokuSolver(stream <-chan string) <-chan [][]byte {
 	outChCh := make(chan chan [][]byte, 128)
 	go func() {
 		defer close(outChCh)
-
 		for line := range stream {
 			outCh := make(chan [][]byte)
 			outChCh <- outCh
-
 			xc := dlx.NewDancer()
 			go func(line string) {
 				defer close(outCh)
-
 				res := xc.Dance(sudokuDLX(strings.NewReader(line)))
 				ans := []byte(line)
 				for _, opt := range <-res.Solutions {
@@ -129,9 +126,12 @@ func sudokuSolver(stream <-chan string) <-chan [][]byte {
 	outCh := make(chan [][]byte)
 	go func() {
 		defer close(outCh)
-
 		for ch := range outChCh {
-			outCh <- <-ch
+			v, ok := <-ch
+			if !ok {
+				return
+			}
+			outCh <- v
 		}
 	}()
 
