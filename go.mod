@@ -1,6 +1,6 @@
 module github.com/sjnam/dlx
 
-go 1.17
+go 1.23
 
 require github.com/gookit/color v1.5.0
 
