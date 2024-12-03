@@ -102,77 +102,21 @@ func sudokuDLX(rd io.Reader) io.Reader {
 	return r
 }
 
-func sudokuSolver(ctx context.Context, valStream <-chan string) <-chan [][]byte {
-	resultStream := func(
-		ctx context.Context,
-		valStream <-chan string,
-	) <-chan <-chan [][]byte {
-		chanStream := make(chan (<-chan [][]byte), 128)
-		go func() {
-			defer close(chanStream)
-			for line := range valStream {
-				ch := make(chan [][]byte)
-				select {
-				case <-ctx.Done():
-					return
-				case chanStream <- ch:
-				}
-				xc := dlx.NewDancer()
-				go func(line string) {
-					defer close(ch)
-					res := xc.Dance(sudokuDLX(strings.NewReader(line)))
-					ans := []byte(line)
-					for _, opt := range <-res.Solutions {
-						x := int(opt[0][1] - '0')
-						y := int(opt[0][2] - '0')
-						ans[x*9+y] = opt[1][2]
-					}
-					select {
-					case <-ctx.Done():
-						return
-					default:
-						ch <- [][]byte{[]byte(line), ans}
-					}
-				}(line)
-			}
-		}()
-		return chanStream
+func danceSudoku(line interface{}) interface{} {
+	lstr := line.(string)
+	xc := dlx.NewDancer()
+	res := xc.Dance(sudokuDLX(strings.NewReader(lstr)))
+	ans := []byte(lstr)
+	for _, opt := range <-res.Solutions {
+		x := int(opt[0][1] - '0')
+		y := int(opt[0][2] - '0')
+		ans[x*9+y] = opt[1][2]
 	}
-
-	bridge := func(
-		ctx context.Context,
-		chanStream <-chan <-chan [][]byte,
-	) <-chan [][]byte {
-		valStream := make(chan [][]byte)
-		go func() {
-			defer close(valStream)
-			for {
-				var stream <-chan [][]byte
-				select {
-				case maybeStream, ok := <-chanStream:
-					if !ok {
-						return
-					}
-					stream = maybeStream
-				case <-ctx.Done():
-					return
-				}
-				for val := range stream {
-					select {
-					case valStream <- val:
-					case <-ctx.Done():
-					}
-				}
-			}
-		}()
-		return valStream
-	}
-
-	return bridge(ctx, resultStream(ctx, valStream))
+	return [][]byte{[]byte(lstr), ans}
 }
 
-func inputLines(fd io.Reader) <-chan string {
-	ch := make(chan string)
+func inputLines(fd io.Reader) <-chan interface{} {
+	ch := make(chan interface{})
 	go func() {
 		defer close(ch)
 
@@ -205,8 +149,26 @@ func main() {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
+	toSquare := func(
+		ctx context.Context,
+		valueStream <-chan interface{},
+	) <-chan [][]byte {
+		stringStream := make(chan [][]byte)
+		go func() {
+			defer close(stringStream)
+			for v := range valueStream {
+				select {
+				case <-ctx.Done():
+					return
+				case stringStream <- v.([][]byte):
+				}
+			}
+		}()
+		return stringStream
+	}
+
 	i := 0
-	for s := range sudokuSolver(ctx, inputLines(fd)) {
+	for s := range toSquare(ctx, Process(ctx, inputLines(fd), danceSudoku, 8)) {
 		i++
 		fmt.Printf("Q[%5d]: %s\n", i, s[0])
 		fmt.Printf("A[%5d]: %s\n", i, s[1])
