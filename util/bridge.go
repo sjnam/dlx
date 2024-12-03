@@ -1,40 +1,40 @@
-package main
+package util
 
 import (
 	"context"
 )
 
-func orDone(
-	ctx context.Context,
-	c <-chan interface{},
-) <-chan interface{} {
-	valStream := make(chan interface{})
-	go func() {
-		defer close(valStream)
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case v, ok := <-c:
-				if !ok {
-					return
-				}
-				select {
-				case valStream <- v:
-				case <-ctx.Done():
-				}
-			}
-		}
-	}()
-	return valStream
-}
-
-func Process(
+func OrderedProcess(
 	ctx context.Context,
 	valStream <-chan interface{},
 	doWork func(interface{}) interface{},
-	n int,
+	cnt int,
 ) <-chan interface{} {
+	orDone := func(
+		ctx context.Context,
+		c <-chan interface{},
+	) <-chan interface{} {
+		valStream := make(chan interface{})
+		go func() {
+			defer close(valStream)
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case v, ok := <-c:
+					if !ok {
+						return
+					}
+					select {
+					case valStream <- v:
+					case <-ctx.Done():
+					}
+				}
+			}
+		}()
+		return valStream
+	}
+
 	resultStream := func(
 		ctx context.Context,
 		valStream <-chan interface{},
@@ -95,5 +95,5 @@ func Process(
 		return valStream
 	}
 
-	return bridge(ctx, resultStream(ctx, valStream, doWork, n))
+	return bridge(ctx, resultStream(ctx, valStream, doWork, cnt))
 }

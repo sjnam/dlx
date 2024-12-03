@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/sjnam/dlx"
+	"github.com/sjnam/dlx/util"
 )
 
 func sudokuDLX(rd io.Reader) io.Reader {
@@ -168,7 +169,7 @@ func main() {
 	}
 
 	i := 0
-	for s := range toSquare(ctx, Process(ctx, inputLines(fd), danceSudoku, 8)) {
+	for s := range toSquare(ctx, util.OrderedProcess(ctx, inputLines(fd), danceSudoku, 8)) {
 		i++
 		fmt.Printf("Q[%5d]: %s\n", i, s[0])
 		fmt.Printf("A[%5d]: %s\n", i, s[1])
