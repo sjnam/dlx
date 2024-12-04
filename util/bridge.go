@@ -6,9 +6,9 @@ import (
 
 func OrderedProcess(
 	ctx context.Context,
-	valStream <-chan interface{},
+	inputStream <-chan interface{},
 	doWork func(interface{}) interface{},
-	cnt int,
+	cnt ...int,
 ) <-chan interface{} {
 	orDone := func(
 		ctx context.Context,
@@ -35,21 +35,21 @@ func OrderedProcess(
 		return valStream
 	}
 
-	resultStream := func(
+	chanStream := func(
 		ctx context.Context,
-		valStream <-chan interface{},
+		inputStream <-chan interface{},
 		doWork func(interface{}) interface{},
-		cnt int,
+		clvl int,
 	) <-chan <-chan interface{} {
-		chanStream := make(chan (<-chan interface{}), cnt)
+		chStream := make(chan (<-chan interface{}), clvl)
 		go func() {
-			defer close(chanStream)
-			for v := range valStream {
+			defer close(chStream)
+			for v := range inputStream {
 				ch := make(chan interface{})
 				select {
 				case <-ctx.Done():
 					return
-				case chanStream <- ch:
+				case chStream <- ch:
 				}
 
 				go func(v interface{}) {
@@ -63,12 +63,12 @@ func OrderedProcess(
 				}(v)
 			}
 		}()
-		return chanStream
+		return chStream
 	}
 
 	bridge := func(
 		ctx context.Context,
-		chanStream <-chan <-chan interface{},
+		chStream <-chan <-chan interface{},
 	) <-chan interface{} {
 		valStream := make(chan interface{})
 		go func() {
@@ -76,7 +76,7 @@ func OrderedProcess(
 			for {
 				var stream <-chan interface{}
 				select {
-				case maybeStream, ok := <-chanStream:
+				case maybeStream, ok := <-chStream:
 					if !ok {
 						return
 					}
@@ -95,5 +95,9 @@ func OrderedProcess(
 		return valStream
 	}
 
-	return bridge(ctx, resultStream(ctx, valStream, doWork, cnt))
+	clvl := 8 // concurrency level
+	if len(cnt) > 0 {
+		clvl = cnt[0]
+	}
+	return bridge(ctx, chanStream(ctx, inputStream, doWork, clvl))
 }

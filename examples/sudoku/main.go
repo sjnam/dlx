@@ -169,7 +169,7 @@ func main() {
 	}
 
 	i := 0
-	for s := range toSquare(ctx, util.OrderedProcess(ctx, inputLines(fd), danceSudoku, 8)) {
+	for s := range toSquare(ctx, util.OrderedProcess(ctx, inputLines(fd), danceSudoku)) {
 		i++
 		fmt.Printf("Q[%5d]: %s\n", i, s[0])
 		fmt.Printf("A[%5d]: %s\n", i, s[1])
