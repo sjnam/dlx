@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"runtime"
 )
 
 func OrderedProcess(
@@ -45,20 +46,18 @@ func OrderedProcess(
 		go func() {
 			defer close(chStream)
 			for v := range inputStream {
-				ch := make(chan interface{})
+				stream := make(chan interface{})
 				select {
 				case <-ctx.Done():
 					return
-				case chStream <- ch:
+				case chStream <- stream:
 				}
 
 				go func(v interface{}) {
-					defer close(ch)
+					defer close(stream)
 					select {
+					case stream <- doWork(v):
 					case <-ctx.Done():
-						return
-					default:
-						ch <- doWork(v)
 					}
 				}(v)
 			}
@@ -95,7 +94,7 @@ func OrderedProcess(
 		return valStream
 	}
 
-	clvl := 8 // concurrency level
+	clvl := runtime.NumCPU() // concurrency level
 	if len(cnt) > 0 {
 		clvl = cnt[0]
 	}
