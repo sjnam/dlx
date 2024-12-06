@@ -115,14 +115,18 @@ func danceSudoku(line string) [][]byte {
 	return [][]byte{[]byte(line), ans}
 }
 
-func inputLines(fd io.Reader) <-chan string {
+func inputLines(ctx context.Context, fd io.Reader) <-chan string {
 	ch := make(chan string)
 	go func() {
 		defer close(ch)
 
 		scanner := bufio.NewScanner(fd)
 		for scanner.Scan() {
-			ch <- strings.TrimSpace(scanner.Text())
+			select {
+			case <-ctx.Done():
+				return
+			case ch <- strings.TrimSpace(scanner.Text()):
+			}
 		}
 		if err := scanner.Err(); err != nil {
 			log.Fatal(err)
@@ -150,7 +154,7 @@ func main() {
 	defer cancel()
 
 	i := 0
-	for s := range util.OrderedProcess(ctx, inputLines(fd), danceSudoku) {
+	for s := range util.OrderedProcess(ctx, inputLines(ctx, fd), danceSudoku) {
 		i++
 		fmt.Printf("Q[%5d]: %s\n", i, s[0])
 		fmt.Printf("A[%5d]: %s\n", i, s[1])
