@@ -5,17 +5,17 @@ import (
 	"runtime"
 )
 
-func OrderedProcess(
+func OrderedProcess[T any](
 	ctx context.Context,
-	inputStream <-chan interface{},
-	doWork func(interface{}) interface{},
+	inputStream <-chan string,
+	doWork func(string) T,
 	cnt ...int, /*optional param*/
-) <-chan interface{} {
+) <-chan T {
 	orDone := func(
 		ctx context.Context,
-		c <-chan interface{},
-	) <-chan interface{} {
-		valStream := make(chan interface{})
+		c <-chan T,
+	) <-chan T {
+		valStream := make(chan T)
 		go func() {
 			defer close(valStream)
 			for {
@@ -38,15 +38,15 @@ func OrderedProcess(
 
 	chanStream := func(
 		ctx context.Context,
-		inputStream <-chan interface{},
-		doWork func(interface{}) interface{},
+		inputStream <-chan string,
+		doWork func(string) T,
 		clvl int,
-	) <-chan <-chan interface{} {
-		chStream := make(chan (<-chan interface{}), clvl)
+	) <-chan <-chan T {
+		chStream := make(chan (<-chan T), clvl)
 		go func() {
 			defer close(chStream)
 			for v := range inputStream {
-				stream := make(chan interface{})
+				stream := make(chan T)
 				select {
 				case <-ctx.Done():
 					return
@@ -67,13 +67,13 @@ func OrderedProcess(
 
 	bridge := func(
 		ctx context.Context,
-		chStream <-chan <-chan interface{},
-	) <-chan interface{} {
-		valStream := make(chan interface{})
+		chStream <-chan <-chan T,
+	) <-chan T {
+		valStream := make(chan T)
 		go func() {
 			defer close(valStream)
 			for {
-				var stream <-chan interface{}
+				var stream <-chan T
 				select {
 				case maybeStream, ok := <-chStream:
 					if !ok {

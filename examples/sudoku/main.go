@@ -103,21 +103,20 @@ func sudokuDLX(rd io.Reader) io.Reader {
 	return r
 }
 
-func danceSudoku(line interface{}) interface{} {
-	lstr := line.(string)
+func danceSudoku(line string) [][]byte {
 	xc := dlx.NewDancer()
-	res := xc.Dance(sudokuDLX(strings.NewReader(lstr)))
-	ans := []byte(lstr)
+	res := xc.Dance(sudokuDLX(strings.NewReader(line)))
+	ans := []byte(line)
 	for _, opt := range <-res.Solutions {
 		x := int(opt[0][1] - '0')
 		y := int(opt[0][2] - '0')
 		ans[x*9+y] = opt[1][2]
 	}
-	return [][]byte{[]byte(lstr), ans}
+	return [][]byte{[]byte(line), ans}
 }
 
-func inputLines(fd io.Reader) <-chan interface{} {
-	ch := make(chan interface{})
+func inputLines(fd io.Reader) <-chan string {
+	ch := make(chan string)
 	go func() {
 		defer close(ch)
 
@@ -150,26 +149,8 @@ func main() {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	toSquare := func(
-		ctx context.Context,
-		valueStream <-chan interface{},
-	) <-chan [][]byte {
-		stringStream := make(chan [][]byte)
-		go func() {
-			defer close(stringStream)
-			for v := range valueStream {
-				select {
-				case <-ctx.Done():
-					return
-				case stringStream <- v.([][]byte):
-				}
-			}
-		}()
-		return stringStream
-	}
-
 	i := 0
-	for s := range toSquare(ctx, util.OrderedProcess(ctx, inputLines(fd), danceSudoku)) {
+	for s := range util.OrderedProcess(ctx, inputLines(fd), danceSudoku) {
 		i++
 		fmt.Printf("Q[%5d]: %s\n", i, s[0])
 		fmt.Printf("A[%5d]: %s\n", i, s[1])
