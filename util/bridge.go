@@ -9,7 +9,7 @@ func OrderedProcess(
 	ctx context.Context,
 	inputStream <-chan interface{},
 	doWork func(interface{}) interface{},
-	cnt ...int,
+	cnt ...int, /*optional param*/
 ) <-chan interface{} {
 	orDone := func(
 		ctx context.Context,
@@ -53,13 +53,13 @@ func OrderedProcess(
 				case chStream <- stream:
 				}
 
-				go func(v interface{}) {
+				go func() {
 					defer close(stream)
 					select {
 					case stream <- doWork(v):
 					case <-ctx.Done():
 					}
-				}(v)
+				}()
 			}
 		}()
 		return chStream
@@ -98,5 +98,6 @@ func OrderedProcess(
 	if len(cnt) > 0 {
 		clvl = cnt[0]
 	}
+
 	return bridge(ctx, chanStream(ctx, inputStream, doWork, clvl))
 }
