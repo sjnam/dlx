@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/sjnam/dlx"
-	"github.com/sjnam/dlx/util"
+	"github.com/sjnam/oproc"
 )
 
 func sudokuDLX(rd io.Reader) io.Reader {
@@ -150,7 +150,7 @@ func main() {
 	defer cancel()
 
 	i := 0
-	for s := range util.OrderedProcess(ctx, inputLines(fd), danceSudoku) {
+	for s := range oproc.OrderedProc(ctx, inputLines(fd), danceSudoku) {
 		i++
 		fmt.Printf("Q[%5d]: %s\n", i, s[0])
 		fmt.Printf("A[%5d]: %s\n", i, s[1])
