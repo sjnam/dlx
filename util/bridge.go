@@ -5,19 +5,19 @@ import (
 	"runtime"
 )
 
-func OrderedProcess[V any, T any](
+func OrderedProcess[T, V any](
 	ctx context.Context,
-	inStream <-chan T,
-	doWork func(T) V,
+	inStream <-chan V,
+	doWork func(V) T,
 	cnt ...int,
-) <-chan V {
+) <-chan T {
 	lvl := runtime.NumCPU()
 	if len(cnt) > 0 {
 		lvl = cnt[0]
 	}
 
-	orDone := func(ctx context.Context, c <-chan V) <-chan V {
-		ch := make(chan V)
+	orDone := func(ctx context.Context, c <-chan T) <-chan T {
+		ch := make(chan T)
 		go func() {
 			defer close(ch)
 			for {
@@ -38,12 +38,12 @@ func OrderedProcess[V any, T any](
 		return ch
 	}
 
-	chanchan := func() <-chan <-chan V {
-		chch := make(chan (<-chan V), lvl)
+	chanchan := func() <-chan <-chan T {
+		chch := make(chan (<-chan T), lvl)
 		go func() {
 			defer close(chch)
 			for v := range inStream {
-				ch := make(chan V)
+				ch := make(chan T)
 				chch <- ch
 
 				go func() {
@@ -56,12 +56,12 @@ func OrderedProcess[V any, T any](
 	}
 
 	// bridge-channel
-	return func(ctx context.Context, chch <-chan <-chan V) <-chan V {
-		vch := make(chan V)
+	return func(ctx context.Context, chch <-chan <-chan T) <-chan T {
+		vch := make(chan T)
 		go func() {
 			defer close(vch)
 			for {
-				var ch <-chan V
+				var ch <-chan T
 				select {
 				case maybe, ok := <-chch:
 					if !ok {
