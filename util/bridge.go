@@ -7,22 +7,19 @@ import (
 
 func OrderedProcess[T1 any, T2 any](
 	ctx context.Context,
-	inputStream <-chan T2,
+	inStream <-chan T2,
 	doWork func(T2) T1,
-	cnt ...int, /*optional param*/
+	cnt ...int,
 ) <-chan T1 {
-	clvl := runtime.NumCPU() // concurrency level
+	lvl := runtime.NumCPU()
 	if len(cnt) > 0 {
-		clvl = cnt[0]
+		lvl = cnt[0]
 	}
 
-	orDone := func(
-		ctx context.Context,
-		c <-chan T1,
-	) <-chan T1 {
-		valStream := make(chan T1)
+	orDone := func(ctx context.Context, c <-chan T1) <-chan T1 {
+		ch := make(chan T1)
 		go func() {
-			defer close(valStream)
+			defer close(ch)
 			for {
 				select {
 				case <-ctx.Done():
@@ -32,69 +29,63 @@ func OrderedProcess[T1 any, T2 any](
 						return
 					}
 					select {
-					case valStream <- v:
+					case ch <- v:
 					case <-ctx.Done():
 					}
 				}
 			}
 		}()
-		return valStream
+		return ch
 	}
 
-	chanStream := func(
-		ctx context.Context,
-	) <-chan <-chan T1 {
-		chStream := make(chan (<-chan T1), clvl)
+	chanchan := func(ctx context.Context) <-chan <-chan T1 {
+		chch := make(chan (<-chan T1), lvl)
 		go func() {
-			defer close(chStream)
-			for v := range inputStream {
-				stream := make(chan T1)
+			defer close(chch)
+			for v := range inStream {
+				ch := make(chan T1)
 				select {
 				case <-ctx.Done():
 					return
-				case chStream <- stream:
+				case chch <- ch:
 				}
 
 				go func() {
-					defer close(stream)
+					defer close(ch)
 					select {
-					case stream <- doWork(v):
+					case ch <- doWork(v):
 					case <-ctx.Done():
 					}
 				}()
 			}
 		}()
-		return chStream
+		return chch
 	}
 
-	bridge := func(
-		ctx context.Context,
-		chStream <-chan <-chan T1,
-	) <-chan T1 {
-		valStream := make(chan T1)
+	// bridge-channel
+	return func(ctx context.Context, chch <-chan <-chan T1) <-chan T1 {
+		vch := make(chan T1)
 		go func() {
-			defer close(valStream)
+			defer close(vch)
 			for {
-				var stream <-chan T1
+				var ch <-chan T1
 				select {
-				case maybeStream, ok := <-chStream:
+				case maybe, ok := <-chch:
 					if !ok {
 						return
 					}
-					stream = maybeStream
+					ch = maybe
 				case <-ctx.Done():
 					return
 				}
-				for val := range orDone(ctx, stream) {
+				for v := range orDone(ctx, ch) {
 					select {
-					case valStream <- val:
+					case vch <- v:
 					case <-ctx.Done():
 					}
 				}
 			}
 		}()
-		return valStream
-	}
-
-	return bridge(ctx, chanStream(ctx))
+		return vch
+	}(ctx, chanchan(ctx))
 }
