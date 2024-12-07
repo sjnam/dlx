@@ -11,6 +11,11 @@ func OrderedProcess[T1 any, T2 any](
 	doWork func(T2) T1,
 	cnt ...int, /*optional param*/
 ) <-chan T1 {
+	clvl := runtime.NumCPU() // concurrency level
+	if len(cnt) > 0 {
+		clvl = cnt[0]
+	}
+
 	orDone := func(
 		ctx context.Context,
 		c <-chan T1,
@@ -38,9 +43,6 @@ func OrderedProcess[T1 any, T2 any](
 
 	chanStream := func(
 		ctx context.Context,
-		inputStream <-chan T2,
-		doWork func(T2) T1,
-		clvl int,
 	) <-chan <-chan T1 {
 		chStream := make(chan (<-chan T1), clvl)
 		go func() {
@@ -94,10 +96,5 @@ func OrderedProcess[T1 any, T2 any](
 		return valStream
 	}
 
-	clvl := runtime.NumCPU() // concurrency level
-	if len(cnt) > 0 {
-		clvl = cnt[0]
-	}
-
-	return bridge(ctx, chanStream(ctx, inputStream, doWork, clvl))
+	return bridge(ctx, chanStream(ctx))
 }
