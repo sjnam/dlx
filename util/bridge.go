@@ -38,24 +38,17 @@ func OrderedProcess[T1 any, T2 any](
 		return ch
 	}
 
-	chanchan := func(ctx context.Context) <-chan <-chan T1 {
+	chanchan := func() <-chan <-chan T1 {
 		chch := make(chan (<-chan T1), lvl)
 		go func() {
 			defer close(chch)
 			for v := range inStream {
 				ch := make(chan T1)
-				select {
-				case <-ctx.Done():
-					return
-				case chch <- ch:
-				}
+				chch <- ch
 
 				go func() {
 					defer close(ch)
-					select {
-					case ch <- doWork(v):
-					case <-ctx.Done():
-					}
+					ch <- doWork(v)
 				}()
 			}
 		}()
@@ -87,5 +80,5 @@ func OrderedProcess[T1 any, T2 any](
 			}
 		}()
 		return vch
-	}(ctx, chanchan(ctx))
+	}(ctx, chanchan())
 }
