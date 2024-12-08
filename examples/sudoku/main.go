@@ -103,35 +103,6 @@ func sudokuDLX(rd io.Reader) io.Reader {
 	return r
 }
 
-func danceSudoku(line string) [][]byte {
-	xc := dlx.NewDancer()
-	res := xc.Dance(sudokuDLX(strings.NewReader(line)))
-	ans := []byte(line)
-	for _, opt := range <-res.Solutions {
-		x := int(opt[0][1] - '0')
-		y := int(opt[0][2] - '0')
-		ans[x*9+y] = opt[1][2]
-	}
-	return [][]byte{[]byte(line), ans}
-}
-
-func inputLines(fd io.Reader) <-chan string {
-	ch := make(chan string)
-	go func() {
-		defer close(ch)
-
-		scanner := bufio.NewScanner(fd)
-		for scanner.Scan() {
-			ch <- strings.TrimSpace(scanner.Text())
-		}
-		if err := scanner.Err(); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	return ch
-}
-
 func main() {
 	args := os.Args
 	if len(args) != 2 {
@@ -149,8 +120,35 @@ func main() {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
+	dlxSudoku := oproc.NewOrderedProc[string, [][]byte](ctx)
+	dlxSudoku.InputStream = func(fd io.Reader) <-chan string {
+		ch := make(chan string)
+		go func() {
+			defer close(ch)
+			scanner := bufio.NewScanner(fd)
+			for scanner.Scan() {
+				ch <- strings.TrimSpace(scanner.Text())
+			}
+			if err := scanner.Err(); err != nil {
+				log.Fatal(err)
+			}
+		}()
+		return ch
+	}(fd)
+	dlxSudoku.DoWork = func(line string) [][]byte {
+		xc := dlx.NewDancer()
+		res := xc.Dance(sudokuDLX(strings.NewReader(line)))
+		ans := []byte(line)
+		for _, opt := range <-res.Solutions {
+			x := int(opt[0][1] - '0')
+			y := int(opt[0][2] - '0')
+			ans[x*9+y] = opt[1][2]
+		}
+		return [][]byte{[]byte(line), ans}
+	}
+
 	i := 0
-	for s := range oproc.OrderedProc(ctx, inputLines(fd), danceSudoku) {
+	for s := range dlxSudoku.Process() {
 		i++
 		fmt.Printf("Q[%5d]: %s\n", i, s[0])
 		fmt.Printf("A[%5d]: %s\n", i, s[1])

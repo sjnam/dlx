@@ -4,7 +4,7 @@ go 1.23.4
 
 require (
 	github.com/gookit/color v1.5.0
-	github.com/sjnam/oproc v0.0.0-20241207105507-99b08fd27fcd
+	github.com/sjnam/oproc v0.2.0
 )
 
 require (
