@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/sjnam/dlx"
-	"github.com/sjnam/oproc"
+	"github.com/sjnam/ofanin"
 )
 
 func sudokuDLX(rd io.Reader) io.Reader {
@@ -120,7 +120,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	dlxSudoku := oproc.NewOrderedProc[string, [][]byte](ctx)
+	dlxSudoku := ofanin.NewOrderedFanIn[string, [][]byte](ctx)
 	dlxSudoku.InputStream = func(fd io.Reader) <-chan string {
 		ch := make(chan string)
 		go func() {
