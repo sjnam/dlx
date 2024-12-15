@@ -1,10 +1,11 @@
 package main
 
 import (
-	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"iter"
 	"log"
 	"os"
 	"strings"
@@ -111,30 +112,35 @@ func main() {
 
 	start := time.Now()
 
-	fd, err := os.Open(args[1])
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer fd.Close()
-
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
 	dlxSudoku := ofanin.NewOrderedFanIn[string, [][]byte](ctx)
-	dlxSudoku.InputStream = func(fd io.Reader) <-chan string {
+	dlxSudoku.InputStream = func() <-chan string {
+		data, err := os.ReadFile(args[1])
+		if err != nil {
+			log.Fatal(err)
+		}
+		lines := func() iter.Seq[[]byte] {
+			return func(yield func([]byte) bool) {
+				for len(data) > 0 {
+					line, rest, _ := bytes.Cut(data, []byte{'\n'})
+					if !yield(line) {
+						return
+					}
+					data = rest
+				}
+			}
+		}
 		ch := make(chan string)
 		go func() {
 			defer close(ch)
-			scanner := bufio.NewScanner(fd)
-			for scanner.Scan() {
-				ch <- strings.TrimSpace(scanner.Text())
-			}
-			if err := scanner.Err(); err != nil {
-				log.Fatal(err)
+			for line := range lines() {
+				ch <- string(line)
 			}
 		}()
 		return ch
-	}(fd)
+	}()
 	dlxSudoku.DoWork = func(line string) [][]byte {
 		xc := dlx.NewDancer()
 		res := xc.Dance(sudokuDLX(strings.NewReader(line)))
