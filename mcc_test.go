@@ -19,7 +19,7 @@ func solve(matrix string) {
 	}
 }
 
-func ExampleDancer_xc() {
+func ExampleNewDancer() {
 	xcInput := `
 
 | A simple example
@@ -42,7 +42,7 @@ D E G
 	// [C E F]
 }
 
-func ExampleDancer_xcc() {
+func ExampleNewDancer_xcc() {
 	xccInput := `
 |A simple example of color controls
 A B C | X Y
@@ -60,7 +60,7 @@ C Y:1
 	// [B X:1]
 }
 
-func ExampleDancer_mcc() {
+func ExampleNewDancer_mcc() {
 	mccInput := `
 | A simple example of color controls
 

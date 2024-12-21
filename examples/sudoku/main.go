@@ -120,7 +120,7 @@ func main() {
 			defer close(ch)
 			data, err := os.ReadFile(args[1])
 			if err != nil {
-				log.Fatal(err)
+				panic(err)
 			}
 			for len(data) > 0 {
 				line, rest, _ := bytes.Cut(data, []byte{'\n'})
@@ -132,7 +132,7 @@ func main() {
 	}()
 	dlxSudoku.DoWork = func(line []byte) [][]byte {
 		xc := dlx.NewDancer()
-		ans := []byte(string(line))
+		ans := bytes.Clone(line)
 		res := xc.Dance(sudokuDLX(bytes.NewReader(line)))
 		for _, opt := range <-res.Solutions {
 			x := int(opt[0][1] - '0')
