@@ -5,10 +5,8 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"iter"
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/sjnam/dlx"
@@ -115,36 +113,27 @@ func main() {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	dlxSudoku := ofanin.NewOrderedFanIn[string, [][]byte](ctx)
-	dlxSudoku.InputStream = func() <-chan string {
-		data, err := os.ReadFile(args[1])
-		if err != nil {
-			log.Fatal(err)
-		}
-		lines := func() iter.Seq[[]byte] {
-			return func(yield func([]byte) bool) {
-				for len(data) > 0 {
-					line, rest, _ := bytes.Cut(data, []byte{'\n'})
-					if !yield(line) {
-						return
-					}
-					data = rest
-				}
-			}
-		}
-		ch := make(chan string)
+	dlxSudoku := ofanin.NewOrderedFanIn[[]byte, [][]byte](ctx)
+	dlxSudoku.InputStream = func() <-chan []byte {
+		ch := make(chan []byte)
 		go func() {
 			defer close(ch)
-			for line := range lines() {
-				ch <- string(line)
+			data, err := os.ReadFile(args[1])
+			if err != nil {
+				log.Fatal(err)
+			}
+			for len(data) > 0 {
+				line, rest, _ := bytes.Cut(data, []byte{'\n'})
+				ch <- line
+				data = rest
 			}
 		}()
 		return ch
 	}()
-	dlxSudoku.DoWork = func(line string) [][]byte {
+	dlxSudoku.DoWork = func(line []byte) [][]byte {
 		xc := dlx.NewDancer()
-		res := xc.Dance(sudokuDLX(strings.NewReader(line)))
-		ans := []byte(line)
+		ans := []byte(string(line))
+		res := xc.Dance(sudokuDLX(bytes.NewReader(line)))
 		for _, opt := range <-res.Solutions {
 			x := int(opt[0][1] - '0')
 			y := int(opt[0][2] - '0')
