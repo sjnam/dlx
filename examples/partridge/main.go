@@ -90,6 +90,8 @@ func main() {
 	go func() {
 		for {
 			select {
+			case <-ctx.Done():
+				return
 			case st, ok := <-res.Heartbeat:
 				if !ok {
 					return

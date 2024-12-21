@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 
 	"github.com/sjnam/dlx"
@@ -120,8 +122,7 @@ func main() {
 		'C': make([]string, 5),
 	}
 
-	solution := <-res.Solutions
-	for _, opt := range solution {
+	for _, opt := range <-res.Solutions {
 		opt = opt[1:]
 		for _, nd := range opt {
 			kv := strings.Split(nd, ":")
@@ -129,9 +130,9 @@ func main() {
 		}
 	}
 
-	for _, line := range answer {
-		for _, v := range line {
-			fmt.Printf("%-12s", v)
+	for lines := range maps.Values(answer) {
+		for l := range slices.Values(lines) {
+			fmt.Printf("%-12s", l)
 		}
 		fmt.Println()
 	}

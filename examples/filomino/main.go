@@ -48,8 +48,7 @@ func main() {
 		box[i] = make([]int, nc)
 	}
 
-	solution := <-res.Solutions
-	for _, opt := range solution {
+	for _, opt := range <-res.Solutions {
 		n := 0
 		var coor [][2]int
 		for _, c := range opt {
