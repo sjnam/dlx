@@ -13,6 +13,8 @@ import (
 	"github.com/sjnam/ofanin"
 )
 
+type que [81]byte
+
 func sudokuDLX(rd io.Reader) io.Reader {
 	var c, j int
 	var pos, row, col, box [9][9]int
@@ -113,9 +115,9 @@ func main() {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	dlxSudoku := ofanin.NewOrderedFanIn[[]byte, [][]byte](ctx)
-	dlxSudoku.InputStream = func() <-chan []byte {
-		ch := make(chan []byte)
+	dlxSudoku := ofanin.NewOrderedFanIn[que, [2]que](ctx)
+	dlxSudoku.InputStream = func() <-chan que {
+		ch := make(chan que)
 		go func() {
 			defer close(ch)
 			data, err := os.ReadFile(args[1])
@@ -124,22 +126,22 @@ func main() {
 			}
 			for len(data) > 0 {
 				line, rest, _ := bytes.Cut(data, []byte{'\n'})
-				ch <- line
+				ch <- que(line)
 				data = rest
 			}
 		}()
 		return ch
 	}()
-	dlxSudoku.DoWork = func(line []byte) [][]byte {
+	dlxSudoku.DoWork = func(q que) [2]que {
 		xc := dlx.NewDancer()
-		ans := bytes.Clone(line)
-		res := xc.Dance(sudokuDLX(bytes.NewReader(line)))
+		a := q
+		res := xc.Dance(sudokuDLX(bytes.NewReader(q[:])))
 		for _, opt := range <-res.Solutions {
 			x := int(opt[0][1] - '0')
 			y := int(opt[0][2] - '0')
-			ans[x*9+y] = opt[1][2]
+			a[x*9+y] = byte(opt[1][2])
 		}
-		return [][]byte{[]byte(line), ans}
+		return [2]que{q, a}
 	}
 
 	i := 0
