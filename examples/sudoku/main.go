@@ -13,18 +13,14 @@ import (
 	"github.com/sjnam/ofanin"
 )
 
-type que [81]byte
+type puzzle [81]byte
 
-func sudokuDLX(rd io.Reader) io.Reader {
+func sudokuDLX(line puzzle) io.Reader {
 	var c, j int
 	var pos, row, col, box [9][9]int
-	buf := make([]byte, 9)
 
-	for {
-		if _, err := io.ReadFull(rd, buf); err == io.EOF {
-			break
-		}
-
+	for i := 0; i < 81; i += 9 {
+		buf := line[i : i+9]
 		for k := 0; k < 9; k++ {
 			if buf[k] >= '1' && buf[k] <= '9' {
 				d := int(buf[k] - '1')
@@ -111,13 +107,16 @@ func main() {
 	}
 
 	start := time.Now()
+	defer func() {
+		fmt.Printf("Solving took: %v\n", time.Since(start))
+	}()
 
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	dlxSudoku := ofanin.NewOrderedFanIn[que, [2]que](ctx)
-	dlxSudoku.InputStream = func() <-chan que {
-		ch := make(chan que)
+	dlxSudoku := ofanin.NewOrderedFanIn[puzzle, [2]puzzle](ctx)
+	dlxSudoku.InputStream = func() <-chan puzzle {
+		ch := make(chan puzzle)
 		go func() {
 			defer close(ch)
 			data, err := os.ReadFile(args[1])
@@ -126,22 +125,22 @@ func main() {
 			}
 			for len(data) > 0 {
 				line, rest, _ := bytes.Cut(data, []byte{'\n'})
-				ch <- que(line)
+				ch <- puzzle(line)
 				data = rest
 			}
 		}()
 		return ch
 	}()
-	dlxSudoku.DoWork = func(q que) [2]que {
+	dlxSudoku.DoWork = func(q puzzle) [2]puzzle {
 		xc := dlx.NewDancer()
 		a := q
-		res := xc.Dance(sudokuDLX(bytes.NewReader(q[:])))
+		res := xc.Dance(sudokuDLX(q))
 		for _, opt := range <-res.Solutions {
 			x := int(opt[0][1] - '0')
 			y := int(opt[0][2] - '0')
 			a[x*9+y] = byte(opt[1][2])
 		}
-		return [2]que{q, a}
+		return [2]puzzle{q, a}
 	}
 
 	i := 0
@@ -150,6 +149,4 @@ func main() {
 		fmt.Printf("Q[%5d]: %s\n", i, s[0])
 		fmt.Printf("A[%5d]: %s\n", i, s[1])
 	}
-
-	fmt.Printf("Solving took: %v\n", time.Since(start))
 }
