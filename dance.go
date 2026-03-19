@@ -177,6 +177,16 @@ func (m *MCC) untweak(c, x, unblock int) {
 	}
 }
 
+type danceState int
+
+const (
+	stForward  danceState = iota
+	stAdvance
+	stBackup
+	stBackdown
+	stDone
+)
+
 // Dance generates all exact covers
 func (m *MCC) Dance(rd io.Reader) *Result {
 	if err := m.inputMatrix(rd); err != nil {
@@ -194,6 +204,7 @@ func (m *MCC) Dance(rd io.Reader) *Result {
 			bestItm, curNode int
 			bestL, bestS     int
 			level, maxl      int // maximum level actually reached
+			score            int
 			cl, nd           = m.cl, m.nd
 			choice, scor     [maxLevel]int
 			firstTweak       [maxLevel]int
@@ -201,6 +212,7 @@ func (m *MCC) Dance(rd io.Reader) *Result {
 		)
 
 		pulse := time.NewTicker(m.PulseInterval)
+		defer pulse.Stop()
 		sendPulse := func() {
 			select {
 			case heartbeat <- fmt.Sprintf("L(%d/%d): %d sols so far",
@@ -209,193 +221,206 @@ func (m *MCC) Dance(rd io.Reader) *Result {
 			}
 		}
 
-	forward:
-		nodes++
-		select {
-		case <-m.ctx.Done():
-			return
-		case <-pulse.C:
-			sendPulse()
-		default:
-		}
-		// Set bestItm to the best item for branching,
-		// and let score be its branching degree
-		score := infty
-		for k := cl[root].next; k != root; k = cl[k].next {
-			s := cl[k].slack
-			if s > cl[k].bound {
-				s = cl[k].bound
-			}
-			t := nd[k].itm + s - cl[k].bound + 1
-			if t <= score {
-				if t < score || s < bestS || (s == bestS && nd[k].itm > bestL) {
-					score = t
-					bestItm = k
-					bestS = s
-					bestL = nd[k].itm
-				}
-			}
-		}
-
-		if score <= 0 { // not enough options left in this item
-			goto backdown
-		}
-		if score == infty { // Visit a solution and goto backdown
-			sol := make([]Option, level)
-			for k := 0; k < level; k++ {
-				pp := choice[k]
-				cc := nd[pp].itm
-				if pp < m.lastItm {
-					cc = pp
-				}
-				head := firstTweak[k]
-				if head == 0 {
-					head = nd[cc].down
-				}
-				sol[k] = m.option(pp, head, scor[k])
-			}
-
-			select {
-			case <-m.ctx.Done():
-				goto done
-			case <-pulse.C:
-				sendPulse()
-			case solStream <- sol:
-			}
-
+		st := stForward
+		countSol := func() {
 			count++
 			if count >= maxCount {
-				goto done
-			}
-			goto backdown
-		}
-
-		scor[level] = score
-		firstTweak[level] = 0
-
-		choice[level] = nd[bestItm].down
-		curNode = nd[bestItm].down
-		cl[bestItm].bound--
-
-		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			m.cover(bestItm, true)
-		} else {
-			firstTweak[level] = curNode
-			if cl[bestItm].bound == 0 {
-				m.cover(bestItm, true)
-			}
-		}
-
-	advance: // If curNode is off limits, goto backup; also tweak if needed
-		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			if curNode == bestItm {
-				goto backup
-			}
-		} else if nd[bestItm].itm <= cl[bestItm].bound-cl[bestItm].slack {
-			goto backup
-		} else if curNode != bestItm {
-			m.tweak(curNode, cl[bestItm].bound)
-		} else if cl[bestItm].bound != 0 {
-			p, q := cl[bestItm].prev, cl[bestItm].next
-			cl[p].next, cl[q].prev = q, p
-		}
-
-		if m.Debug {
-			fmt.Fprintf(os.Stderr, "L%d: ", level)
-			if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-				m.option(curNode, nd[bestItm].down, score)
+				st = stDone
 			} else {
-				m.option(curNode, firstTweak[level], score)
+				st = stBackdown
 			}
 		}
 
-		if curNode > m.lastItm {
-			// Cover or partially cover all other items of curNode's option
-			for pp := curNode + 1; pp != curNode; {
-				cc := nd[pp].itm
-				if cc <= 0 {
-					pp = nd[pp].up
-				} else {
-					if cc < m.second {
-						cl[cc].bound--
-						if cl[cc].bound == 0 {
-							m.cover(cc, true)
+		for ; st != stDone; {
+			switch st {
+			case stForward:
+				nodes++
+				select {
+				case <-m.ctx.Done():
+					st = stDone
+					continue
+				case <-pulse.C:
+					sendPulse()
+				default:
+				}
+
+				// Set bestItm to the best item for branching,
+				// and let score be its branching degree
+				score = infty
+				for k := cl[root].next; k != root; k = cl[k].next {
+					s := cl[k].slack
+					if s > cl[k].bound {
+						s = cl[k].bound
+					}
+					t := nd[k].itm + s - cl[k].bound + 1
+					if t <= score {
+						if t < score || s < bestS || (s == bestS && nd[k].itm > bestL) {
+							score = t
+							bestItm = k
+							bestS = s
+							bestL = nd[k].itm
 						}
+					}
+				}
+
+				if score <= 0 { // not enough options left in this item
+					st = stBackdown
+				} else if score == infty { // visit a solution
+					sol := make([]Option, level)
+					for k := 0; k < level; k++ {
+						pp := choice[k]
+						cc := nd[pp].itm
+						if pp < m.lastItm {
+							cc = pp
+						}
+						head := firstTweak[k]
+						if head == 0 {
+							head = nd[cc].down
+						}
+						sol[k] = m.option(pp, head, scor[k])
+					}
+					select {
+					case <-m.ctx.Done():
+						st = stDone
+					case <-pulse.C:
+						sendPulse()
+						countSol()
+					case solStream <- sol:
+						countSol()
+					}
+				} else {
+					scor[level] = score
+					firstTweak[level] = 0
+					choice[level] = nd[bestItm].down
+					curNode = nd[bestItm].down
+					cl[bestItm].bound--
+
+					if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
+						m.cover(bestItm, true)
 					} else {
-						if nd[pp].color == 0 {
-							m.cover(cc, true)
-						} else if nd[pp].color > 0 {
-							m.purify(pp)
+						firstTweak[level] = curNode
+						if cl[bestItm].bound == 0 {
+							m.cover(bestItm, true)
 						}
 					}
-					pp++
+					st = stAdvance
 				}
-			}
-		}
 
-		// Increase level and goto forward
-		level++
-		if level > maxl {
-			if level >= maxLevel {
-				panic("too many levels")
-			}
-			maxl = level
-		}
-		goto forward
-
-	backup: // Restore the original state of bestItm
-		if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
-			m.uncover(bestItm, true)
-		} else {
-			m.untweak(bestItm, firstTweak[level], cl[bestItm].bound)
-		}
-		cl[bestItm].bound++
-
-	backdown:
-		if level == 0 {
-			goto done
-		}
-		level--
-		curNode = choice[level]
-		bestItm = nd[curNode].itm
-		score = scor[level]
-
-		if curNode < m.lastItm {
-			// Reactivate bestItm and goto backup
-			bestItm = curNode
-			p, q := cl[bestItm].prev, cl[bestItm].next
-			cl[q].prev, cl[p].next = bestItm, bestItm // reactivate bestItm
-			goto backup
-		}
-
-		// Uncover or partially uncover all other items of curNode's option
-		for pp := curNode - 1; pp != curNode; {
-			cc := nd[pp].itm
-			if cc <= 0 {
-				pp = nd[pp].down
-			} else {
-				if cc < m.second {
-					if cl[cc].bound == 0 {
-						m.uncover(cc, true)
+			case stAdvance: // If curNode is off limits, go to backup; also tweak if needed
+				if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
+					if curNode == bestItm {
+						st = stBackup
+						break
 					}
-					cl[cc].bound++
+				} else if nd[bestItm].itm <= cl[bestItm].bound-cl[bestItm].slack {
+					st = stBackup
+					break
+				} else if curNode != bestItm {
+					m.tweak(curNode, cl[bestItm].bound)
+				} else if cl[bestItm].bound != 0 {
+					p, q := cl[bestItm].prev, cl[bestItm].next
+					cl[p].next, cl[q].prev = q, p
+				}
+
+				if m.Debug {
+					fmt.Fprintf(os.Stderr, "L%d: ", level)
+					if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
+						m.option(curNode, nd[bestItm].down, score)
+					} else {
+						m.option(curNode, firstTweak[level], score)
+					}
+				}
+
+				if curNode > m.lastItm {
+					// Cover or partially cover all other items of curNode's option
+					for pp := curNode + 1; pp != curNode; {
+						cc := nd[pp].itm
+						if cc <= 0 {
+							pp = nd[pp].up
+						} else {
+							if cc < m.second {
+								cl[cc].bound--
+								if cl[cc].bound == 0 {
+									m.cover(cc, true)
+								}
+							} else {
+								if nd[pp].color == 0 {
+									m.cover(cc, true)
+								} else if nd[pp].color > 0 {
+									m.purify(pp)
+								}
+							}
+							pp++
+						}
+					}
+				}
+
+				// Increase level and go forward
+				level++
+				if level > maxl {
+					if level >= maxLevel {
+						panic("too many levels")
+					}
+					maxl = level
+				}
+				st = stForward
+
+			case stBackup: // Restore the original state of bestItm
+				if cl[bestItm].bound == 0 && cl[bestItm].slack == 0 {
+					m.uncover(bestItm, true)
 				} else {
-					if nd[pp].color == 0 {
-						m.uncover(cc, true)
-					} else if nd[pp].color > 0 {
-						m.unpurify(pp)
+					m.untweak(bestItm, firstTweak[level], cl[bestItm].bound)
+				}
+				cl[bestItm].bound++
+				st = stBackdown
+
+			case stBackdown:
+				if level == 0 {
+					st = stDone
+					break
+				}
+				level--
+				curNode = choice[level]
+				bestItm = nd[curNode].itm
+				score = scor[level]
+
+				if curNode < m.lastItm {
+					// Reactivate bestItm and go to backup
+					bestItm = curNode
+					p, q := cl[bestItm].prev, cl[bestItm].next
+					cl[q].prev, cl[p].next = bestItm, bestItm
+					st = stBackup
+					break
+				}
+
+				// Uncover or partially uncover all other items of curNode's option
+				for pp := curNode - 1; pp != curNode; {
+					cc := nd[pp].itm
+					if cc <= 0 {
+						pp = nd[pp].down
+					} else {
+						if cc < m.second {
+							if cl[cc].bound == 0 {
+								m.uncover(cc, true)
+							}
+							cl[cc].bound++
+						} else {
+							if nd[pp].color == 0 {
+								m.uncover(cc, true)
+							} else if nd[pp].color > 0 {
+								m.unpurify(pp)
+							}
+						}
+						pp--
 					}
 				}
-				pp--
+
+				choice[level] = nd[curNode].down
+				curNode = nd[curNode].down
+				st = stAdvance
 			}
 		}
 
-		choice[level] = nd[curNode].down
-		curNode = nd[curNode].down
-
-		goto advance
-
-	done:
 		if m.Debug {
 			s := ""
 			if count > 1 {
