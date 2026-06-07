@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/sjnam/dlx"
@@ -65,6 +66,8 @@ func sudokuDLX(line puzzle) io.Reader {
 }
 
 func main() {
+	debug.SetGCPercent(400)
+
 	args := os.Args
 	if len(args) != 2 {
 		log.Fatalf("usage: %s file\n", args[0])
@@ -113,4 +116,6 @@ func main() {
 		fmt.Printf("Q[%5d]: %s\n", i, s[0])
 		fmt.Printf("A[%5d]: %s\n", i, s[1])
 	}
+
+	dlxSudoku.Lookahead = 8
 }

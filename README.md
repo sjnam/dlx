@@ -1,9 +1,11 @@
 # Covering with multiplicities and colors via Dancing Links
+
 Go implementation of Donald Knuth's Algorithm 7.2.2.1M
 for covering with multiplicities and colors. This implementation is based on the
-Algorithm M described in https://www-cs-faculty.stanford.edu/~knuth/fasc5c.ps.gz
+Algorithm M described in <https://www-cs-faculty.stanford.edu/~knuth/fasc5c.ps.gz>
 
 ## Usage
+
 ````go
 package main
 
@@ -48,16 +50,18 @@ C Y:1
 ## Examples
 
 ### Langford pairing
-````
+
+````console
 $ cd examples/langford
 $ go run main.go 4
 [2 3 4 2 1 3 1 4]
 ````
 
 ### Pentominoes
+
 - 12 pieces: **O P Q R S T U V W X Y Z**
 
-````
+````console
 $ cd example/pentominoes
 $ go run main.go 8x8.dlx
 Solution: 1
@@ -94,7 +98,8 @@ O U U Y Y Y Y T
 ````
 
 ### Nqueen
-````
+
+````console
 $ go run examples/queen/main.go 8
 1:
 Q . . . . . . . 
@@ -120,7 +125,8 @@ Q . . . . . . .
 ````
 
 ### Sudoku
-````
+
+````console
 $ cd examples/sudoku
 $ go run main.go puzzles.txt
 Q[    1]: ..43..2.9..5..9..1.7..6..43..6..2.8719...74...5..83...6.....1.5..35.869..4291.3..
@@ -138,11 +144,12 @@ Q[70098]: ..2.....9.3...25....61..37..........2..4..13...7..6.4...18.....76...54
 A[70098]: 472653819138792564956148372694531287285479136317286945521864793763915428849327651
 Q[70099]: .3............1..87..58........24.5..4.8739....36.....9.......2..5..2.912.....7.4
 A[70099]: 438297165659431278721586349167924853542873916893615427974168532385742691216359784
-Solving took: 6.535064875s
+Solving took: 4.341339791s
 ````
 
 ### Filomino
-````
+
+````console
 $ cd examples/filomino
 
 | ..3.3...3.
@@ -169,10 +176,11 @@ $ go run main.go 10x10.filomino.dlx
 1 2 2 3 4 6 6 6 3 3 
 ````
 
+### Word Search
 
-### Word Search 
-What is Word search? https://thewordsearch.com/
-````
+What is Word search? <https://thewordsearch.com/>
+
+````console
 $ cd examples/wordsearch
 $ go run main.go movie.txt 13 13
 봄게하대위게하밀은마기생충
@@ -207,8 +215,8 @@ F F O K R A M E E T I M R E H
 E K N O P P L E S N E H X S N 
 ````
 
-
 ### Zebra puzzle
+
 Five people, from five different countries, have five different occupations,
 own five different pets, drink five different beverages, and live in a row of
 five different colored houses.
@@ -230,7 +238,7 @@ five different colored houses.
 
 Who trains the zebra, and who prefers to drink just plain water?
 
-````
+````console
 $ go run examples/zebra/main.go
 Norway      Ukraine     England     Spain       Japan       
 diplomat    nurse       sculptor    violinist   painter     
@@ -240,7 +248,8 @@ yellow      blue        red         white       green
 ````
 
 ### Partridge puzzle
-````
+
+````console
 $ go run example/partridge/main.go
 ┌───────┬───────┬───────────────────┬───────────────────────────┬───────────────────────────┬───────────────────────────┬───────────────────────┐
 │ 2     │ 2     │                   │                           │                           │                           │                       │

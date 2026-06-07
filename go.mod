@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/gookit/color v1.6.1
-	github.com/sjnam/ofanin v0.2.3
+	github.com/sjnam/ofanin v0.2.4
 )
 
 require (
