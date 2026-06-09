@@ -180,7 +180,7 @@ func (m *MCC) untweak(c, x, unblock int) {
 type danceState int
 
 const (
-	stForward  danceState = iota
+	stForward danceState = iota
 	stAdvance
 	stBackup
 	stBackdown
@@ -231,7 +231,7 @@ func (m *MCC) Dance(rd io.Reader) *Result {
 			}
 		}
 
-		for ; st != stDone; {
+		for st != stDone {
 			switch st {
 			case stForward:
 				nodes++
