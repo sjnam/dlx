@@ -67,11 +67,15 @@ func fillBoard(n int, sol []dlx.Option) (size, tile [][]int) {
 }
 
 // printBoard draws the tiling as a Unicode box-drawing diagram.
-// Cell width W=3 compensates for the ~2:1 terminal character height/width ratio,
-// making each tile appear approximately square.
+//
+// To stay compact while keeping each tile roughly square, every base cell maps
+// to a single text row (1 tall) and one interior column (1 wide), so the board
+// is 2N+1 chars wide and N+1 rows tall. Each text row merges the horizontal grid
+// line at the top of a cell row with that row's interior, rather than spending a
+// separate row on it. With the terminal's ~2:1 character height/width ratio, a
+// k×k tile renders as (2k-1)×k characters, which displays approximately square.
 func printBoard(size, tile [][]int) {
 	N := len(tile)
-	const W = 3 // chars per cell interior; 3 wide × 1 tall ≈ square with 2:1 font ratio
 
 	tileAt := func(r, c int) int {
 		if r < 0 || r >= N || c < 0 || c >= N {
@@ -90,7 +94,9 @@ func printBoard(size, tile [][]int) {
 		return c == 0 || c == N || tileAt(r, c) != tileAt(r, c-1)
 	}
 
-	// Determine label position (center cell) for each tile.
+	// Label each tile in its bottom-right cell, where the cell's top edge is
+	// interior to the tile (no horizontal line to collide with). A 1×1 tile has
+	// no such cell — its only row is also its top border — so it stays blank.
 	type pos struct{ r, c int }
 	tileCells := make(map[int][]pos)
 	for r := 0; r < N; r++ {
@@ -103,17 +109,18 @@ func printBoard(size, tile [][]int) {
 		label[i] = make([]int, N)
 	}
 	for _, cells := range tileCells {
-		minR, minC := cells[0].r, cells[0].c
+		maxR, maxC := cells[0].r, cells[0].c
 		for _, p := range cells {
-			if p.r < minR {
-				minR = p.r
+			if p.r > maxR {
+				maxR = p.r
 			}
-			if p.c < minC {
-				minC = p.c
+			if p.c > maxC {
+				maxC = p.c
 			}
 		}
-		s := size[cells[0].r][cells[0].c]
-		label[minR+(s-1)/2][minC+(s-1)/2] = s
+		if s := size[cells[0].r][cells[0].c]; s > 1 {
+			label[maxR][maxC] = s
+		}
 	}
 
 	junc := [16]rune{
@@ -124,61 +131,34 @@ func printBoard(size, tile [][]int) {
 	}
 
 	var sb strings.Builder
-	for dr := 0; dr <= 2*N; dr++ {
+	for r := 0; r <= N; r++ {
 		sb.Reset()
-		if dr%2 == 0 {
-			// Border row: junctions and W-char horizontal segments.
-			r := dr / 2
-			for c := 0; c <= N; c++ {
-				b := 0
-				if r > 0 && vBorder(r-1, c) {
-					b |= 8
-				}
-				if r < N && vBorder(r, c) {
-					b |= 4
-				}
-				if c > 0 && hBorder(r, c-1) {
-					b |= 2
-				}
-				if c < N && hBorder(r, c) {
-					b |= 1
-				}
-				sb.WriteRune(junc[b])
-				if c < N {
-					seg := ' '
-					if hBorder(r, c) {
-						seg = '─'
-					}
-					for range W {
-						sb.WriteRune(seg)
-					}
-				}
+		for c := 0; c <= N; c++ {
+			// Junction at the top-left corner of cell (r, c): vertical edges run
+			// up (row r-1) and down (row r); horizontal edges run left and right.
+			b := 0
+			if r > 0 && vBorder(r-1, c) {
+				b |= 8
 			}
-		} else {
-			// Content row: vertical borders and W-char cell interiors.
-			r := (dr - 1) / 2
-			for c := 0; c <= N; c++ {
-				if vBorder(r, c) {
-					sb.WriteRune('│')
-				} else {
+			if r < N && vBorder(r, c) {
+				b |= 4
+			}
+			if c > 0 && hBorder(r, c-1) {
+				b |= 2
+			}
+			if c < N && hBorder(r, c) {
+				b |= 1
+			}
+			sb.WriteRune(junc[b])
+
+			if c < N {
+				switch {
+				case hBorder(r, c):
+					sb.WriteRune('─')
+				case label[r][c] > 0:
+					sb.WriteRune(rune('0' + label[r][c]))
+				default:
 					sb.WriteRune(' ')
-				}
-				if c < N {
-					if lbl := label[r][c]; lbl > 0 {
-						// Center the digit within W chars.
-						pad := (W - 1) / 2
-						for range pad {
-							sb.WriteRune(' ')
-						}
-						sb.WriteRune(rune('0' + lbl))
-						for range W - pad - 1 {
-							sb.WriteRune(' ')
-						}
-					} else {
-						for range W {
-							sb.WriteRune(' ')
-						}
-					}
 				}
 			}
 		}
